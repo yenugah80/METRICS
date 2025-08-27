@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Food Detecting Assistant — Image · Barcode · Text/Voice</title>
+  <style>
+    :root {
+      --bg: #0f172a;        /* slate-900 */
+      --card: #111827;      /* gray-900 */
+      --muted: #94a3b8;     /* slate-400 */
+      --ring: #6366f1;      /* indigo-500 */
+      --ok: #10b981;        /* emerald-500 */
+      --warn: #f59e0b;      /* amber-500 */
+      --bad: #ef4444;       /* red-500 */
+      --chip: #1f2937;      /* gray-800 */
+      --text: #e5e7eb;      /* gray-200 */
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+      Noto Sans, sans-serif; background: linear-gradient(180deg, #0b1220, #0f172a 30%);
+      color: var(--text);
+    }
+
+    header {
+      padding: 28px 20px; text-align: center; position: sticky; top: 0; backdrop-filter: blur(6px);
+      background: rgba(15,23,42,0.6); border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .sub { color: var(--muted); font-size: 14px; }
+
+    .container { max-width: 1100px; margin: 24px auto 60px; padding: 0 16px; }
+
+    .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; padding: 16px; box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+    }
+
+    .section-title { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px; }
+
+    .controls { display: grid; gap: 12px; grid-template-columns: repeat(12, 1fr); align-items: end; }
+    .controls > * { grid-column: span 12; }
+    .row-6 { grid-column: span 6; }
+    .row-4 { grid-column: span 4; }
+    .row-8 { grid-column: span 8; }
+
+    label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+
+    input[type="file"], input[type="text"], button {
+      width: 100%;
+      border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+      background: #0b1220; color: var(--text); padding: 12px 14px; font-size: 15px;
+      outline: none; transition: box-shadow .2s, border-color .2s; height: 44px;
+    }
+    input[type="text"]:focus { border-color: var(--ring); box-shadow: 0 0 0 3px rgba(99,102,241,0.25); }
+
+    button { cursor: pointer; background: linear-gradient(160deg, #4f46e5, #2563eb); border: none; font-weight: 600; }
+    button.secondary { background: #0b1220; border: 1px solid rgba(255,255,255,0.1); }
+    button.ghost { background: transparent; border: 1px dashed rgba(255,255,255,0.2); }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+
+    .panel { display: grid; gap: 14px; }
+
+    .preview {
+      background: #0b1220; border: 1px dashed rgba(255,255,255,0.2); border-radius: 16px; padding: 12px;
+      display: grid; grid-template-columns: 1fr; place-items: center; min-height: 240px;
+    }
+    .preview img, .preview canvas { max-width: 100%; max-height: 420px; border-radius: 12px; display: none; }
+    .preview .placeholder { color: var(--muted); font-size: 14px; }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .badge { background: var(--chip); color: #cbd5e1; padding: 6px 10px; border-radius: 999px; font-size: 12px; border:1px solid rgba(255,255,255,0.06); }
+
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    @media (max-width: 680px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+    .kpi { background: #0b1220; border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; }
+    .kpi .label { color: var(--muted); font-size: 12px; }
+    .kpi .value { font-size: 18px; font-weight: 700; margin-top: 4px; }
+
+    .nutri-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .nutri-table th, .nutri-table td { text-align: left; padding: 10px; border-bottom: 1px dashed rgba(255,255,255,0.08); font-size: 14px; }
+
+    .status { font-size: 14px; color: var(--muted); }
+
+    .pill { padding: 6px 10px; border-radius: 999px; color: #0b1220; font-weight: 700; font-size: 12px; }
+    .pill.ok { background: var(--ok); }
+    .pill.warn { background: var(--warn); }
+    .pill.bad { background: var(--bad); }
+
+    .suggestions { display: grid; gap: 10px; }
+    .suggestions .item { background: #0b1220; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; }
+
+    .footer-note { color: var(--muted); font-size: 12px; margin-top: 12px; }
+    .small { font-size: 12px; color: var(--muted); }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🍎 Food Detecting Assistant</h1>
+    <div class="sub">Upload an image (barcode or label), type a name, or speak. I’ll detect the product, parse ingredients & nutriments, and give smart suggestions.</div>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <!-- LEFT: Inputs & Preview -->
+      <section class="card panel">
+        <div class="section-title">Inputs</div>
+        <div class="controls">
+          <div class="row-6">
+            <label for="fileInput">Upload image (photo of barcode, label, or food)</label>
+            <input id="fileInput" type="file" accept="image/*" />
+          </div>
+          <div class="row-6">
+            <label for="textQuery">Type a product/food name</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input id="textQuery" type="text" placeholder="e.g., Greek yogurt, Coca-Cola 12oz, Almond butter" />
+              <button id="searchBtn" class="secondary" style="width:140px;">Search</button>
+            </div>
+            <div class="small">Tip: add brand + size for better matches.</div>
+          </div>
+
+          <div class="row-8">
+            <label>Voice (experimental)</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button id="voiceBtn">🎙️ Start Voice</button>
+              <button id="stopVoiceBtn" class="ghost">Stop</button>
+              <span id="voiceStatus" class="status"></span>
+            </div>
+            <div class="small">Uses the browser's Web Speech API; best in Chrome.</div>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-top:8px;">Preview</div>
+        <div class="preview" id="previewBox">
+          <div class="placeholder">No image yet. Upload a photo to auto-scan for barcodes and text.</div>
+          <img id="previewImg" alt="Preview" />
+          <canvas id="drawCanvas"></canvas>
+        </div>
+
+        <div id="progress" class="status"></div>
+      </section>
+
+      <!-- RIGHT: Results -->
+      <section class="card panel">
+        <div class="section-title">Results</div>
+
+        <div id="headline" class="badges"></div>
+
+        <div class="kpis">
+          <div class="kpi"><div class="label">Calories (100g)</div><div class="value" id="kcal">—</div></div>
+          <div class="kpi"><div class="label">Protein (100g)</div><div class="value" id="protein">—</div></div>
+          <div class="kpi"><div class="label">Carbs (100g)</div><div class="value" id="carbs">—</div></div>
+          <div class="kpi"><div class="label">Fat (100g)</div><div class="value" id="fat">—</div></div>
+        </div>
+
+        <table class="nutri-table">
+          <tbody>
+            <tr><th>Barcode</th><td id="barcode">—</td></tr>
+            <tr><th>Name</th><td id="name">—</td></tr>
+            <tr><th>Brand</th><td id="brand">—</td></tr>
+            <tr><th>Serving</th><td id="serving">—</td></tr>
+            <tr><th>Ingredients</th><td id="ingredients">—</td></tr>
+            <tr><th>Allergens</th><td id="allergens">—</td></tr>
+            <tr><th>Labels</th><td id="labels">—</td></tr>
+            <tr><th>Micros (100g)</th><td id="micros">—</td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-title" style="margin-top:14px;">Health flags</div>
+        <div id="flags" class="badges"></div>
+
+        <div class="section-title" style="margin-top:14px;">Suggestions</div>
+        <div id="suggestions" class="suggestions"></div>
+
+        <div class="footer-note">Data sources: OpenFoodFacts (when available), OCR, and on-device food classification for fallback. Estimates may vary. Always verify for medical needs.</div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Vendor libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.12.2/ml5.min.js"></script>
+
+  <script>
+    // ---------------------------
+    // Helpers & DOM refs
+    // ---------------------------
+    const $ = (id) => document.getElementById(id);
+
+    const els = {
+      file: $('fileInput'),
+      previewBox: $('previewBox'),
+      img: $('previewImg'),
+      canvas: $('drawCanvas'),
+      progress: $('progress'),
+
+      text: $('textQuery'),
+      searchBtn: $('searchBtn'),
+      voiceBtn: $('voiceBtn'),
+      stopVoiceBtn: $('stopVoiceBtn'),
+      voiceStatus: $('voiceStatus'),
+
+      barcode: $('barcode'), name: $('name'), brand: $('brand'), serving: $('serving'),
+      ingredients: $('ingredients'), allergens: $('allergens'), labels: $('labels'), micros: $('micros'),
+      kcal: $('kcal'), protein: $('protein'), carbs: $('carbs'), fat: $('fat'),
+      flags: $('flags'), suggestions: $('suggestions'), headline: $('headline')
+    };
+
+    function setStatus(msg) { els.progress.textContent = msg || ''; }
+    function clearResults() {
+      ['barcode','name','brand','serving','ingredients','allergens','labels','micros'].forEach(k => els[k].textContent = '—');
+      ['kcal','protein','carbs','fat'].forEach(k => els[k].textContent = '—');
+      els.flags.innerHTML = ''; els.suggestions.innerHTML = ''; els.headline.innerHTML = '';
+    }
+
+    function addBadge(target, text) {
+      const span = document.createElement('span');
+      span.className = 'badge'; span.textContent = text; target.appendChild(span);
+    }
+
+    function addFlag(text, type='warn') {
+      const span = document.createElement('span');
+      span.className = `pill ${type}`; span.textContent = text; els.flags.appendChild(span);
+    }
+
+    function addSuggestion(title, body) {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `<strong>${title}</strong><div class="small" style="margin-top:6px;">${body}</div>`;
+      els.suggestions.appendChild(div);
+    }
+
+    function fmt(v, suffix='g') { if (v===undefined || v===null || Number.isNaN(v)) return '—'; return `${(+v).toFixed(1)}${suffix}`; }
+
+    // Basic fallback nutrition table (per 100g) for common foods
+    const fallbackNutrition = {
+      "banana": { kcal: 89, protein: 1.1, carbs: 23, fat: 0.3, fiber: 2.6, sugar: 12.2, sodium: 0.001, vitamin_c: 0.009, potassium: 0.358 },
+      "apple": { kcal: 52, protein: 0.3, carbs: 14, fat: 0.2, fiber: 2.4, sugar: 10.4, sodium: 0.001, vitamin_c: 0.004, potassium: 0.107 },
+      "orange": { kcal: 47, protein: 0.9, carbs: 12, fat: 0.1, fiber: 2.4, sugar: 9.4, sodium: 0.0, vitamin_c: 0.053, potassium: 0.181 },
+      "bread": { kcal: 265, protein: 9, carbs: 49, fat: 3.2, fiber: 2.7, sugar: 5, sodium: 0.49, iron: 0.003 },
+      "rice": { kcal: 130, protein: 2.4, carbs: 28, fat: 0.3, fiber: 0.4, sodium: 0.001 },
+      "milk": { kcal: 64, protein: 3.3, carbs: 5, fat: 3.6, sugar: 5, calcium: 0.113, sodium: 0.044 },
+      "egg": { kcal: 155, protein: 13, carbs: 1.1, fat: 11, sodium: 0.124, iron: 0.002 },
+      "chicken breast": { kcal: 165, protein: 31, carbs: 0, fat: 3.6, sodium: 0.074 },
+      "almonds": { kcal: 579, protein: 21, carbs: 22, fat: 50, fiber: 12.5, iron: 0.003, magnesium: 0.268 },
+      "yogurt": { kcal: 61, protein: 3.5, carbs: 4.7, fat: 3.3, calcium: 0.121 },
+      "chips": { kcal: 536, protein: 7, carbs: 52, fat: 35, sodium: 0.525 },
+      "soda": { kcal: 41, protein: 0, carbs: 10.6, fat: 0, sugar: 10.6 }
+    };
+
+    // Allergen keywords (simple heuristic)
+    const ALLERGENS = ["milk","dairy","lactose","egg","soy","peanut","almond","walnut","cashew","pistachio","hazelnut","wheat","gluten","barley","rye","oat","fish","salmon","tuna","shellfish","shrimp","crab","sesame","mustard","sulfite"];
+
+    // ---------------------------
+    // Image handling
+    // ---------------------------
+    els.file.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      clearResults();
+      setStatus('Loading image…');
+
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        els.img.src = ev.target.result;
+        els.img.style.display = 'block';
+        $('drawCanvas').style.display = 'none';
+        els.previewBox.querySelector('.placeholder')?.classList.add('hidden');
+        await new Promise(r => els.img.onload = r);
+        setStatus('Scanning for barcode…');
+        await scanBarcode(ev.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ---------------------------
+    // Barcode scan (Quagga)
+    // ---------------------------
+    async function scanBarcode(imageData) {
+      return new Promise((resolve) => {
+        Quagga.decodeSingle({
+          src: imageData,
+          numOfWorkers: 0,
+          inputStream: { size: 1000 },
+          decoder: { readers: [ 'ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader' ] },
+          locate: true
+        }, async (result) => {
+          if (result && result.codeResult) {
+            const code = result.codeResult.code;
+            els.barcode.textContent = code;
+            drawBoxes(result);
+            setStatus('Barcode found. Fetching from OpenFoodFacts…');
+            await fetchByBarcode(code);
+            resolve(true);
+          } else {
+            setStatus('No barcode found. Running OCR & visual classification…');
+            await runOCRandClassify(imageData);
+            resolve(false);
+          }
+        });
+      });
+    }
+
+    function drawBoxes(result) {
+      try {
+        const canvas = els.canvas; const ctx = canvas.getContext('2d');
+        canvas.width = els.img.naturalWidth; canvas.height = els.img.naturalHeight;
+        ctx.drawImage(els.img, 0, 0);
+        if (result && result.boxes) {
+          ctx.lineWidth = 4; ctx.strokeStyle = '#22d3ee';
+          result.boxes.forEach(b => { if(!Array.isArray(b)) return; ctx.beginPath(); b.forEach((p,i)=> i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); ctx.stroke(); });
+        }
+        els.canvas.style.display = 'block'; els.img.style.display = 'none';
+      } catch (e) {}
+    }
+
+    // ---------------------------
+    // OCR (Tesseract) + ML classification (ml5 MobileNet)
+    // ---------------------------
+    async function runOCRandClassify(imageData) {
+      try {
+        setStatus('OCR in progress…');
+        const { data } = await Tesseract.recognize(imageData, 'eng', { logger: m => {/* console.log(m) */} });
+        const text = (data?.text || '').replace(/\n+/g,' ').trim();
+        if (text) {
+          addBadge(els.headline, 'OCR text detected');
+          await searchOpenFoodFacts(text);
+          // Parse ingredients out of OCR text if present
+          const ingMatch = text.match(/ingredients?\s*[:\-]?\s*([^\.]*)/i);
+          if (ingMatch) {
+            const ingText = ingMatch[1].trim();
+            els.ingredients.textContent = ingText;
+            tagAllergens(ingText);
+          }
+        }
+      } catch (e) {
+        console.warn('OCR error', e);
+      }
+
+      try {
+        setStatus('Classifying food visually (on-device)…');
+        const imgEl = els.img.style.display === 'block' ? els.img : els.canvas;
+        const classifier = await ml5.imageClassifier('MobileNet');
+        const results = await classifier.classify(imgEl);
+        if (results && results[0]) {
+          const label = String(results[0].label || '').toLowerCase();
+          addBadge(els.headline, `MobileNet: ${results[0].label}`);
+          const key = Object.keys(fallbackNutrition).find(k => label.includes(k));
+          if (key) {
+            applyNutrition({
+              source: 'visual-estimate',
+              product_name: key,
+              nutriments: mapFallbackToNutriments(fallbackNutrition[key])
+            });
+            addSuggestion('Estimated from image', 'Refine by scanning a barcode or typing a precise brand/size for accurate macros.');
+          }
+        }
+      } catch (e) {
+        console.warn('Classification error', e);
+      }
+
+      setStatus('');
+    }
+
+    function mapFallbackToNutriments(n) {
+      // Convert fallback keys to OFF nutriment keys (per 100g)
+      const out = {};
+      if (n.kcal!==undefined) out['energy-kcal_100g'] = n.kcal;
+      if (n.protein!==undefined) out['proteins_100g'] = n.protein;
+      if (n.carbs!==undefined) out['carbohydrates_100g'] = n.carbs;
+      if (n.fat!==undefined) out['fat_100g'] = n.fat;
+      if (n.fiber!==undefined) out['fiber_100g'] = n.fiber;
+      if (n.sugar!==undefined) out['sugars_100g'] = n.sugar;
+      if (n.sodium!==undefined) out['sodium_100g'] = n.sodium; // grams
+      if (n.calcium!==undefined) out['calcium_100g'] = n.calcium; // grams
+      if (n.iron!==undefined) out['iron_100g'] = n.iron; // grams
+      if (n.magnesium!==undefined) out['magnesium_100g'] = n.magnesium; // grams
+      if (n.potassium!==undefined) out['potassium_100g'] = n.potassium; // grams
+      if (n.vitamin_c!==undefined) out['vitamin-c_100g'] = n.vitamin_c; // grams
+      return out;
+    }
+
+    // ---------------------------
+    // OpenFoodFacts API
+    // ---------------------------
+    async function fetchByBarcode(code) {
+      try {
+        const url = `https://world.openfoodfacts.org/api/v0/product/${code}.json`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data?.status === 1) {
+          fillFromOFF(data.product, code);
+        } else {
+          setStatus('Product not found by barcode. Trying OCR text & search…');
+        }
+      } catch (e) {
+        setStatus('Error fetching by barcode.');
+        console.error(e);
+      }
+    }
+
+    async function searchOpenFoodFacts(query) {
+      if (!query || query.length < 3) return;
+      try {
+        setStatus('Searching OpenFoodFacts…');
+        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=1`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const p = data?.products?.[0];
+        if (p) fillFromOFF(p, p.code);
+      } catch (e) { console.warn('OFF search error', e); }
+    }
+
+    function fillFromOFF(product, code) {
+      clearResults();
+      if (code) els.barcode.textContent = code;
+      els.name.textContent = product.product_name || '—';
+      els.brand.textContent = product.brands || product.brand_owner || '—';
+      els.serving.textContent = product.serving_size || (product.serving_quantity ? product.serving_quantity + 'g' : '—');
+
+      const ingredients = product.ingredients_text || product.ingredients_text_en || product.ingredients_text_debug || '';
+      els.ingredients.textContent = ingredients || '—';
+      const labels = product.labels || product.labels_tags?.join(', ') || '';
+      els.labels.textContent = labels || '—';
+      const traces = product.traces || product.allergens || product.allergens_from_ingredients || '';
+      els.allergens.textContent = traces || '—';
+
+      if (ingredients) tagAllergens(ingredients + ' ' + traces);
+
+      applyNutrition({ source: 'openfoodfacts', product_name: product.product_name, nutriments: product.nutriments || {} });
+
+      addBadge(els.headline, product.nutriscore_grade ? `Nutri-Score: ${String(product.nutriscore_grade).toUpperCase()}` : 'OFF match');
+      if (product.categories) addBadge(els.headline, product.categories.split(',').slice(-1)[0].trim());
+
+      setStatus('');
+    }
+
+    function tagAllergens(text) {
+      const lower = text.toLowerCase();
+      const hits = ALLERGENS.filter(k => lower.includes(k));
+      if (hits.length) {
+        hits.forEach(h => addFlag(`Contains/mentions: ${h}`, 'bad'));
+      }
+    }
+
+    function applyNutrition({ source, product_name, nutriments }) {
+      // OFF uses many keys; read safe ones
+      const kcal = nutriments['energy-kcal_100g'] ?? nutriments['energy-kcal'] ?? (nutriments.energy_100g ? nutriments.energy_100g/4.184 : undefined);
+      const protein = nutriments['proteins_100g'];
+      const carbs = nutriments['carbohydrates_100g'];
+      const fat = nutriments['fat_100g'];
+      const sugars = nutriments['sugars_100g'];
+      const fiber = nutriments['fiber_100g'];
+      const sodium = nutriments['sodium_100g']; // grams per 100g
+      const sat = nutriments['saturated-fat_100g'];
+
+      els.kcal.textContent = kcal ? Math.round(kcal) + ' kcal' : '—';
+      els.protein.textContent = fmt(protein);
+      els.carbs.textContent = fmt(carbs);
+      els.fat.textContent = fmt(fat);
+
+      // Micros (show what's available)
+      const microKeys = [
+        ['salt_100g','Salt (g)'], ['sodium_100g','Sodium (g)'], ['fiber_100g','Fiber (g)'],
+        ['vitamin-c_100g','Vit C (g)'], ['iron_100g','Iron (g)'], ['calcium_100g','Calcium (g)'],
+        ['potassium_100g','Potassium (g)'], ['magnesium_100g','Magnesium (g)']
+      ];
+      const microParts = [];
+      microKeys.forEach(([k,lab])=>{ if (nutriments[k]!==undefined) microParts.push(`${lab}: ${fmt(nutriments[k])}`); });
+      els.micros.textContent = microParts.length ? microParts.join(' · ') : '—';
+
+      computeFlagsAndSuggestions({ kcal, protein, carbs, fat, sugars, fiber, sodium, sat, product_name });
+    }
+
+    function computeFlagsAndSuggestions({ kcal, protein, carbs, fat, sugars, fiber, sodium, sat, product_name }) {
+      els.flags.innerHTML=''; els.suggestions.innerHTML='';
+
+      // UK traffic light style thresholds (per 100g)
+      if (sugars!==undefined) {
+        if (sugars > 22.5) addFlag('High sugar', 'bad'); else if (sugars < 5) addFlag('Low sugar', 'ok'); else addFlag('Med sugar','warn');
+      }
+      if (sat!==undefined) {
+        if (sat > 5) addFlag('High saturated fat','bad'); else if (sat < 1.5) addFlag('Low saturated fat','ok'); else addFlag('Med saturated fat','warn');
+      }
+      if (sodium!==undefined) {
+        const salt = sodium * 2.5; // sodium g → salt g
+        if (salt > 1.5) addFlag('High salt','bad'); else if (salt < 0.3) addFlag('Low salt','ok'); else addFlag('Med salt','warn');
+      }
+      if (fiber!==undefined) {
+        if (fiber >= 6) addFlag('High fiber','ok'); else if (fiber < 3) addFlag('Low fiber','warn');
+      }
+      if (protein!==undefined) {
+        if (protein >= 10) addFlag('High protein','ok');
+      }
+
+      // Suggestions
+      if (sugars!==undefined && sugars > 22.5) {
+        addSuggestion('Cut sugar spike', 'Pair with protein/fiber (e.g., Greek yogurt, nuts) to slow absorption, or choose a low/zero-sugar alternative.');
+      }
+      if (sat!==undefined && sat > 5) {
+        addSuggestion('Swap for healthier fats', 'Look for versions cooked in canola/olive oil or choose baked/air-fried alternatives.');
+      }
+      if (sodium!==undefined && sodium * 2.5 > 1.5) {
+        addSuggestion('Mind the salt', 'Rinse canned foods or opt for low-sodium variants; hydrate well.');
+      }
+      if (fiber!==undefined && fiber < 3) {
+        addSuggestion('Boost fiber', 'Add veggies, legumes, or whole grains to this meal to reach ~25–30g/day.');
+      }
+      if (protein!==undefined && protein < 5) {
+        addSuggestion('Add protein', 'Consider eggs, tofu, yogurt, chicken, or legumes to balance macros.');
+      }
+
+      if (!els.ingredients.textContent || els.ingredients.textContent==='—') {
+        addSuggestion('No ingredient list detected', 'Try photographing the back label or type the product name for better parsing.');
+      }
+
+      if (product_name) addBadge(els.headline, product_name);
+    }
+
+    // ---------------------------
+    // Text search + Voice
+    // ---------------------------
+    els.searchBtn.addEventListener('click', () => {
+      const q = els.text.value.trim(); clearResults(); searchOpenFoodFacts(q);
+    });
+
+    let recognition = null;
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SR();
+      recognition.lang = 'en-US'; recognition.interimResults = false; recognition.maxAlternatives = 1;
+      recognition.onresult = (e) => {
+        const transcript = e.results[0][0].transcript; els.text.value = transcript; els.voiceStatus.textContent = `Heard: "${transcript}"`; searchOpenFoodFacts(transcript);
+      };
+      recognition.onerror = (e) => { els.voiceStatus.textContent = 'Voice error: ' + e.error; };
+      recognition.onend = () => { els.voiceBtn.disabled = false; els.stopVoiceBtn.disabled = true; els.voiceStatus.textContent += ' (stopped)'; };
+    }
+
+    els.voiceBtn.addEventListener('click', () => {
+      if (!recognition) { els.voiceStatus.textContent = 'SpeechRecognition not supported in this browser.'; return; }
+      try { recognition.start(); els.voiceBtn.disabled = true; els.stopVoiceBtn.disabled = false; els.voiceStatus.textContent = 'Listening…'; } catch {}
+    });
+    els.stopVoiceBtn.addEventListener('click', () => { try { recognition && recognition.stop(); } catch {} });
+
+  </script>
+</body>
+</html>

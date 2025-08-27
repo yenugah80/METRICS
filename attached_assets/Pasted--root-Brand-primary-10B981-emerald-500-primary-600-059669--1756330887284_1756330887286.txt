@@ -1,0 +1,72 @@
+:root{
+  /* Brand */
+  --primary:      #10B981; /* emerald-500 */
+  --primary-600:  #059669;
+  --primary-100:  #D1FAE5;
+
+  --secondary:    #8B5CF6; /* violet-500 */
+  --secondary-600:#7C3AED;
+  --secondary-100:#EDE9FE;
+
+  --accent:       #06B6D4; /* cyan-500 */
+  --accent-600:   #0891B2;
+  --accent-100:   #CFFAFE;
+
+  /* Premium highlight */
+  --premium:      #FACC15; /* amber-400 */
+  --premium-600:  #EAB308;
+  --premium-100:  #FEF3C7;
+
+  /* Backgrounds & surfaces */
+  --bg-start:     #B8F3E4; /* mint pastel */
+  --bg-end:       #E9D7FF; /* lavender pastel */
+  --surface:      #FFFFFF; /* cards */
+  --surface-2:    #F8FAFC; /* subtle panels */
+  --border:       #E2E8F0; /* card borders */
+
+  /* Text */
+  --text:         #0F172A; /* slate-900 */
+  --text-muted:   #64748B; /* slate-500 */
+  --on-primary:   #FFFFFF;
+
+  /* States */
+  --ring:         #22D3EE; /* focus ring */
+  --shadow:       0 10px 24px rgba(2,6,23,.12);
+
+  /* Semantics */
+  --success:      #16A34A;
+  --warning:      #F59E0B;
+  --danger:       #EF4444;
+  --info:         #0EA5E9;
+
+  /* Score colors (A–E) */
+  --score-a: #16A34A;
+  --score-b: #22C55E;
+  --score-c: #F59E0B;
+  --score-d: #F97316;
+  --score-e: #EF4444;
+
+  /* Charts (distinct, color-blind friendly-ish) */
+  --viz-1:#10B981; --viz-2:#06B6D4; --viz-3:#8B5CF6;
+  --viz-4:#F59E0B; --viz-5:#EF4444; --viz-6:#14B8A6;
+}
+
+/* Apply */
+body{
+  color:var(--text);
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.35) 0%, transparent 60%),
+              linear-gradient(115deg, var(--bg-start) 0%, var(--bg-end) 100%);
+}
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:var(--shadow);
+}
+.btn-primary{
+  background:linear-gradient(160deg, var(--primary) 0%, var(--accent) 100%);
+  color:var(--on-primary);
+}
+.btn-primary:hover{ filter: brightness(.95); }
+.badge-premium{ background: var(--premium-100); color:#7A5B00; border:1px solid #FDE68A; }
+.link{ color: var(--secondary-600); }

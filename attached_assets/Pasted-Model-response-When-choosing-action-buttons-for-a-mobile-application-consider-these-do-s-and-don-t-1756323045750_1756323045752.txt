@@ -1,0 +1,26 @@
+Model response
+When choosing action buttons for a mobile application, consider these do's and don'ts to ensure a great user experience:
+Do's:
+Prioritize Clarity:
+Do use clear, concise labels that immediately communicate the action. For example, "Save," "Delete," "Submit," "Add," or "Buy Now."
+Do use familiar icons when appropriate, but always pair them with text if the icon's meaning isn't universally understood.
+Maintain Consistency:
+Do use a consistent visual style (color, shape, size, typography) for all action buttons throughout the app. This helps users recognize interactive elements.
+Do place primary actions in consistent, expected locations (e.g., bottom bar, top right, or floating action button).
+Visual Hierarchy:
+Do differentiate primary actions from secondary and tertiary actions through visual weight. Primary buttons should be the most prominent (e.g., filled, bright color), while secondary buttons might be outlined or text-only.
+Do limit the number of prominent actions on a single screen to avoid overwhelming the user.
+Consider Finger-Friendliness:
+Do ensure buttons are large enough to be easily tapped with a thumb or finger (minimum recommended size is typically 48x48 dp or 44x44 points).
+Do provide sufficient padding around buttons to prevent accidental taps on adjacent elements.
+Provide Feedback:
+Do show a visual cue when a button is tapped (e.g., a ripple effect, a slight change in color, or a loading spinner). This confirms the tap was registered.
+Do give feedback on the action's success or failure (e.g., a "Saved!" toast message, a confirmation screen).
+Contextual Relevance:
+Do make buttons appear when they are relevant. For example, a "Post" button should only be active once content has been entered.
+Do disable buttons when their action cannot be performed, but explain why if it's not immediately obvious.
+Test and Iterate:
+Do user-test your button designs with real users to observe how they interact and if they understand the actions.
+Do be prepared to iterate on your designs based on feedback.
+Here's an example of a well-designed primary action button on a mobile screen:
+12.9s

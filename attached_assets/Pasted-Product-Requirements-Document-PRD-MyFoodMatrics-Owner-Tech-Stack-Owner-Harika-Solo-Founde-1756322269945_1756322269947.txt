@@ -1,0 +1,91 @@
+Product Requirements Document (PRD) —
+MyFoodMatrics
+Owner & Tech Stack
+Owner: Harika (Solo Founder)
+Platform: Web (Next.js) + Mobile (React Native/Expo)
+Backend: Node.js (NestJS/Express) on AWS EC2 (t3.medium) + PostgreSQL (Docker →
+RDS later)
+AI/ML: OpenAI GPT-4o-mini (NLP, coaching, recipes), Tesseract.js (OCR), STT (voice
+logging)
+Payments: Stripe
+1. Problem & Objective
+Problem: Current food apps stop at calories & macros. They require manual logging,
+ignore micronutrient gaps, and don’t flag allergens or sustainability.
+Objective: Make logging frictionless (photo/voice/text) and deliver personalized, actionable
+insights: missing micros, allergen flags, diet compatibility, sustainability, and daily
+coaching.
+2. Target Audience
+- Busy professionals who want quick photo/voice logging
+- Diet followers (keto, vegan, gluten-free)
+- People with allergies/sensitivities
+- Eco-conscious users
+- Free users with light needs → convertible to Premium
+3. Features & Functionality
+Free Tier:
+- Meal Logging (Photo/Text)
+- Nutrition Score (0–100 + A–D)
+- Diet Compatibility (Binary)
+- Recipes (5/day)
+- Allergen Safety (Safe/Unsafe)
+- Daily Progress Score
+Premium ($6.99/mo or $83.88/yr):
+- Voice Logging
+- Advanced Diet Compatibility (% match + smart swaps)
+- Unlimited Recipes (+ mood filters, shopping list)
+- Sustainability Score (0–10 CO■, water, local hints)
+- Advanced Allergen Analysis (severity, conditions)
+- Personalized Wellness Tracking (biometrics, mood-food links)
+4. Nutrient Coverage
+MVP macros: Calories, Protein, Carbs, Fat, Fiber
+MVP micros: Iron, Vitamin C, Magnesium, Vitamin B12
+Premium micros (future): Zinc, Vitamin D, Folate, Calcium, Potassium, Sodium
+5. Derived Scores
+- Nutrition Score: composite of macros + fiber + micros
+- Diet Compatibility: binary (Free), % + swaps (Premium)
+- Allergen Safety: Safe/Unsafe (Free), severity (Premium)
+- Sustainability: CO■ + water + sourcing (Premium)
+- Daily Wellness Score: meals + hydration + frequency
+6. System Architecture
+Frontend: Web (Next.js + Tailwind), Mobile (React Native/Expo)
+Backend: NestJS, PostgreSQL 15, Redis, Nginx + PM2, Stripe, OpenAI, OCR
+Deployment: AWS EC2, TLS via Certbot, CI/CD via GitHub Actions, Backups (pg_dump
+→ local/S3)
+7. Data Model (simplified)
+- users (auth, premium flag)
+- profiles (diet prefs, allergens, biometrics)
+- meals (raw text, source, logged_at, mood, hydration)
+- meal_items (name, qty, unit, confidence)
+- nutrition (macros, micros totals per meal)
+- scores (nutrition score, diet, allergen, sustainability)
+- recipes (title, ingredients, steps, filters)
+- daily_aggregates (totals per day, wellness score)
+- payments (stripe IDs, status)
+- events (audit logs, analytics)
+8. UX / UI Design Principles
+- Modern & minimal (dark bg, green accent, rounded cards)
+- Frictionless logging (photo first, editable AI parse)
+- Actionable scores (dial, rings, chips)
+- Premium upsell with blurred gated features
+- Responsive for multi-device (thumb-first mobile, adaptive desktop)
+9. Scoring Logic
+- Nutrition Score: Macros (50 pts), Fiber (20 pts), Micros (20 pts), Penalty (−10 to −20)
+- Diet: Rule-based, Premium fuzzy % + swaps
+- Allergens: Safe/Unsafe (Free), severity levels (Premium)
+- Sustainability: heuristic by food family (beef high, legumes low, etc.)
+10. App Development Phases
+1. Research & Strategy
+2. Requirement Analysis
+3. UX/UI Design
+4. Prototyping
+5. Backend Dev
+6. Frontend Dev
+7. Testing
+8. Deployment
+9. Launch
+10. Maintenance
+11. Success Metrics
+- <30s log flow (snap → saved)
+- ≥85% ingredient parse accuracy (post-edit)
+- 3+ logs/week per active user
+- 3% free→premium conversion
+- P95 latency <700ms (non-AI), <2.5s (AI)
