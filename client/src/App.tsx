@@ -13,7 +13,8 @@ import Subscribe from "@/pages/subscribe";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={Landing} />
+      <Route path="/home" component={Home} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/log" component={LogMeal} />
       <Route path="/subscribe" component={Subscribe} />
