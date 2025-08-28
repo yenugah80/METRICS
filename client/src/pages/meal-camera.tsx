@@ -470,14 +470,6 @@ export default function MealCamera() {
                     <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border mb-6">
                       <div className="flex items-center justify-center mb-4">
                         <h4 className="font-bold text-lg">Smart Nutrition Score</h4>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-<p>AI-generated nutrition score - results may vary.</p>
-                          </TooltipContent>
-                        </Tooltip>
                       </div>
                       <div className="flex items-center justify-center space-x-6">
                         <div className="relative w-24 h-24">
@@ -534,14 +526,6 @@ export default function MealCamera() {
                     <div className="mb-6">
                       <div className="flex items-center mb-3">
                         <h4 className="font-semibold text-base">Diet Compatibility</h4>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-<p>AI-analyzed diet compatibility - please verify independently.</p>
-                          </TooltipContent>
-                        </Tooltip>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {analysis.diet_compatibility && Object.entries(analysis.diet_compatibility).slice(0, 3).map(([dietName, data]: [string, any]) => (
@@ -581,70 +565,34 @@ export default function MealCamera() {
                     <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border">
                       <div className="flex items-center justify-center mb-4">
                         <h4 className="font-bold text-lg">Nutrition Summary</h4>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-<p>AI-estimated nutrition data - verify with healthcare professionals.</p>
-                          </TooltipContent>
-                        </Tooltip>
                       </div>
                       
                       {/* Main Macros - Responsive Large Display */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm cursor-help hover:shadow-lg transition-shadow">
-                              <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                                {Math.round(analysis.total_calories || 0)}
-                              </div>
-                              <div className="text-xs md:text-sm font-medium text-muted-foreground">Calories</div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-<p>Estimated calories</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm cursor-help hover:shadow-lg transition-shadow">
-                              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
-                                {Math.round((analysis.total_protein || 0) * 10) / 10}g
-                              </div>
-                              <div className="text-xs md:text-sm font-medium text-muted-foreground">Protein</div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Estimated protein content</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm cursor-help hover:shadow-lg transition-shadow">
-                              <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">
-                                {Math.round((analysis.total_carbs || 0) * 10) / 10}g
-                              </div>
-                              <div className="text-xs md:text-sm font-medium text-muted-foreground">Carbs</div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Estimated carbohydrates</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm cursor-help hover:shadow-lg transition-shadow">
-                              <div className="text-2xl md:text-3xl font-bold text-orange-600 mb-1">
-                                {Math.round((analysis.total_fat || 0) * 10) / 10}g
-                              </div>
-                              <div className="text-xs md:text-sm font-medium text-muted-foreground">Fat</div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Estimated fat content</p>
-                          </TooltipContent>
-                        </Tooltip>
+                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
+                          <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
+                            {Math.round(analysis.total_calories || 0)}
+                          </div>
+                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Calories</div>
+                        </div>
+                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
+                          <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
+                            {Math.round((analysis.total_protein || 0) * 10) / 10}g
+                          </div>
+                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Protein</div>
+                        </div>
+                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
+                          <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">
+                            {Math.round((analysis.total_carbs || 0) * 10) / 10}g
+                          </div>
+                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Carbs</div>
+                        </div>
+                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
+                          <div className="text-2xl md:text-3xl font-bold text-orange-600 mb-1">
+                            {Math.round((analysis.total_fat || 0) * 10) / 10}g
+                          </div>
+                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Fat</div>
+                        </div>
                       </div>
 
                       {/* Detailed Nutrition Breakdown */}
@@ -652,14 +600,6 @@ export default function MealCamera() {
                         <div className="bg-background/40 rounded-lg p-4 mb-4 border">
                           <div className="flex items-center mb-4">
                             <h5 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Detailed Breakdown</h5>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Target className="w-3 h-3 ml-2 text-muted-foreground hover:text-primary cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Estimated micronutrients</p>
-                              </TooltipContent>
-                            </Tooltip>
                           </div>
                           <div className="space-y-3">
                             {analysis.detailed_nutrition.saturated_fat && (
@@ -749,49 +689,30 @@ export default function MealCamera() {
                     <div>
                       <div className="flex items-center mb-3">
                         <h4 className="font-semibold">Identified Foods</h4>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p>AI-identified foods - results may vary.</p>
-                          </TooltipContent>
-                        </Tooltip>
                       </div>
                       <div className="space-y-2">
                         {analysis.foods.map((food, index) => (
-                          <Tooltip key={index}>
-                            <TooltipTrigger>
-                              <div className="flex items-center justify-between p-3 border rounded-lg hover:shadow-md transition-shadow cursor-help">
-                                <div>
-                                  <div className="font-medium">{food.name}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {food.quantity} {food.unit}
-                                  </div>
-                                  {food.calories && (
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      {Math.round(food.calories)} cal | {Math.round((food.protein || 0) * 10) / 10}g protein
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="text-right">
-                                  <Badge 
-                                    variant={food.confidence > 0.8 ? "default" : "secondary"}
-                                    data-testid={`confidence-${index}`}
-                                  >
-                                    {Math.round(food.confidence * 100)}% confident
-                                  </Badge>
-                                </div>
+                          <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <div className="font-medium">{food.name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {food.quantity} {food.unit}
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="text-sm">
-                                <p><strong>AI-estimated nutrition</strong></p>
-                                {food.calories && <p><strong>Per serving:</strong> {Math.round(food.calories)} calories</p>}
-                                <p><strong>Confidence:</strong> {Math.round(food.confidence * 100)}% match</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
+                              {food.calories && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {Math.round(food.calories)} cal | {Math.round((food.protein || 0) * 10) / 10}g protein
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <Badge 
+                                variant={food.confidence > 0.8 ? "default" : "secondary"}
+                                data-testid={`confidence-${index}`}
+                              >
+                                {Math.round(food.confidence * 100)}% confident
+                              </Badge>
+                            </div>
+                          </div>
                         ))}
                       </div>
                       
