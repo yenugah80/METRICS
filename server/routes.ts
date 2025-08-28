@@ -50,6 +50,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // SECURITY & PERFORMANCE MIDDLEWARE
+  // Configure trust proxy for rate limiting
+  app.set('trust proxy', 1);
+  
   // Apply compression for better performance
   app.use(compression({
     filter: (req, res) => {

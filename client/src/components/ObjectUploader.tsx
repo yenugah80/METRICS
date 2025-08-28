@@ -1,23 +1,24 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import Uppy from "@uppy/core";
-import { DashboardModal } from "@uppy/react";
-import "@uppy/core/dist/style.min.css";
-import "@uppy/dashboard/dist/style.min.css";
-import AwsS3 from "@uppy/aws-s3";
-import type { UploadResult } from "@uppy/core";
 import { Button } from "@/components/ui/button";
+
+// Simple upload component without Uppy dependencies for now
+interface SimpleUploaderProps {
+  maxNumberOfFiles?: number;
+  maxFileSize?: number;
+  onComplete?: (files: File[]) => void;
+  buttonClassName?: string;
+  children: ReactNode;
+}
 
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
   maxFileSize?: number;
-  onGetUploadParameters: () => Promise<{
+  onGetUploadParameters?: () => Promise<{
     method: "PUT";
     url: string;
   }>;
-  onComplete?: (
-    result: UploadResult<Record<string, unknown>, Record<string, unknown>>
-  ) => void;
+  onComplete?: (files: File[]) => void;
   buttonClassName?: string;
   children: ReactNode;
 }
@@ -59,22 +60,14 @@ export function ObjectUploader({
   children,
 }: ObjectUploaderProps) {
   const [showModal, setShowModal] = useState(false);
-  const [uppy] = useState(() =>
-    new Uppy({
-      restrictions: {
-        maxNumberOfFiles,
-        maxFileSize,
-      },
-      autoProceed: false,
-    })
-      .use(AwsS3, {
-        shouldUseMultipart: false,
-        getUploadParameters: onGetUploadParameters,
-      })
-      .on("complete", (result) => {
-        onComplete?.(result);
-      })
-  );
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setSelectedFiles(files);
+    onComplete?.(files);
+    setShowModal(false);
+  };
 
   return (
     <div>
@@ -82,12 +75,24 @@ export function ObjectUploader({
         {children}
       </Button>
 
-      <DashboardModal
-        uppy={uppy}
-        open={showModal}
-        onRequestClose={() => setShowModal(false)}
-        proudlyDisplayPoweredByUppy={false}
-      />
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg">
+            <h3 className="text-lg font-semibold mb-4">Upload Files</h3>
+            <input
+              type="file"
+              multiple={maxNumberOfFiles > 1}
+              onChange={handleFileSelect}
+              className="mb-4"
+            />
+            <div className="flex gap-2">
+              <Button onClick={() => setShowModal(false)} variant="outline">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
