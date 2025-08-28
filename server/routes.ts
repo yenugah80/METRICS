@@ -131,11 +131,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Audio text required" });
       }
 
+      // Check if user has premium access for voice features
+      const user = await storage.getUser(req.user.id);
+      if (!user?.isPremium) {
+        return res.status(403).json({ 
+          message: "Voice logging is available for Premium users only. Upgrade to unlock this feature." 
+        });
+      }
+
       const analysis = await aiService.parseVoiceFood(audioText);
       res.json(analysis);
     } catch (error) {
       console.error("Error analyzing voice:", error);
       res.status(500).json({ message: "Failed to analyze voice input" });
+    }
+  });
+
+  // Text analysis endpoint for meal descriptions
+  app.post('/api/meals/analyze-text', isAuthenticated, async (req: any, res) => {
+    try {
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ message: "Text description required" });
+      }
+
+      const analysis = await aiService.parseVoiceFood(text); // Same parser works for text input
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error analyzing text:", error);
+      res.status(500).json({ message: "Failed to analyze text description" });
     }
   });
 

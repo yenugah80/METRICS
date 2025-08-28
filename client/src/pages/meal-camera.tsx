@@ -1,11 +1,16 @@
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils } from "lucide-react";
+import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils, Type, Mic, Crown, Sparkles } from "lucide-react";
+import VoiceLogger from "@/components/VoiceLogger";
 
 interface AnalyzedFood {
   name: string;
@@ -45,8 +50,78 @@ interface NutritionAnalysis {
 export default function MealCamera() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<NutritionAnalysis | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [textInput, setTextInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
+
+  // Text analysis handler
+  const handleTextSubmit = async () => {
+    if (!textInput.trim()) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch("/api/meals/analyze-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: textInput }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to analyze meal description");
+      }
+      
+      const data = await response.json();
+      setAnalysis(data);
+      toast({
+        title: "Meal analyzed successfully!",
+        description: `Found ${data.foods.length} food items with ${data.total_calories} total calories.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Analysis failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Voice analysis handler
+  const handleVoiceResult = async (transcript: string) => {
+    if (!transcript.trim()) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch("/api/meals/analyze-voice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audioText: transcript }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to analyze voice input");
+      }
+      
+      const data = await response.json();
+      setAnalysis(data);
+      toast({
+        title: "Voice input analyzed!",
+        description: `Found ${data.foods.length} food items with ${data.total_calories} total calories.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Voice analysis failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const analyzeMutation = useMutation({
     mutationFn: async (imageBase64: string) => {
@@ -174,7 +249,7 @@ export default function MealCamera() {
           </p>
         </div>
 
-        {/* Image Upload */}
+        {/* Upload Options */}
         {!selectedImage && (
           <Card className="mb-6">
             <CardContent className="p-8">
@@ -182,32 +257,112 @@ export default function MealCamera() {
                 <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Camera className="h-12 w-12 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Take or Upload a Photo</h3>
+                <h3 className="text-xl font-semibold mb-2">Log Your Meal</h3>
                 <p className="text-muted-foreground mb-6">
-                  Capture your meal and let AI identify the foods and calculate nutrition automatically
+                  Choose how you'd like to capture your meal information
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button
-                    onClick={handleCameraClick}
-                    size="lg"
-                    className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:-translate-y-1 active:scale-95"
-                    data-testid="button-upload-image"
-                  >
-                    <Upload className="h-6 w-6" />
-                    <span>Upload Photo</span>
-                  </Button>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  data-testid="input-file-upload"
-                />
-                <p className="text-xs text-muted-foreground mt-4">
-                  Supports JPG, PNG, WebP up to 5MB
-                </p>
+                
+                <Tabs defaultValue="photo" className="w-full max-w-md mx-auto">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="photo" data-testid="tab-photo">
+                      <Camera className="h-4 w-4 mr-2" />
+                      Photo
+                    </TabsTrigger>
+                    <TabsTrigger value="text" data-testid="tab-text">
+                      <Type className="h-4 w-4 mr-2" />
+                      Text
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="voice" 
+                      data-testid="tab-voice"
+                      disabled={!user?.isPremium}
+                      className={!user?.isPremium ? "opacity-50 cursor-not-allowed" : ""}
+                    >
+                      <Mic className="h-4 w-4 mr-2" />
+                      Voice
+                      {!user?.isPremium && <Crown className="h-3 w-3 ml-1 text-premium" />}
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="photo" className="mt-6">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Button
+                        onClick={handleCameraClick}
+                        size="lg"
+                        className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:-translate-y-1 active:scale-95"
+                        data-testid="button-upload-image"
+                      >
+                        <Upload className="h-6 w-6" />
+                        <span>Upload Photo</span>
+                      </Button>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      data-testid="input-file-upload"
+                    />
+                    <p className="text-xs text-muted-foreground mt-4">
+                      Supports JPG, PNG, WebP up to 5MB
+                    </p>
+                  </TabsContent>
+
+                  <TabsContent value="text" className="mt-6">
+                    <div className="space-y-4">
+                      <Textarea
+                        placeholder="Describe what you ate... e.g., 'grilled chicken breast with steamed broccoli and brown rice'"
+                        className="min-h-[100px]"
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        data-testid="textarea-food-description"
+                      />
+                      <Button
+                        onClick={handleTextSubmit}
+                        disabled={!textInput.trim() || isAnalyzing}
+                        className="w-full"
+                        data-testid="button-analyze-text"
+                      >
+                        {isAnalyzing ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Analyze Food
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="voice" className="mt-6">
+                    {user?.isPremium ? (
+                      <VoiceLogger 
+                        onVoiceResult={handleVoiceResult}
+                        disabled={isAnalyzing}
+                      />
+                    ) : (
+                      <div className="text-center p-8 border-2 border-dashed border-premium/30 rounded-xl">
+                        <Crown className="w-12 h-12 mx-auto mb-4 text-premium" />
+                        <h3 className="text-lg font-semibold mb-2">Premium Feature</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Voice logging is available with premium subscription for just $6.99/month
+                        </p>
+                        <Button 
+                          onClick={() => navigate("/subscribe")}
+                          className="btn-gradient"
+                          data-testid="button-upgrade-premium"
+                        >
+                          Upgrade to Premium
+                        </Button>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
             </CardContent>
           </Card>
