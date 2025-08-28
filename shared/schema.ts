@@ -9,6 +9,7 @@ import {
   boolean,
   jsonb,
   index,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
@@ -174,6 +175,8 @@ export const dailyAggregates = pgTable("daily_aggregates", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("daily_aggregates_user_date_idx").on(table.userId, table.date),
+  // Add unique constraint for userId and date combination to allow upserts
+  uniqueIndex("daily_aggregates_user_date_unique").on(table.userId, table.date),
 ]);
 
 // Nutrition profile for each meal with deterministic scoring

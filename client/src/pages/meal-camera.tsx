@@ -595,7 +595,7 @@ export default function MealCamera() {
 
         {/* Image Preview and Analysis */}
         {selectedImage && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6 mb-6">
             {/* Image Preview */}
             <Card>
               <CardHeader>
@@ -608,7 +608,7 @@ export default function MealCamera() {
                 <img
                   src={selectedImage}
                   alt="Uploaded meal"
-                  className="w-full h-64 object-cover rounded-lg"
+                  className="w-full h-48 sm:h-56 md:h-64 lg:h-72 object-cover rounded-lg shadow-md"
                   data-testid="image-preview"
                 />
                 <Button
@@ -617,7 +617,7 @@ export default function MealCamera() {
                     setAnalysis(null);
                   }}
                   variant="outline"
-                  className="w-full mt-4 py-3 text-base font-medium transition-all duration-300 hover:scale-105 hover:shadow-md hover:-translate-y-0.5 active:scale-95"
+                  className="w-full mt-4 py-2 sm:py-3 text-sm sm:text-base font-medium transition-all duration-300 hover:scale-105 hover:shadow-md hover:-translate-y-0.5 active:scale-95"
                   data-testid="button-upload-new"
                 >
                   Upload New Photo
@@ -656,7 +656,7 @@ export default function MealCamera() {
                 )}
 
                 {analysis && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Smart Nutrition Score with Radial Dial */}
                     <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border mb-6">
                       <div className="flex items-center justify-center mb-4">
