@@ -71,12 +71,12 @@ export default function HomePage() {
     );
   }
 
-  const dailyCalories = todayStats?.totalCalories || 0;
-  const dailyProtein = parseFloat(todayStats?.totalProtein || "0");
-  const dailyCarbs = parseFloat(todayStats?.totalCarbs || "0");
-  const dailyFat = parseFloat(todayStats?.totalFat || "0");
-  const nutritionScore = todayStats?.averageNutritionScore || 0;
-  const nutritionGrade = todayStats?.averageNutritionGrade || "C";
+  const dailyCalories = (todayStats as any)?.totalCalories || 0;
+  const dailyProtein = parseFloat((todayStats as any)?.totalProtein || "0");
+  const dailyCarbs = parseFloat((todayStats as any)?.totalCarbs || "0");
+  const dailyFat = parseFloat((todayStats as any)?.totalFat || "0");
+  const nutritionScore = (todayStats as any)?.averageNutritionScore || 0;
+  const nutritionGrade = (todayStats as any)?.averageNutritionGrade || "C";
 
   return (
     <div className="min-h-screen pb-20">
@@ -279,8 +279,8 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-4">
-              {todayMeals.length > 0 ? (
-                todayMeals.map((meal: any) => (
+              {(todayMeals as any[]).length > 0 ? (
+                (todayMeals as any[]).map((meal: any) => (
                   <MealCard key={meal.id} meal={meal} />
                 ))
               ) : (
@@ -446,7 +446,7 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {recipes.slice(0, 2).map((recipe: any) => (
+              {(recipes as any[]).slice(0, 2).map((recipe: any) => (
                 <Card key={recipe.id} className="border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                   {recipe.imageUrl && (
                     <img 

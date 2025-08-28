@@ -149,12 +149,34 @@ export default function LogMeal() {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
-        title: "Meal Saved!",
-        description: "Your meal has been analyzed and saved successfully.",
+        title: "🎉 Meal Saved Successfully!",
+        description: "Your nutrition data is now available in your dashboard and progress tracking.",
+        action: (
+          <div className="flex gap-2">
+            <button 
+              onClick={() => navigate("/dashboard")}
+              className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm font-medium hover:bg-primary/90"
+            >
+              View Dashboard
+            </button>
+          </div>
+        ),
       });
-      navigate("/");
+      
+      // Show navigation options after short delay
+      setTimeout(() => {
+        const shouldViewDashboard = window.confirm(
+          "✅ Your meal has been saved!\n\nWhere would you like to go next?\n\nClick OK to view your Dashboard with today's nutrition summary, or Cancel to see your Progress tracking and achievements."
+        );
+        
+        if (shouldViewDashboard) {
+          navigate("/dashboard");
+        } else {
+          navigate("/daily-progress");
+        }
+      }, 2000);
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

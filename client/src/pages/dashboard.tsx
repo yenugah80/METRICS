@@ -53,15 +53,15 @@ export default function Dashboard() {
 
   // Transform API data to match component interface
   const dailyStats: DailyStats = {
-    calories: dailyStatsData?.totalCalories || 0,
-    protein: parseFloat(dailyStatsData?.totalProtein?.toString() || "0"),
-    carbs: parseFloat(dailyStatsData?.totalCarbs?.toString() || "0"),
-    fat: parseFloat(dailyStatsData?.totalFat?.toString() || "0"),
+    calories: (dailyStatsData as any)?.totalCalories || 0,
+    protein: parseFloat((dailyStatsData as any)?.totalProtein?.toString() || "0"),
+    carbs: parseFloat((dailyStatsData as any)?.totalCarbs?.toString() || "0"),
+    fat: parseFloat((dailyStatsData as any)?.totalFat?.toString() || "0"),
     goal_calories: 2000, // Default goals - could be made configurable
     goal_protein: 120,
     goal_carbs: 250,
     goal_fat: 65,
-    meals_logged: dailyStatsData?.mealsLogged || 0,
+    meals_logged: (dailyStatsData as any)?.mealsLogged || 0,
   };
 
   const recentMeals: RecentMeal[] = Array.isArray(recentMealsData) ? recentMealsData.map((meal: any) => ({

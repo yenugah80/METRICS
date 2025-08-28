@@ -315,13 +315,32 @@ export default function MealCamera() {
       console.log('Meal saved successfully:', result.mealId);
 
       toast({
-        title: "Meal saved!",
-        description: "Your meal has been added to your nutrition log.",
+        title: "🎉 Meal Saved Successfully!",
+        description: "Your nutrition data is now available in your dashboard and progress tracking.",
+        action: (
+          <div className="flex gap-2">
+            <button 
+              onClick={() => navigate("/dashboard")}
+              className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm font-medium hover:bg-primary/90"
+            >
+              View Dashboard
+            </button>
+          </div>
+        ),
       });
       
-      // Reset for next meal
-      setSelectedImage(null);
-      setAnalysis(null);
+      // Show clear navigation options after short delay
+      setTimeout(() => {
+        const shouldViewDashboard = window.confirm(
+          "✅ Your meal has been saved!\n\n📊 Your nutrition data is now available in:\n• Dashboard - Today's nutrition summary & progress\n• Progress - Achievements & wellness tracking\n\nWhere would you like to go next?\n\nClick OK for Dashboard or Cancel for Progress tracking."
+        );
+        
+        if (shouldViewDashboard) {
+          navigate("/dashboard");
+        } else {
+          navigate("/daily-progress");
+        }
+      }, 1500);
       
     } catch (error) {
       console.error('Error saving meal:', error);
@@ -865,7 +884,7 @@ export default function MealCamera() {
                       className="w-full py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-1 active:scale-95 bg-gradient-to-r from-primary to-primary/80"
                       data-testid="button-save-meal"
                     >
-                      Save to Nutrition Log
+                      Save to Dashboard & Progress
                     </Button>
                   </div>
                 )}
