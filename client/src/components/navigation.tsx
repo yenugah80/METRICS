@@ -1,0 +1,71 @@
+import { Link, useLocation } from "wouter";
+import { Apple, Home, Search, Plus, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export default function Navigation() {
+  const [location] = useLocation();
+
+  const isActive = (path: string) => location === path;
+
+  return (
+    <nav className="bg-background border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+              <Apple className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-foreground">MyFoodMatrics</span>
+          </Link>
+
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-1">
+            <Link href="/">
+              <Button
+                variant={isActive("/") ? "secondary" : "ghost"}
+                size="sm"
+                className="flex items-center space-x-2"
+                data-testid="nav-home"
+              >
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </Button>
+            </Link>
+
+            <Link href="/dashboard">
+              <Button
+                variant={isActive("/dashboard") ? "secondary" : "ghost"}
+                size="sm"
+                className="flex items-center space-x-2"
+                data-testid="nav-dashboard"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Button>
+            </Link>
+            
+            <Link href="/search">
+              <Button
+                variant={isActive("/search") ? "secondary" : "ghost"}
+                size="sm"
+                className="flex items-center space-x-2"
+                data-testid="nav-search"
+              >
+                <Search className="h-4 w-4" />
+                <span>Search</span>
+              </Button>
+            </Link>
+          </div>
+
+          {/* Mobile menu placeholder */}
+          <div className="md:hidden">
+            <Button variant="ghost" size="sm">
+              <BarChart3 className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}

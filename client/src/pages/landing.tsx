@@ -15,9 +15,9 @@ export default function Landing() {
             <h1 className="text-xl font-bold text-foreground">MyFoodMatrics</h1>
           </div>
           <Button 
-            onClick={() => window.location.href = '/api/login'}
+            onClick={() => window.location.href = '/dashboard'}
             className="btn-gradient font-semibold"
-            data-testid="button-login"
+            data-testid="button-get-started"
           >
             Get Started
           </Button>
@@ -37,10 +37,10 @@ export default function Landing() {
           <Button 
             size="lg" 
             className="btn-gradient font-semibold px-8 py-4 text-lg"
-            onClick={() => window.location.href = '/api/login'}
+            onClick={() => window.location.href = '/dashboard'}
             data-testid="button-hero-cta"
           >
-            Start Free Trial
+            Launch Dashboard
           </Button>
         </div>
 
