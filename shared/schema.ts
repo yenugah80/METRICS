@@ -14,20 +14,74 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Users table with traditional auth
+// Users table with multi-provider auth support
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique().notNull(),
-  password: varchar("password").notNull(),
+  password: varchar("password"), // Optional for OAuth/SSO users
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   isPremium: boolean("is_premium").default(false),
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// Authentication providers table for multi-provider support
+export const authProviders = pgTable("auth_providers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  provider: varchar("provider").notNull(), // 'email', 'google', 'replit', 'passkey'
+  providerId: varchar("provider_id").notNull(), // External provider user ID
+  providerData: jsonb("provider_data"), // Additional provider-specific data
+  accessToken: text("access_token"), // Encrypted access token
+  refreshToken: text("refresh_token"), // Encrypted refresh token
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("auth_providers_user_id_idx").on(table.userId),
+  index("auth_providers_provider_idx").on(table.provider),
+  index("auth_providers_provider_id_idx").on(table.providerId),
+]);
+
+// Passkeys/WebAuthn credentials table
+export const passkeys = pgTable("passkeys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  credentialId: text("credential_id").unique().notNull(),
+  publicKey: text("public_key").notNull(),
+  counter: integer("counter").default(0),
+  deviceName: varchar("device_name"),
+  aaguid: varchar("aaguid"), // Authenticator AAGUID
+  transports: text("transports").array(), // ['usb', 'nfc', 'ble', 'internal']
+  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("passkeys_user_id_idx").on(table.userId),
+  index("passkeys_credential_id_idx").on(table.credentialId),
+]);
+
+// JWT refresh tokens table
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").unique().notNull(),
+  family: varchar("family").notNull(), // Token family for rotation
+  deviceInfo: jsonb("device_info"), // User agent, IP, etc.
+  expiresAt: timestamp("expires_at").notNull(),
+  revokedAt: timestamp("revoked_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("refresh_tokens_user_id_idx").on(table.userId),
+  index("refresh_tokens_token_idx").on(table.token),
+  index("refresh_tokens_family_idx").on(table.family),
+  index("refresh_tokens_expires_at_idx").on(table.expiresAt),
+]);
 
 // User profiles for diet preferences and allergens
 export const userProfiles = pgTable("user_profiles", {
@@ -144,6 +198,30 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(userProfiles),
   meals: many(meals),
   dailyAggregates: many(dailyAggregates),
+  authProviders: many(authProviders),
+  passkeys: many(passkeys),
+  refreshTokens: many(refreshTokens),
+}));
+
+export const authProvidersRelations = relations(authProviders, ({ one }) => ({
+  user: one(users, {
+    fields: [authProviders.userId],
+    references: [users.id],
+  }),
+}));
+
+export const passkeysRelations = relations(passkeys, ({ one }) => ({
+  user: one(users, {
+    fields: [passkeys.userId],
+    references: [users.id],
+  }),
+}));
+
+export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [refreshTokens.userId],
+    references: [users.id],
+  }),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -191,6 +269,23 @@ export const dailyAggregatesRelations = relations(dailyAggregates, ({ one }) => 
   }),
 }));
 
+// Insert schemas for authentication tables
+export const insertAuthProviderSchema = createInsertSchema(authProviders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPasskeySchema = createInsertSchema(passkeys).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRefreshTokenSchema = createInsertSchema(refreshTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -228,6 +323,14 @@ export const insertRecipeSchema = createInsertSchema(recipes).omit({
   id: true,
   createdAt: true,
 });
+
+// Types for authentication
+export type AuthProvider = typeof authProviders.$inferSelect;
+export type InsertAuthProvider = z.infer<typeof insertAuthProviderSchema>;
+export type Passkey = typeof passkeys.$inferSelect;
+export type InsertPasskey = z.infer<typeof insertPasskeySchema>;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;

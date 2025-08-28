@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
+import cookieParser from "cookie-parser";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -8,6 +9,7 @@ import { ObjectPermission } from "./objectAcl";
 import * as aiService from "./openai";
 import { nutritionService } from "./nutritionApi";
 import { etlSystem } from "./etl";
+import authRoutes from "./authRoutes";
 
 // Stripe setup
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -26,10 +28,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('Failed to initialize ETL system:', error);
   }
 
-  // Auth middleware
-  await setupAuth(app);
+  // Add cookie parser middleware for JWT tokens
+  app.use(cookieParser());
 
-  // Auth routes are now handled in the auth module automatically
+  // Enhanced authentication routes with multi-provider support
+  app.use('/api/auth', authRoutes);
+
+  // Legacy auth middleware (keep for backward compatibility)
+  await setupAuth(app);
 
   // Object storage routes for meal images
   app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
