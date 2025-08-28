@@ -76,29 +76,106 @@ Focus on:
 }
 
 export async function estimateNutrition(foods: AnalyzedFood[]): Promise<any> {
-  // This would integrate with your existing nutrition APIs
-  // For now, return a simple estimation
-  let totalCalories = 0;
-  let totalProtein = 0;
-  let totalCarbs = 0;
-  let totalFat = 0;
-
-  for (const food of foods) {
-    // Simple estimation - in real app, you'd call your nutrition APIs here
-    const estimatedCaloriesPerUnit = getEstimatedCalories(food.name);
-    totalCalories += estimatedCaloriesPerUnit * (food.quantity / 100); // per 100g basis
-    totalProtein += getEstimatedProtein(food.name) * (food.quantity / 100);
-    totalCarbs += getEstimatedCarbs(food.name) * (food.quantity / 100);
-    totalFat += getEstimatedFat(food.name) * (food.quantity / 100);
+  if (foods.length === 0) {
+    return {
+      total_calories: 0,
+      total_protein: 0,
+      total_carbs: 0,
+      total_fat: 0,
+      foods: []
+    };
   }
 
-  return {
-    total_calories: Math.round(totalCalories),
-    total_protein: Math.round(totalProtein * 10) / 10,
-    total_carbs: Math.round(totalCarbs * 10) / 10,
-    total_fat: Math.round(totalFat * 10) / 10,
-    foods: foods
-  };
+  try {
+    // Use GPT-4o mini for comprehensive nutrition analysis
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `You are a nutrition expert and health advisor. Calculate comprehensive nutrition and provide health insights for the given foods.
+
+Return your analysis as JSON in this exact format:
+{
+  "total_calories": total_calories_as_number,
+  "total_protein": total_protein_grams_as_number,
+  "total_carbs": total_carbs_grams_as_number,
+  "total_fat": total_fat_grams_as_number,
+  "detailed_nutrition": {
+    "saturated_fat": saturated_fat_grams_as_number,
+    "fiber": fiber_grams_as_number,
+    "sugar": sugar_grams_as_number,
+    "sodium": sodium_mg_as_number,
+    "cholesterol": cholesterol_mg_as_number,
+    "vitamin_c": vitamin_c_mg_as_number,
+    "iron": iron_mg_as_number,
+    "calcium": calcium_mg_as_number
+  },
+  "health_suggestions": [
+    "Array of 3-5 specific health insights and suggestions based on this meal",
+    "Focus on nutritional benefits, potential concerns, and optimization tips"
+  ],
+  "tracking_integration": {
+    "summary": "Brief summary of how this meal fits into health tracking goals",
+    "compatible_apps": ["MyFitnessPal", "Cronometer", "Lose It!", "Apple Health", "Google Fit"],
+    "export_data": {
+      "meal_type": "breakfast|lunch|dinner|snack",
+      "health_score": score_1_to_10,
+      "diet_compatibility": ["keto", "low-carb", "mediterranean", "etc"]
+    }
+  },
+  "foods": foods_array_unchanged
+}
+
+Base estimates on USDA nutrition data. Be realistic and helpful with health insights.`
+        },
+        {
+          role: "user",
+          content: `Analyze comprehensive nutrition and provide health insights for these foods: ${JSON.stringify(foods)}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 1500,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    
+    return {
+      total_calories: result.total_calories || 0,
+      total_protein: result.total_protein || 0,
+      total_carbs: result.total_carbs || 0,
+      total_fat: result.total_fat || 0,
+      detailed_nutrition: result.detailed_nutrition || {},
+      health_suggestions: result.health_suggestions || [],
+      tracking_integration: result.tracking_integration || {},
+      foods: foods
+    };
+
+  } catch (error) {
+    console.error("Error estimating nutrition:", error);
+    
+    // Fallback to simple estimation if AI fails
+    let totalCalories = 0;
+    let totalProtein = 0;
+    let totalCarbs = 0;
+    let totalFat = 0;
+
+    for (const food of foods) {
+      const estimatedCaloriesPerUnit = getEstimatedCalories(food.name);
+      totalCalories += estimatedCaloriesPerUnit * (food.quantity / 100);
+      totalProtein += getEstimatedProtein(food.name) * (food.quantity / 100);
+      totalCarbs += getEstimatedCarbs(food.name) * (food.quantity / 100);
+      totalFat += getEstimatedFat(food.name) * (food.quantity / 100);
+    }
+
+    return {
+      total_calories: Math.round(totalCalories),
+      total_protein: Math.round(totalProtein * 10) / 10,
+      total_carbs: Math.round(totalCarbs * 10) / 10,
+      total_fat: Math.round(totalFat * 10) / 10,
+      foods: foods
+    };
+  }
 }
 
 // Simple estimation functions - in production, you'd use your nutrition APIs

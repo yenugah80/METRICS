@@ -19,6 +19,26 @@ interface NutritionAnalysis {
   total_protein: number;
   total_carbs: number;
   total_fat: number;
+  detailed_nutrition?: {
+    saturated_fat?: number;
+    fiber?: number;
+    sugar?: number;
+    sodium?: number;
+    cholesterol?: number;
+    vitamin_c?: number;
+    iron?: number;
+    calcium?: number;
+  };
+  health_suggestions?: string[];
+  tracking_integration?: {
+    summary?: string;
+    compatible_apps?: string[];
+    export_data?: {
+      meal_type?: string;
+      health_score?: number;
+      diet_compatibility?: string[];
+    };
+  };
   foods: AnalyzedFood[];
 }
 
@@ -226,31 +246,124 @@ export default function MealCamera() {
 
                 {analysis && (
                   <div className="space-y-6">
-                    {/* Total Nutrition */}
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <h4 className="font-semibold mb-3">Total Nutrition</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-primary">
+                    {/* Prominent Macro Display */}
+                    <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border">
+                      <h4 className="font-bold text-lg mb-4 text-center">Nutrition Summary</h4>
+                      
+                      {/* Main Macros - Large Display */}
+                      <div className="grid grid-cols-4 gap-4 mb-6">
+                        <div className="text-center p-4 bg-background/60 backdrop-blur rounded-lg border">
+                          <div className="text-3xl font-bold text-primary mb-1">
                             {analysis.total_calories}
                           </div>
-                          <div className="text-sm text-muted-foreground">Calories</div>
+                          <div className="text-sm font-medium text-muted-foreground">Calories</div>
                         </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Protein</span>
-                            <span>{analysis.total_protein}g</span>
+                        <div className="text-center p-4 bg-background/60 backdrop-blur rounded-lg border">
+                          <div className="text-3xl font-bold text-blue-600 mb-1">
+                            {analysis.total_protein}g
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Carbs</span>
-                            <span>{analysis.total_carbs}g</span>
+                          <div className="text-sm font-medium text-muted-foreground">Protein</div>
+                        </div>
+                        <div className="text-center p-4 bg-background/60 backdrop-blur rounded-lg border">
+                          <div className="text-3xl font-bold text-green-600 mb-1">
+                            {analysis.total_carbs}g
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Fat</span>
-                            <span>{analysis.total_fat}g</span>
+                          <div className="text-sm font-medium text-muted-foreground">Carbs</div>
+                        </div>
+                        <div className="text-center p-4 bg-background/60 backdrop-blur rounded-lg border">
+                          <div className="text-3xl font-bold text-orange-600 mb-1">
+                            {analysis.total_fat}g
                           </div>
+                          <div className="text-sm font-medium text-muted-foreground">Fat</div>
                         </div>
                       </div>
+
+                      {/* Detailed Nutrition Breakdown */}
+                      {analysis.detailed_nutrition && (
+                        <div className="bg-background/40 rounded-lg p-4 mb-4">
+                          <h5 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Detailed Breakdown</h5>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                            {analysis.detailed_nutrition.saturated_fat && (
+                              <div className="flex justify-between">
+                                <span>Saturated Fat</span>
+                                <span className="font-medium">{analysis.detailed_nutrition.saturated_fat}g</span>
+                              </div>
+                            )}
+                            {analysis.detailed_nutrition.fiber && (
+                              <div className="flex justify-between">
+                                <span>Fiber</span>
+                                <span className="font-medium">{analysis.detailed_nutrition.fiber}g</span>
+                              </div>
+                            )}
+                            {analysis.detailed_nutrition.sugar && (
+                              <div className="flex justify-between">
+                                <span>Sugar</span>
+                                <span className="font-medium">{analysis.detailed_nutrition.sugar}g</span>
+                              </div>
+                            )}
+                            {analysis.detailed_nutrition.sodium && (
+                              <div className="flex justify-between">
+                                <span>Sodium</span>
+                                <span className="font-medium">{analysis.detailed_nutrition.sodium}mg</span>
+                              </div>
+                            )}
+                            {analysis.detailed_nutrition.cholesterol && (
+                              <div className="flex justify-between">
+                                <span>Cholesterol</span>
+                                <span className="font-medium">{analysis.detailed_nutrition.cholesterol}mg</span>
+                              </div>
+                            )}
+                            {analysis.detailed_nutrition.vitamin_c && (
+                              <div className="flex justify-between">
+                                <span>Vitamin C</span>
+                                <span className="font-medium">{analysis.detailed_nutrition.vitamin_c}mg</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Health Insights */}
+                      {analysis.health_suggestions && (
+                        <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                          <h5 className="font-semibold mb-2 text-blue-800 dark:text-blue-200 flex items-center">
+                            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M9.663 17h4.673a1.001 1.001 0 00.853-1.519l-2.337-4a1 1 0 00-.853-.481h-2.333l-2.337 4A1.001 1.001 0 009.663 17zM6.5 7.5A1.5 1.5 0 108 6h4a1.5 1.5 0 101.5 1.5v1a4 4 0 01-4 4H6.5a1.5 1.5 0 000 3h7a.5.5 0 010 1h-7a2.5 2.5 0 110-5H9.5a3 3 0 003-3v-1z"/>
+                            </svg>
+                            Health Insights
+                          </h5>
+                          <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                            {analysis.health_suggestions.map((suggestion, index) => (
+                              <div key={index} className="flex items-start">
+                                <span className="text-blue-500 mr-2">•</span>
+                                <span>{suggestion}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Health Tracking Integration */}
+                      {analysis.tracking_integration && (
+                        <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 border border-green-200 dark:border-green-800 mt-4">
+                          <h5 className="font-semibold mb-2 text-green-800 dark:text-green-200 flex items-center">
+                            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Health Tracking Integration
+                          </h5>
+                          <div className="text-sm text-green-700 dark:text-green-300">
+                            <p className="mb-2">{analysis.tracking_integration.summary}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {analysis.tracking_integration.compatible_apps?.map((app, index) => (
+                                <span key={index} className="px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded text-xs font-medium">
+                                  {app}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Identified Foods */}
