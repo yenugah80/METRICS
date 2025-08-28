@@ -42,42 +42,47 @@ interface RecentMeal {
 }
 
 export default function Dashboard() {
-  // Mock data that would come from your APIs
+  // Fetch real data from APIs
+  const { data: dailyStatsData, isLoading: statsLoading } = useQuery({
+    queryKey: ["/api/stats/today"],
+  });
+
+  const { data: recentMealsData, isLoading: mealsLoading } = useQuery({
+    queryKey: ["/api/meals/recent"],
+  });
+
+  // Transform API data to match component interface
   const dailyStats: DailyStats = {
-    calories: 1450,
-    protein: 85,
-    carbs: 180,
-    fat: 55,
-    goal_calories: 2000,
+    calories: dailyStatsData?.totalCalories || 0,
+    protein: parseFloat(dailyStatsData?.totalProtein || "0"),
+    carbs: parseFloat(dailyStatsData?.totalCarbs || "0"),
+    fat: parseFloat(dailyStatsData?.totalFat || "0"),
+    goal_calories: 2000, // Default goals - could be made configurable
     goal_protein: 120,
     goal_carbs: 250,
     goal_fat: 65,
-    meals_logged: 3,
+    meals_logged: dailyStatsData?.mealsLogged || 0,
   };
 
-  const recentMeals: RecentMeal[] = [
-    {
-      id: "1",
-      name: "Greek Yogurt with Berries",
-      time: "8:30 AM",
-      calories: 220,
-      main_nutrients: { protein: 15, carbs: 25, fat: 8 },
+  const recentMeals: RecentMeal[] = (recentMealsData || []).map((meal: any) => ({
+    id: meal.id,
+    name: meal.name,
+    time: new Date(meal.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    calories: meal.nutrition?.calories || 0,
+    main_nutrients: {
+      protein: parseFloat(meal.nutrition?.protein || "0"),
+      carbs: parseFloat(meal.nutrition?.carbs || "0"),
+      fat: parseFloat(meal.nutrition?.fat || "0"),
     },
-    {
-      id: "2", 
-      name: "Grilled Chicken Salad",
-      time: "12:45 PM",
-      calories: 420,
-      main_nutrients: { protein: 35, carbs: 15, fat: 18 },
-    },
-    {
-      id: "3",
-      name: "Banana & Almond Smoothie",
-      time: "3:15 PM", 
-      calories: 280,
-      main_nutrients: { protein: 12, carbs: 35, fat: 8 },
-    },
-  ];
+  }));
+
+  if (statsLoading || mealsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   const getProgressColor = (current: number, goal: number) => {
     const percentage = (current / goal) * 100;

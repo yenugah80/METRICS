@@ -327,6 +327,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Save analyzed meal to database
+  app.post("/api/meals/save", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user;
+      const { name, mealType, imageUrl, foods, nutrition } = req.body;
+
+      if (!name || !foods || !nutrition) {
+        return res.status(400).json({ error: "Missing required meal data" });
+      }
+
+      // Create meal
+      const mealData = {
+        userId: user.id,
+        name,
+        mealType: mealType || 'lunch',
+        imageUrl,
+        source: 'photo',
+        confidence: foods.reduce((sum: number, food: any) => sum + food.confidence, 0) / foods.length || 0.8
+      };
+
+      const meal = await storage.createMeal(mealData);
+
+      // Add meal items
+      for (const food of foods) {
+        await storage.createMealItem({
+          mealId: meal.id,
+          name: food.name,
+          quantity: food.quantity.toString(),
+          unit: food.unit,
+          confidence: food.confidence?.toString() || "0.8"
+        });
+      }
+
+      // Add nutrition data
+      await storage.createMealNutrition({
+        mealId: meal.id,
+        calories: nutrition.total_calories,
+        protein: nutrition.total_protein.toString(),
+        carbs: nutrition.total_carbs.toString(),
+        fat: nutrition.total_fat.toString(),
+        fiber: nutrition.detailed_nutrition?.fiber?.toString() || null,
+        vitaminC: nutrition.detailed_nutrition?.vitamin_c?.toString() || null
+      });
+
+      console.log("Meal saved successfully:", meal.id);
+      res.json({ success: true, mealId: meal.id });
+    } catch (error) {
+      console.error("Error saving meal:", error);
+      res.status(500).json({ error: "Failed to save meal" });
+    }
+  });
+
+  // Get recent meals for the user
+  app.get("/api/meals/recent", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      const meals = await storage.getMealsByUserId(user.id, limit);
+      
+      // Get nutrition for each meal
+      const mealsWithNutrition = await Promise.all(
+        meals.map(async (meal) => {
+          const nutrition = await storage.getMealNutrition(meal.id);
+          const items = await storage.getMealItems(meal.id);
+          return {
+            ...meal,
+            nutrition,
+            items
+          };
+        })
+      );
+
+      res.json(mealsWithNutrition);
+    } catch (error) {
+      console.error("Error fetching recent meals:", error);
+      res.status(500).json({ error: "Failed to fetch recent meals" });
+    }
+  });
+
   // Enhanced nutrition search endpoints using ETL system
   
   // Barcode lookup using comprehensive nutrition APIs and ETL system

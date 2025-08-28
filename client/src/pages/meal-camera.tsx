@@ -118,18 +118,49 @@ export default function MealCamera() {
     fileInputRef.current?.click();
   };
 
-  const handleSaveMeal = () => {
+  const handleSaveMeal = async () => {
     if (!analysis) return;
     
-    // In a real app, this would save to the database
-    toast({
-      title: "Meal saved!",
-      description: "Your meal has been added to your nutrition log.",
-    });
-    
-    // Reset for next meal
-    setSelectedImage(null);
-    setAnalysis(null);
+    try {
+      // Save meal to database
+      const response = await fetch('/api/meals/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `Meal from ${new Date().toLocaleTimeString()}`,
+          mealType: 'lunch', // Default to lunch, could be made configurable
+          imageUrl: selectedImage, // Store the base64 image
+          foods: analysis.foods,
+          nutrition: analysis
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save meal');
+      }
+
+      const result = await response.json();
+      console.log('Meal saved successfully:', result.mealId);
+
+      toast({
+        title: "Meal saved!",
+        description: "Your meal has been added to your nutrition log.",
+      });
+      
+      // Reset for next meal
+      setSelectedImage(null);
+      setAnalysis(null);
+      
+    } catch (error) {
+      console.error('Error saving meal:', error);
+      toast({
+        title: "Error saving meal",
+        description: "Failed to save your meal. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -250,39 +281,39 @@ export default function MealCamera() {
                     <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border">
                       <h4 className="font-bold text-lg mb-4 text-center">Nutrition Summary</h4>
                       
-                      {/* Main Macros - Large Display */}
-                      <div className="grid grid-cols-4 gap-4 mb-6">
-                        <div className="text-center p-4 bg-background/60 backdrop-blur rounded-lg border">
-                          <div className="text-3xl font-bold text-primary mb-1">
+                      {/* Main Macros - Responsive Large Display */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
+                          <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
                             {analysis.total_calories}
                           </div>
-                          <div className="text-sm font-medium text-muted-foreground">Calories</div>
+                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Calories</div>
                         </div>
-                        <div className="text-center p-4 bg-background/60 backdrop-blur rounded-lg border">
-                          <div className="text-3xl font-bold text-blue-600 mb-1">
+                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
+                          <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
                             {analysis.total_protein}g
                           </div>
-                          <div className="text-sm font-medium text-muted-foreground">Protein</div>
+                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Protein</div>
                         </div>
-                        <div className="text-center p-4 bg-background/60 backdrop-blur rounded-lg border">
-                          <div className="text-3xl font-bold text-green-600 mb-1">
+                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
+                          <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">
                             {analysis.total_carbs}g
                           </div>
-                          <div className="text-sm font-medium text-muted-foreground">Carbs</div>
+                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Carbs</div>
                         </div>
-                        <div className="text-center p-4 bg-background/60 backdrop-blur rounded-lg border">
-                          <div className="text-3xl font-bold text-orange-600 mb-1">
+                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
+                          <div className="text-2xl md:text-3xl font-bold text-orange-600 mb-1">
                             {analysis.total_fat}g
                           </div>
-                          <div className="text-sm font-medium text-muted-foreground">Fat</div>
+                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Fat</div>
                         </div>
                       </div>
 
                       {/* Detailed Nutrition Breakdown */}
                       {analysis.detailed_nutrition && (
-                        <div className="bg-background/40 rounded-lg p-4 mb-4">
-                          <h5 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Detailed Breakdown</h5>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        <div className="bg-background/40 rounded-lg p-4 mb-4 border">
+                          <h5 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Detailed Breakdown</h5>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                             {analysis.detailed_nutrition.saturated_fat && (
                               <div className="flex justify-between">
                                 <span>Saturated Fat</span>
