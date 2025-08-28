@@ -20,6 +20,7 @@ import { calculateNutritionScore, type NutritionInput } from "./nutrition-scorin
 import { checkDietCompatibility, type DietCompatibilityInput } from "./diet-compatibility";
 import { freemiumMiddleware, type FreemiumRequest } from "./middleware/freemium";
 import { recommendationRoutes } from "./routes/recommendations";
+import { registerRecipeRoutes } from "./routes-recipes";
 
 // Stripe setup
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -52,6 +53,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Recipe chatbot routes
   app.use(chatbotRoutes);
+
+  // Comprehensive recipe system routes
+  registerRecipeRoutes(app);
 
   // Meal recommendation routes
   app.use('/api/recommendations', recommendationRoutes);

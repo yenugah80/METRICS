@@ -214,17 +214,275 @@ export const recipes = pgTable("recipes", {
   imageUrl: varchar("image_url"),
   prepTime: integer("prep_time"), // minutes
   cookTime: integer("cook_time"), // minutes
+  totalTime: integer("total_time"), // computed: prep + cook
   servings: integer("servings").default(1),
   ingredients: jsonb("ingredients").notNull(), // [{name, amount, unit}]
   instructions: text("instructions").array().notNull(),
   tags: text("tags").array(), // ['keto', 'vegan', 'quick']
   difficulty: varchar("difficulty").default("medium"), // 'easy', 'medium', 'hard'
+  category: varchar("category"), // 'breakfast', 'lunch', 'dinner', 'dessert', 'snack'
+  cuisine: varchar("cuisine"), // 'italian', 'mexican', 'asian', etc.
   estimatedCalories: integer("estimated_calories"),
   estimatedProtein: decimal("estimated_protein", { precision: 6, scale: 2 }),
+  estimatedCarbs: decimal("estimated_carbs", { precision: 6, scale: 2 }),
+  estimatedFat: decimal("estimated_fat", { precision: 6, scale: 2 }),
   nutritionGrade: varchar("nutrition_grade").default("C"),
   isPremium: boolean("is_premium").default(false),
+  isPublic: boolean("is_public").default(false),
+  createdBy: varchar("created_by"), // User ID who created this recipe
+  sourceUrl: varchar("source_url"), // If imported from external source
+  equipment: text("equipment").array(), // ['oven', 'mixer', 'grill']
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("recipes_category_idx").on(table.category),
+  index("recipes_cuisine_idx").on(table.cuisine),
+  index("recipes_difficulty_idx").on(table.difficulty),
+  index("recipes_created_by_idx").on(table.createdBy),
+  index("recipes_is_public_idx").on(table.isPublic),
+]);
+
+// User saved recipes (favorites)
+export const userSavedRecipes = pgTable("user_saved_recipes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  recipeId: varchar("recipe_id").notNull().references(() => recipes.id, { onDelete: "cascade" }),
+  notes: text("notes"), // User's personal notes about this recipe
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("user_saved_recipes_user_idx").on(table.userId),
+  index("user_saved_recipes_recipe_idx").on(table.recipeId),
+]);
+
+// Recipe collections (user-organized groups)
+export const recipeCollections = pgTable("recipe_collections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  isPublic: boolean("is_public").default(false),
+  imageUrl: varchar("image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("recipe_collections_user_idx").on(table.userId),
+]);
+
+// Many-to-many relationship between collections and recipes
+export const collectionRecipes = pgTable("collection_recipes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  collectionId: varchar("collection_id").notNull().references(() => recipeCollections.id, { onDelete: "cascade" }),
+  recipeId: varchar("recipe_id").notNull().references(() => recipes.id, { onDelete: "cascade" }),
+  addedAt: timestamp("added_at").defaultNow(),
+}, (table) => [
+  index("collection_recipes_collection_idx").on(table.collectionId),
+  index("collection_recipes_recipe_idx").on(table.recipeId),
+]);
+
+// Recipe ratings and reviews
+export const recipeRatings = pgTable("recipe_ratings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipeId: varchar("recipe_id").notNull().references(() => recipes.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  rating: integer("rating").notNull(), // 1-5 stars
+  review: text("review"),
+  wouldMakeAgain: boolean("would_make_again"),
+  difficultyRating: varchar("difficulty_rating"), // User's perception vs recipe difficulty
+  cookingNotes: text("cooking_notes"), // User's cooking experience/tips
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("recipe_ratings_recipe_idx").on(table.recipeId),
+  index("recipe_ratings_user_idx").on(table.userId),
+  index("recipe_ratings_rating_idx").on(table.rating),
+]);
+
+// Recipe comments (separate from ratings)
+export const recipeComments = pgTable("recipe_comments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipeId: varchar("recipe_id").notNull().references(() => recipes.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  parentCommentId: varchar("parent_comment_id"), // For threaded comments
+  content: text("content").notNull(),
+  isHelpful: boolean("is_helpful").default(false), // Moderator flag
+  helpfulCount: integer("helpful_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("recipe_comments_recipe_idx").on(table.recipeId),
+  index("recipe_comments_user_idx").on(table.userId),
+  index("recipe_comments_parent_idx").on(table.parentCommentId),
+]);
+
+// Recipe photos (user-submitted)
+export const recipePhotos = pgTable("recipe_photos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipeId: varchar("recipe_id").notNull().references(() => recipes.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  imageUrl: varchar("image_url").notNull(),
+  caption: text("caption"),
+  cookingStep: integer("cooking_step"), // Which step this photo represents
+  isMainPhoto: boolean("is_main_photo").default(false),
+  isApproved: boolean("is_approved").default(false), // Moderation
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("recipe_photos_recipe_idx").on(table.recipeId),
+  index("recipe_photos_user_idx").on(table.userId),
+]);
+
+// Recipe modifications (user customizations)
+export const recipeModifications = pgTable("recipe_modifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  originalRecipeId: varchar("original_recipe_id").notNull().references(() => recipes.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  modifiedRecipeId: varchar("modified_recipe_id").references(() => recipes.id), // If they save as new recipe
+  name: varchar("name").notNull(), // Name for this modification
+  ingredientChanges: jsonb("ingredient_changes"), // What ingredients were changed
+  instructionChanges: jsonb("instruction_changes"), // What instructions were modified
+  scalingFactor: decimal("scaling_factor", { precision: 4, scale: 2 }).default("1.00"), // 0.5 = half recipe, 2.0 = double
+  notes: text("notes"), // Why they made these changes
+  isPublic: boolean("is_public").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("recipe_modifications_original_idx").on(table.originalRecipeId),
+  index("recipe_modifications_user_idx").on(table.userId),
+]);
+
+// Ingredient substitutions database
+export const ingredientSubstitutions = pgTable("ingredient_substitutions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  originalIngredient: varchar("original_ingredient").notNull(),
+  substituteIngredient: varchar("substitute_ingredient").notNull(),
+  ratio: decimal("ratio", { precision: 4, scale: 2 }).default("1.00"), // How much substitute per original
+  category: varchar("category"), // 'dairy', 'gluten', 'vegan', etc.
+  notes: text("notes"), // Usage notes and tips
+  confidence: decimal("confidence", { precision: 3, scale: 2 }), // How good this substitution is
+  context: text("context").array(), // ['baking', 'cooking', 'sauce'] - where it works
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("substitutions_original_idx").on(table.originalIngredient),
+  index("substitutions_category_idx").on(table.category),
+]);
+
+// Shopping lists
+export const shoppingLists = pgTable("shopping_lists", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  isDefault: boolean("is_default").default(false), // User's default shopping list
+  store: varchar("store"), // Target store for organization
+  notes: text("notes"),
+  isCompleted: boolean("is_completed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("shopping_lists_user_idx").on(table.userId),
+]);
+
+// Shopping list items
+export const shoppingListItems = pgTable("shopping_list_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shoppingListId: varchar("shopping_list_id").notNull().references(() => shoppingLists.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  quantity: decimal("quantity", { precision: 8, scale: 2 }),
+  unit: varchar("unit"),
+  category: varchar("category"), // 'produce', 'dairy', 'meat', etc.
+  isChecked: boolean("is_checked").default(false),
+  recipeId: varchar("recipe_id").references(() => recipes.id), // Which recipe this is for
+  notes: text("notes"),
+  estimatedPrice: decimal("estimated_price", { precision: 8, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("shopping_list_items_list_idx").on(table.shoppingListId),
+  index("shopping_list_items_recipe_idx").on(table.recipeId),
+  index("shopping_list_items_category_idx").on(table.category),
+]);
+
+// Meal planning
+export const mealPlans = pgTable("meal_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // 'Week of Jan 15', 'Date Night Dinners'
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  isTemplate: boolean("is_template").default(false), // Reusable template
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("meal_plans_user_idx").on(table.userId),
+  index("meal_plans_dates_idx").on(table.startDate, table.endDate),
+]);
+
+// Planned meals within meal plans
+export const plannedMeals = pgTable("planned_meals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  mealPlanId: varchar("meal_plan_id").notNull().references(() => mealPlans.id, { onDelete: "cascade" }),
+  recipeId: varchar("recipe_id").references(() => recipes.id),
+  customMealName: varchar("custom_meal_name"), // For non-recipe meals
+  mealType: varchar("meal_type").notNull(), // 'breakfast', 'lunch', 'dinner', 'snack'
+  plannedDate: timestamp("planned_date").notNull(),
+  servings: integer("servings").default(1),
+  notes: text("notes"),
+  isCompleted: boolean("is_completed").default(false), // Did they actually make it?
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("planned_meals_plan_idx").on(table.mealPlanId),
+  index("planned_meals_recipe_idx").on(table.recipeId),
+  index("planned_meals_date_idx").on(table.plannedDate),
+]);
+
+// Cooking timers
+export const cookingTimers = pgTable("cooking_timers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  recipeId: varchar("recipe_id").references(() => recipes.id),
+  name: varchar("name").notNull(), // 'Bake cookies', 'Simmer sauce'
+  duration: integer("duration").notNull(), // seconds
+  step: integer("step"), // Which recipe step this timer is for
+  isActive: boolean("is_active").default(false),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("cooking_timers_user_idx").on(table.userId),
+  index("cooking_timers_recipe_idx").on(table.recipeId),
+  index("cooking_timers_active_idx").on(table.isActive),
+]);
+
+// Recipe sharing (when users share recipes with others)
+export const recipeShares = pgTable("recipe_shares", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipeId: varchar("recipe_id").notNull().references(() => recipes.id, { onDelete: "cascade" }),
+  sharedBy: varchar("shared_by").notNull().references(() => users.id),
+  sharedWith: varchar("shared_with").references(() => users.id), // null if shared publicly
+  shareType: varchar("share_type").notNull(), // 'direct', 'link', 'email'
+  permissions: varchar("permissions").default("view"), // 'view', 'modify', 'copy'
+  accessToken: varchar("access_token"), // For anonymous access
+  expiresAt: timestamp("expires_at"),
+  viewCount: integer("view_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("recipe_shares_recipe_idx").on(table.recipeId),
+  index("recipe_shares_shared_by_idx").on(table.sharedBy),
+  index("recipe_shares_token_idx").on(table.accessToken),
+]);
+
+// Recipe history (track what users have viewed/cooked)
+export const userRecipeHistory = pgTable("user_recipe_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  recipeId: varchar("recipe_id").notNull().references(() => recipes.id, { onDelete: "cascade" }),
+  action: varchar("action").notNull(), // 'viewed', 'cooked', 'saved', 'shared'
+  actionData: jsonb("action_data"), // Additional context for the action
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("recipe_history_user_idx").on(table.userId),
+  index("recipe_history_recipe_idx").on(table.recipeId),
+  index("recipe_history_action_idx").on(table.action),
+  index("recipe_history_created_idx").on(table.createdAt),
+]);
 
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -234,6 +492,17 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   authProviders: many(authProviders),
   passkeys: many(passkeys),
   refreshTokens: many(refreshTokens),
+  savedRecipes: many(userSavedRecipes),
+  recipeCollections: many(recipeCollections),
+  recipeRatings: many(recipeRatings),
+  recipeComments: many(recipeComments),
+  recipePhotos: many(recipePhotos),
+  recipeModifications: many(recipeModifications),
+  shoppingLists: many(shoppingLists),
+  mealPlans: many(mealPlans),
+  cookingTimers: many(cookingTimers),
+  recipeShares: many(recipeShares),
+  recipeHistory: many(userRecipeHistory),
 }));
 
 export const authProvidersRelations = relations(authProviders, ({ one }) => ({
@@ -310,6 +579,179 @@ export const nutritionProfileRelations = relations(nutritionProfile, ({ one }) =
   }),
 }));
 
+// Recipe relations
+export const recipesRelations = relations(recipes, ({ many }) => ({
+  savedByUsers: many(userSavedRecipes),
+  collections: many(collectionRecipes),
+  ratings: many(recipeRatings),
+  comments: many(recipeComments),
+  photos: many(recipePhotos),
+  modifications: many(recipeModifications),
+  shoppingListItems: many(shoppingListItems),
+  plannedMeals: many(plannedMeals),
+  timers: many(cookingTimers),
+  shares: many(recipeShares),
+  history: many(userRecipeHistory),
+}));
+
+export const userSavedRecipesRelations = relations(userSavedRecipes, ({ one }) => ({
+  user: one(users, {
+    fields: [userSavedRecipes.userId],
+    references: [users.id],
+  }),
+  recipe: one(recipes, {
+    fields: [userSavedRecipes.recipeId],
+    references: [recipes.id],
+  }),
+}));
+
+export const recipeCollectionsRelations = relations(recipeCollections, ({ one, many }) => ({
+  user: one(users, {
+    fields: [recipeCollections.userId],
+    references: [users.id],
+  }),
+  recipes: many(collectionRecipes),
+}));
+
+export const collectionRecipesRelations = relations(collectionRecipes, ({ one }) => ({
+  collection: one(recipeCollections, {
+    fields: [collectionRecipes.collectionId],
+    references: [recipeCollections.id],
+  }),
+  recipe: one(recipes, {
+    fields: [collectionRecipes.recipeId],
+    references: [recipes.id],
+  }),
+}));
+
+export const recipeRatingsRelations = relations(recipeRatings, ({ one }) => ({
+  recipe: one(recipes, {
+    fields: [recipeRatings.recipeId],
+    references: [recipes.id],
+  }),
+  user: one(users, {
+    fields: [recipeRatings.userId],
+    references: [users.id],
+  }),
+}));
+
+export const recipeCommentsRelations = relations(recipeComments, ({ one, many }) => ({
+  recipe: one(recipes, {
+    fields: [recipeComments.recipeId],
+    references: [recipes.id],
+  }),
+  user: one(users, {
+    fields: [recipeComments.userId],
+    references: [users.id],
+  }),
+  parentComment: one(recipeComments, {
+    fields: [recipeComments.parentCommentId],
+    references: [recipeComments.id],
+  }),
+  replies: many(recipeComments),
+}));
+
+export const recipePhotosRelations = relations(recipePhotos, ({ one }) => ({
+  recipe: one(recipes, {
+    fields: [recipePhotos.recipeId],
+    references: [recipes.id],
+  }),
+  user: one(users, {
+    fields: [recipePhotos.userId],
+    references: [users.id],
+  }),
+}));
+
+export const recipeModificationsRelations = relations(recipeModifications, ({ one }) => ({
+  originalRecipe: one(recipes, {
+    fields: [recipeModifications.originalRecipeId],
+    references: [recipes.id],
+  }),
+  user: one(users, {
+    fields: [recipeModifications.userId],
+    references: [users.id],
+  }),
+  modifiedRecipe: one(recipes, {
+    fields: [recipeModifications.modifiedRecipeId],
+    references: [recipes.id],
+  }),
+}));
+
+export const shoppingListsRelations = relations(shoppingLists, ({ one, many }) => ({
+  user: one(users, {
+    fields: [shoppingLists.userId],
+    references: [users.id],
+  }),
+  items: many(shoppingListItems),
+}));
+
+export const shoppingListItemsRelations = relations(shoppingListItems, ({ one }) => ({
+  shoppingList: one(shoppingLists, {
+    fields: [shoppingListItems.shoppingListId],
+    references: [shoppingLists.id],
+  }),
+  recipe: one(recipes, {
+    fields: [shoppingListItems.recipeId],
+    references: [recipes.id],
+  }),
+}));
+
+export const mealPlansRelations = relations(mealPlans, ({ one, many }) => ({
+  user: one(users, {
+    fields: [mealPlans.userId],
+    references: [users.id],
+  }),
+  plannedMeals: many(plannedMeals),
+}));
+
+export const plannedMealsRelations = relations(plannedMeals, ({ one }) => ({
+  mealPlan: one(mealPlans, {
+    fields: [plannedMeals.mealPlanId],
+    references: [mealPlans.id],
+  }),
+  recipe: one(recipes, {
+    fields: [plannedMeals.recipeId],
+    references: [recipes.id],
+  }),
+}));
+
+export const cookingTimersRelations = relations(cookingTimers, ({ one }) => ({
+  user: one(users, {
+    fields: [cookingTimers.userId],
+    references: [users.id],
+  }),
+  recipe: one(recipes, {
+    fields: [cookingTimers.recipeId],
+    references: [recipes.id],
+  }),
+}));
+
+export const recipeSharesRelations = relations(recipeShares, ({ one }) => ({
+  recipe: one(recipes, {
+    fields: [recipeShares.recipeId],
+    references: [recipes.id],
+  }),
+  sharedByUser: one(users, {
+    fields: [recipeShares.sharedBy],
+    references: [users.id],
+  }),
+  sharedWithUser: one(users, {
+    fields: [recipeShares.sharedWith],
+    references: [users.id],
+  }),
+}));
+
+export const userRecipeHistoryRelations = relations(userRecipeHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [userRecipeHistory.userId],
+    references: [users.id],
+  }),
+  recipe: one(recipes, {
+    fields: [userRecipeHistory.recipeId],
+    references: [recipes.id],
+  }),
+}));
+
 // Insert schemas for authentication tables
 export const insertAuthProviderSchema = createInsertSchema(authProviders).omit({
   id: true,
@@ -360,11 +802,6 @@ export const insertMealScoreSchema = createInsertSchema(mealScores).omit({
   createdAt: true,
 });
 
-export const insertRecipeSchema = createInsertSchema(recipes).omit({
-  id: true,
-  createdAt: true,
-});
-
 // Types for authentication
 export type AuthProvider = typeof authProviders.$inferSelect;
 export type InsertAuthProvider = z.infer<typeof insertAuthProviderSchema>;
@@ -388,8 +825,6 @@ export type InsertMealNutrition = z.infer<typeof insertMealNutritionSchema>;
 export type MealScore = typeof mealScores.$inferSelect;
 export type InsertMealScore = z.infer<typeof insertMealScoreSchema>;
 export type DailyAggregate = typeof dailyAggregates.$inferSelect;
-export type Recipe = typeof recipes.$inferSelect;
-export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
 
 // New types for enhanced nutrition system - types can be done earlier
 
@@ -655,6 +1090,94 @@ export const contextOverridesRelations = relations(contextOverrides, ({ one }) =
   }),
 }));
 
+// ==== INSERT SCHEMAS FOR RECIPES AND MEAL PLANNING ====
+
+export const insertRecipeSchema = createInsertSchema(recipes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSavedRecipeSchema = createInsertSchema(userSavedRecipes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRecipeCollectionSchema = createInsertSchema(recipeCollections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCollectionRecipeSchema = createInsertSchema(collectionRecipes).omit({
+  id: true,
+  addedAt: true,
+});
+
+export const insertRecipeRatingSchema = createInsertSchema(recipeRatings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRecipeCommentSchema = createInsertSchema(recipeComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRecipePhotoSchema = createInsertSchema(recipePhotos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRecipeModificationSchema = createInsertSchema(recipeModifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertIngredientSubstitutionSchema = createInsertSchema(ingredientSubstitutions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertShoppingListSchema = createInsertSchema(shoppingLists).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertShoppingListItemSchema = createInsertSchema(shoppingListItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMealPlanSchema = createInsertSchema(mealPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPlannedMealSchema = createInsertSchema(plannedMeals).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCookingTimerSchema = createInsertSchema(cookingTimers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertRecipeShareSchema = createInsertSchema(recipeShares).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserRecipeHistorySchema = createInsertSchema(userRecipeHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
 // ==== INSERT SCHEMAS FOR NUTRITION DATA ENGINEERING ====
 
 export const insertIngredientSchema = createInsertSchema(ingredients).omit({
@@ -753,3 +1276,53 @@ export type AnalysisCache = typeof analysisCache.$inferSelect;
 export type RecipeCache = typeof recipeCache.$inferSelect;
 export type NutritionProfile = typeof nutritionProfile.$inferSelect;
 export type InsertNutritionProfile = z.infer<typeof insertNutritionProfileSchema>;
+
+// ==== RECIPE SYSTEM TYPES ====
+
+export type Recipe = typeof recipes.$inferSelect;
+export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
+
+export type UserSavedRecipe = typeof userSavedRecipes.$inferSelect;
+export type InsertUserSavedRecipe = z.infer<typeof insertUserSavedRecipeSchema>;
+
+export type RecipeCollection = typeof recipeCollections.$inferSelect;
+export type InsertRecipeCollection = z.infer<typeof insertRecipeCollectionSchema>;
+
+export type CollectionRecipe = typeof collectionRecipes.$inferSelect;
+export type InsertCollectionRecipe = z.infer<typeof insertCollectionRecipeSchema>;
+
+export type RecipeRating = typeof recipeRatings.$inferSelect;
+export type InsertRecipeRating = z.infer<typeof insertRecipeRatingSchema>;
+
+export type RecipeComment = typeof recipeComments.$inferSelect;
+export type InsertRecipeComment = z.infer<typeof insertRecipeCommentSchema>;
+
+export type RecipePhoto = typeof recipePhotos.$inferSelect;
+export type InsertRecipePhoto = z.infer<typeof insertRecipePhotoSchema>;
+
+export type RecipeModification = typeof recipeModifications.$inferSelect;
+export type InsertRecipeModification = z.infer<typeof insertRecipeModificationSchema>;
+
+export type IngredientSubstitution = typeof ingredientSubstitutions.$inferSelect;
+export type InsertIngredientSubstitution = z.infer<typeof insertIngredientSubstitutionSchema>;
+
+export type ShoppingList = typeof shoppingLists.$inferSelect;
+export type InsertShoppingList = z.infer<typeof insertShoppingListSchema>;
+
+export type ShoppingListItem = typeof shoppingListItems.$inferSelect;
+export type InsertShoppingListItem = z.infer<typeof insertShoppingListItemSchema>;
+
+export type MealPlan = typeof mealPlans.$inferSelect;
+export type InsertMealPlan = z.infer<typeof insertMealPlanSchema>;
+
+export type PlannedMeal = typeof plannedMeals.$inferSelect;
+export type InsertPlannedMeal = z.infer<typeof insertPlannedMealSchema>;
+
+export type CookingTimer = typeof cookingTimers.$inferSelect;
+export type InsertCookingTimer = z.infer<typeof insertCookingTimerSchema>;
+
+export type RecipeShare = typeof recipeShares.$inferSelect;
+export type InsertRecipeShare = z.infer<typeof insertRecipeShareSchema>;
+
+export type UserRecipeHistory = typeof userRecipeHistory.$inferSelect;
+export type InsertUserRecipeHistory = z.infer<typeof insertUserRecipeHistorySchema>;
