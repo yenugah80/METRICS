@@ -113,14 +113,15 @@ export default function MealCamera() {
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
+  const isDemo = window.location.pathname === '/demo';
   const queryClient = useQueryClient();
 
   // Text analysis handler
   const handleTextSubmit = async () => {
     if (!textInput.trim()) return;
     
-    // Check if user is authenticated
-    if (!isAuthenticated) {
+    // Allow demo mode, but encourage signup for full features
+    if (!isAuthenticated && !isDemo) {
       toast({
         title: "Sign in required",
         description: "Please sign in to analyze your meals and get accurate nutrition data.",
@@ -154,8 +155,8 @@ export default function MealCamera() {
   const handleVoiceResult = async (transcript: string) => {
     if (!transcript.trim()) return;
     
-    // Check if user is authenticated
-    if (!isAuthenticated) {
+    // Allow demo mode, but encourage signup for full features
+    if (!isAuthenticated && !isDemo) {
       toast({
         title: "Sign in required",
         description: "Please sign in to use voice logging and get premium nutrition analysis.",
@@ -235,8 +236,8 @@ export default function MealCamera() {
       const imageDataUrl = e.target?.result as string;
       setSelectedImage(imageDataUrl);
       
-      // Check if user is authenticated before analyzing
-      if (!isAuthenticated) {
+      // Allow demo mode, but encourage signup for full features
+      if (!isAuthenticated && !isDemo) {
         toast({
           title: "Sign in required",
           description: "Please sign in to analyze your meal photos and get accurate nutrition data.",
@@ -395,9 +396,38 @@ export default function MealCamera() {
   return (
     <div className="p-6 bg-background min-h-screen">
       <div className="max-w-4xl mx-auto">
+        {/* Demo Banner */}
+        {isDemo && (
+          <div className="mb-6 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="bg-emerald-100 p-2 rounded-full">
+                  <Sparkles className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-emerald-800">You're in Demo Mode!</h3>
+                  <p className="text-sm text-emerald-700">
+                    Try all features instantly. Sign up to save your meals and track progress.
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => navigate('/auth')}
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                data-testid="demo-banner-signup"
+              >
+                Sign Up Free
+              </Button>
+            </div>
+          </div>
+        )}
+        
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Food Analysis</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {isDemo ? 'Try Food Analysis Demo' : 'Food Analysis'}
+          </h1>
           <p className="text-muted-foreground">
             Capture your meal and get instant food identification with complete nutrition analysis
           </p>

@@ -35,9 +35,8 @@ function App() {
               <Route path="/search">
                 <ProtectedRoute><SearchPage /></ProtectedRoute>
               </Route>
-              <Route path="/camera">
-                <ProtectedRoute><MealCamera /></ProtectedRoute>
-              </Route>
+              <Route path="/camera" component={MealCamera} />
+              <Route path="/demo" component={MealCamera} />
               <Route path="/recipes">
                 <ProtectedRoute><RecipesPage /></ProtectedRoute>
               </Route>
