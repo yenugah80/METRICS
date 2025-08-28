@@ -190,10 +190,10 @@ export default function MealCamera() {
                   <Button
                     onClick={handleCameraClick}
                     size="lg"
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:-translate-y-1 active:scale-95"
                     data-testid="button-upload-image"
                   >
-                    <Upload className="h-5 w-5" />
+                    <Upload className="h-6 w-6" />
                     <span>Upload Photo</span>
                   </Button>
                 </div>
@@ -237,7 +237,7 @@ export default function MealCamera() {
                     setAnalysis(null);
                   }}
                   variant="outline"
-                  className="w-full mt-4"
+                  className="w-full mt-4 py-3 text-base font-medium transition-all duration-300 hover:scale-105 hover:shadow-md hover:-translate-y-0.5 active:scale-95"
                   data-testid="button-upload-new"
                 >
                   Upload New Photo
@@ -422,7 +422,7 @@ export default function MealCamera() {
 
                     <Button
                       onClick={handleSaveMeal}
-                      className="w-full"
+                      className="w-full py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-1 active:scale-95 bg-gradient-to-r from-primary to-primary/80"
                       data-testid="button-save-meal"
                     >
                       Save to Nutrition Log
@@ -442,7 +442,7 @@ export default function MealCamera() {
                         }
                       }}
                       variant="outline"
-                      className="mt-2"
+                      className="mt-2 px-6 py-3 text-base font-medium transition-all duration-300 hover:scale-105 hover:shadow-md hover:-translate-y-0.5 active:scale-95"
                     >
                       Retry Analysis
                     </Button>
