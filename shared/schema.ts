@@ -93,6 +93,7 @@ export const userProfiles = pgTable("user_profiles", {
   dailyProteinTarget: integer("daily_protein_target").default(150),
   dailyCarbTarget: integer("daily_carb_target").default(250),
   dailyFatTarget: integer("daily_fat_target").default(80),
+  recipesGenerated: integer("recipes_generated").default(0), // Track usage for freemium model
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

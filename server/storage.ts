@@ -67,6 +67,10 @@ export interface IStorage {
   // Additional operations for search and meal management
   getTodaysMeal(userId: string): Promise<Meal | undefined>;
   createNutritionData(nutrition: any): Promise<any>;
+  
+  // Usage tracking for freemium model
+  getUserUsageStats(userId: string): Promise<{ recipesGenerated: number } | undefined>;
+  incrementUserRecipeUsage(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -305,6 +309,44 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return result;
+  }
+
+  // Usage tracking for freemium model
+  async getUserUsageStats(userId: string): Promise<{ recipesGenerated: number } | undefined> {
+    try {
+      // For now, we'll track this in user profiles
+      const profile = await this.getUserProfile(userId);
+      return {
+        recipesGenerated: profile?.recipesGenerated || 0
+      };
+    } catch (error) {
+      console.error('Error getting usage stats:', error);
+      return { recipesGenerated: 0 };
+    }
+  }
+
+  async incrementUserRecipeUsage(userId: string): Promise<void> {
+    try {
+      // First ensure user profile exists
+      let profile = await this.getUserProfile(userId);
+      if (!profile) {
+        profile = await this.upsertUserProfile({
+          userId,
+          recipesGenerated: 0
+        });
+      }
+
+      // Increment recipe count
+      await db
+        .update(userProfiles)
+        .set({
+          recipesGenerated: (profile.recipesGenerated || 0) + 1,
+          updatedAt: new Date()
+        })
+        .where(eq(userProfiles.userId, userId));
+    } catch (error) {
+      console.error('Error incrementing recipe usage:', error);
+    }
   }
 }
 

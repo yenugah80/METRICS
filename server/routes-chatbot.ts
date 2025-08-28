@@ -6,11 +6,12 @@
 import { Router } from 'express';
 import { recipeChatbot, type RecipeRequest } from './recipe-chatbot';
 import { isAuthenticated } from './replitAuth';
+import { freemiumMiddleware, checkRecipeLimit, incrementRecipeUsage, requirePremium, type FreemiumRequest } from './middleware/freemium';
 
 const router = Router();
 
-// Generate chatbot response for recipe requests
-router.post('/api/chatbot/recipe', isAuthenticated, async (req, res) => {
+// Generate chatbot response for recipe requests (freemium model)
+router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (req: FreemiumRequest, res) => {
   try {
     const { message, preferences, context, conversationId } = req.body;
     
@@ -20,10 +21,7 @@ router.post('/api/chatbot/recipe', isAuthenticated, async (req, res) => {
       });
     }
 
-    const userId = req.user?.claims?.sub;
-    if (!userId) {
-      return res.status(401).json({ error: 'User authentication required' });
-    }
+    const userId = req.user?.claims?.sub || req.user?.id || `guest_${req.ip || 'unknown'}_${Date.now()}`;
 
     const request: RecipeRequest = {
       userId,
@@ -43,13 +41,17 @@ router.post('/api/chatbot/recipe', isAuthenticated, async (req, res) => {
 
     const result = await recipeChatbot.generateResponse(request, message);
 
+    // Increment usage after successful generation
+    await incrementRecipeUsage(req, res, () => {});
+
     res.json({
       success: true,
       conversationId: request.conversationId,
       response: result.response,
       recipes: result.recipes || [],
       suggestions: result.suggestions || [],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      usageStats: req.usageStats
     });
 
   } catch (error: any) {
@@ -61,8 +63,8 @@ router.post('/api/chatbot/recipe', isAuthenticated, async (req, res) => {
   }
 });
 
-// Get cuisine information
-router.get('/api/chatbot/cuisine/:cuisine', isAuthenticated, async (req, res) => {
+// Get cuisine information (public access)
+router.get('/api/chatbot/cuisine/:cuisine', async (req, res) => {
   try {
     const { cuisine } = req.params;
     const userId = req.user?.claims?.sub;
@@ -97,8 +99,8 @@ router.get('/api/chatbot/cuisine/:cuisine', isAuthenticated, async (req, res) =>
   }
 });
 
-// Get cooking advice
-router.post('/api/chatbot/advice', isAuthenticated, async (req, res) => {
+// Get cooking advice (premium feature)
+router.post('/api/chatbot/advice', freemiumMiddleware, requirePremium, async (req: FreemiumRequest, res) => {
   try {
     const { topic, context } = req.body;
     const userId = req.user?.claims?.sub;
@@ -140,8 +142,8 @@ router.post('/api/chatbot/advice', isAuthenticated, async (req, res) => {
   }
 });
 
-// Get ingredient guidance
-router.post('/api/chatbot/ingredients', isAuthenticated, async (req, res) => {
+// Get ingredient guidance (premium feature)
+router.post('/api/chatbot/ingredients', freemiumMiddleware, requirePremium, async (req: FreemiumRequest, res) => {
   try {
     const { ingredients, question } = req.body;
     const userId = req.user?.claims?.sub;

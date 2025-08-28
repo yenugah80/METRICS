@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { chatbotRoutes } from './routes-chatbot';
+import { stripeRoutes } from './routes/stripe';
 import Stripe from "stripe";
 import cookieParser from "cookie-parser";
 import { storage } from "./storage";
@@ -15,6 +16,7 @@ import { analyzeFoodInput, type FoodAnalysisInput } from "./food-analysis-pipeli
 import { generateRecipe, type RecipeGenerationInput } from "./recipe-generation-v2";
 import { calculateNutritionScore, type NutritionInput } from "./nutrition-scoring";
 import { checkDietCompatibility, type DietCompatibilityInput } from "./diet-compatibility";
+import { freemiumMiddleware, type FreemiumRequest } from "./middleware/freemium";
 
 // Stripe setup
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -41,6 +43,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Legacy auth middleware (keep for backward compatibility)
   await setupAuth(app);
+
+  // Stripe subscription routes
+  app.use('/api/stripe', stripeRoutes);
+
+  // Recipe chatbot routes
+  app.use(chatbotRoutes);
 
   // Object storage routes for meal images
   app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
