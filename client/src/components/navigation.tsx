@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Apple, Home, Search, Camera, BarChart3, ChefHat, Target, User, LogIn, LogOut, Smartphone, Download, Menu, X } from "lucide-react";
+import logoImage from "@assets/generated_images/Hand-drawn_nutrition_app_logo_e40d4572.png";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -20,8 +21,12 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-18">
           {/* Premium Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-11 h-11 bg-gradient-to-br from-slate-600 to-slate-800 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200">
-              <Apple className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200 border border-gray-200">
+              <img 
+                src={logoImage} 
+                alt="MyFoodMatrics Logo" 
+                className="w-10 h-10 object-contain"
+              />
             </div>
             <span className="text-2xl font-semibold text-gray-900" style={{fontFamily: 'Playfair Display, Times New Roman, serif', letterSpacing: '0.5px'}}>MyFoodMatrics</span>
           </Link>
