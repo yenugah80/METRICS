@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,13 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Mail, Lock, User, Chrome, Fingerprint, Shield, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Mail, Lock, User, Chrome, Fingerprint, Shield, Eye, EyeOff, ArrowRight, LogIn } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 const signUpSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -37,8 +36,15 @@ type SignInData = z.infer<typeof signInSchema>;
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("signin");
+  const { user, isLoading, signInMutation, signUpMutation } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && !isLoading) {
+      setLocation("/dashboard");
+    }
+  }, [user, isLoading, setLocation]);
 
   // Sign In Form
   const signInForm = useForm<SignInData>({
@@ -52,42 +58,20 @@ export default function AuthPage() {
     defaultValues: { firstName: "", lastName: "", email: "", password: "", confirmPassword: "" }
   });
 
-  // Sign In Mutation
-  const signInMutation = useMutation({
-    mutationFn: async (data: SignInData) => {
-      const res = await apiRequest("POST", "/api/auth/signin", data);
-      return await res.json();
-    },
-    onSuccess: () => {
-      setLocation("/dashboard");
-    },
-    onError: (error: any) => {
-      setAuthError(error.message || "Sign in failed");
-    }
-  });
-
-  // Sign Up Mutation
-  const signUpMutation = useMutation({
-    mutationFn: async (data: SignUpData) => {
-      const res = await apiRequest("POST", "/api/auth/signup", data);
-      return await res.json();
-    },
-    onSuccess: () => {
-      setLocation("/dashboard");
-    },
-    onError: (error: any) => {
-      setAuthError(error.message || "Sign up failed");
-    }
-  });
-
   const handleSignIn = (data: SignInData) => {
-    setAuthError(null);
-    signInMutation.mutate(data);
+    signInMutation.mutate(data, {
+      onSuccess: () => {
+        setLocation("/dashboard");
+      }
+    });
   };
 
   const handleSignUp = (data: SignUpData) => {
-    setAuthError(null);
-    signUpMutation.mutate(data);
+    signUpMutation.mutate(data, {
+      onSuccess: () => {
+        setLocation("/dashboard");
+      }
+    });
   };
 
   const handleGoogleAuth = () => {
@@ -100,33 +84,33 @@ export default function AuthPage() {
 
   const handlePasskeyAuth = async () => {
     try {
-      setAuthError(null);
       // WebAuthn implementation would go here
       if (!window.navigator.credentials) {
-        throw new Error("WebAuthn not supported on this device");
+        alert("WebAuthn not supported on this device");
+        return;
       }
       
       // For now, show a placeholder
-      setAuthError("Passkey authentication coming soon!");
+      alert("Passkey authentication coming soon!");
     } catch (error: any) {
-      setAuthError(error.message || "Passkey authentication failed");
+      alert(error.message || "Passkey authentication failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex">
+    <div className="min-h-screen bg-gradient-to-br from-primary-100/30 via-secondary-100/30 to-accent-100/30 flex">
       {/* Left Panel - Auth Forms */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Shield className="w-8 h-8 text-white" />
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <LogIn className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to MyFoodMatrics</h1>
-            <p className="text-gray-600">Secure authentication with multiple options</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Welcome to MyFoodMatrics</h1>
+            <p className="text-muted-foreground">Secure authentication with multiple options</p>
           </div>
 
-          <Card className="shadow-2xl border-0">
+          <Card className="shadow-xl border border-border/50 backdrop-blur-sm bg-card/95">
             <CardHeader className="space-y-4">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
@@ -141,10 +125,10 @@ export default function AuthPage() {
                     <CardDescription>Sign in to your account</CardDescription>
                   </div>
 
-                  {authError && (
+                  {signInMutation.error && (
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{authError}</AlertDescription>
+                      <AlertDescription>{signInMutation.error.message}</AlertDescription>
                     </Alert>
                   )}
 
@@ -210,10 +194,10 @@ export default function AuthPage() {
                     <CardDescription>Get started with your nutrition journey</CardDescription>
                   </div>
 
-                  {authError && (
+                  {signInMutation.error && (
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{authError}</AlertDescription>
+                      <AlertDescription>{signInMutation.error.message}</AlertDescription>
                     </Alert>
                   )}
 
@@ -336,38 +320,40 @@ export default function AuthPage() {
 
               {/* Social & Alternative Auth Methods */}
               <div className="space-y-3">
+                {/* Replit SSO - Primary Auth Method */}
+                <Button
+                  onClick={handleReplitSSO}
+                  className="w-full bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg border-0"
+                  data-testid="button-replit-sso"
+                >
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Sign In with Replit
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Secure SSO authentication via Replit
+                </p>
+
                 {/* Google OAuth */}
                 <Button
                   variant="outline"
                   onClick={handleGoogleAuth}
-                  className="w-full"
+                  className="w-full border-border/50 hover:bg-muted/50"
                   data-testid="button-google-auth"
                 >
-                  <Chrome className="mr-2 h-4 w-4" />
+                  <Chrome className="mr-2 h-4 w-4 text-blue-500" />
                   Continue with Google
-                </Button>
-
-                {/* Replit SSO */}
-                <Button
-                  variant="outline"
-                  onClick={handleReplitSSO}
-                  className="w-full"
-                  data-testid="button-replit-sso"
-                >
-                  <Shield className="mr-2 h-4 w-4" />
-                  Continue with Replit SSO
                 </Button>
 
                 {/* Passkey Authentication */}
                 <Button
                   variant="outline"
                   onClick={handlePasskeyAuth}
-                  className="w-full relative"
+                  className="w-full relative border-border/50 hover:bg-muted/50"
                   data-testid="button-passkey-auth"
                 >
-                  <Fingerprint className="mr-2 h-4 w-4" />
+                  <Fingerprint className="mr-2 h-4 w-4 text-secondary-600" />
                   Sign in with Passkey
-                  <Badge variant="secondary" className="ml-auto text-xs">
+                  <Badge variant="secondary" className="ml-auto text-xs bg-secondary-100 text-secondary-700">
                     Soon
                   </Badge>
                 </Button>
@@ -401,29 +387,34 @@ export default function AuthPage() {
       </div>
 
       {/* Right Panel - Hero Section */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-emerald-500 via-cyan-500 to-blue-600 items-center justify-center p-12">
-        <div className="text-center text-white max-w-lg">
-          <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-8">
+      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary via-secondary-200 to-accent items-center justify-center p-12 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+        <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-32 -translate-y-32"></div>
+        <div className="absolute bottom-0 right-0 w-48 h-48 bg-white/5 rounded-full translate-x-24 translate-y-24"></div>
+        
+        <div className="relative text-center text-white max-w-lg z-10">
+          <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
             <Shield className="w-12 h-12 text-white" />
           </div>
-          <h2 className="text-4xl font-bold mb-6">Secure Multi-Factor Authentication</h2>
-          <p className="text-xl text-white/90 mb-8 leading-relaxed">
+          <h2 className="text-4xl font-bold mb-6 text-white drop-shadow-lg">Secure Multi-Factor Authentication</h2>
+          <p className="text-xl text-white/95 mb-8 leading-relaxed drop-shadow-sm">
             Choose from multiple secure authentication methods including email/password, Google OAuth, Replit SSO, and cutting-edge passkey technology.
           </p>
           <div className="space-y-4">
-            <div className="flex items-center space-x-3 text-white/90">
+            <div className="flex items-center space-x-3 text-white/95 bg-white/10 backdrop-blur-sm rounded-lg p-3">
               <div className="w-2 h-2 bg-white rounded-full"></div>
               <span>JWT token-based authentication</span>
             </div>
-            <div className="flex items-center space-x-3 text-white/90">
+            <div className="flex items-center space-x-3 text-white/95 bg-white/10 backdrop-blur-sm rounded-lg p-3">
               <div className="w-2 h-2 bg-white rounded-full"></div>
               <span>Enterprise-grade encryption</span>
             </div>
-            <div className="flex items-center space-x-3 text-white/90">
+            <div className="flex items-center space-x-3 text-white/95 bg-white/10 backdrop-blur-sm rounded-lg p-3">
               <div className="w-2 h-2 bg-white rounded-full"></div>
               <span>WebAuthn passkey support</span>
             </div>
-            <div className="flex items-center space-x-3 text-white/90">
+            <div className="flex items-center space-x-3 text-white/95 bg-white/10 backdrop-blur-sm rounded-lg p-3">
               <div className="w-2 h-2 bg-white rounded-full"></div>
               <span>Multi-provider OAuth integration</span>
             </div>

@@ -4,58 +4,75 @@
 @tailwind utilities;
 
 :root {
-  /* MyFoodMatrics Brand Colors */
-  --primary: hsl(158, 64%, 52%);
+  /* Beautiful Pastel Design System inspired by modern SSO */
+  --primary: hsl(174, 72%, 56%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --primary-100: hsl(158, 64%, 90%);
-  --primary-600: hsl(158, 64%, 42%);
+  --primary-100: hsl(174, 72%, 95%);
+  --primary-200: hsl(174, 72%, 85%);
+  --primary-600: hsl(174, 72%, 46%);
+  --primary-700: hsl(174, 72%, 36%);
   
-  --secondary: hsl(258, 90%, 66%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --secondary-100: hsl(258, 90%, 90%);
-  --secondary-600: hsl(258, 90%, 56%);
+  /* Soft Lavender Secondary */
+  --secondary: hsl(262, 52%, 75%);
+  --secondary-foreground: hsl(262, 52%, 15%);
+  --secondary-100: hsl(262, 52%, 95%);
+  --secondary-200: hsl(262, 52%, 85%);
+  --secondary-600: hsl(262, 52%, 65%);
+  --secondary-700: hsl(262, 52%, 45%);
   
-  --accent: hsl(188, 95%, 43%);
-  --accent-foreground: hsl(0, 0%, 100%);
-  --accent-100: hsl(188, 95%, 90%);
-  --accent-600: hsl(188, 95%, 33%);
+  /* Soft Mint Accent */
+  --accent: hsl(142, 52%, 75%);
+  --accent-foreground: hsl(142, 52%, 15%);
+  --accent-100: hsl(142, 52%, 95%);
+  --accent-200: hsl(142, 52%, 85%);
+  --accent-600: hsl(142, 52%, 65%);
+  --accent-700: hsl(142, 52%, 45%);
   
-  --premium: hsl(48, 96%, 53%);
-  --premium-foreground: hsl(48, 96%, 10%);
-  --premium-100: hsl(48, 96%, 90%);
-  --premium-600: hsl(48, 96%, 43%);
+  /* Soft Peach Premium */
+  --premium: hsl(32, 95%, 75%);
+  --premium-foreground: hsl(32, 95%, 15%);
+  --premium-100: hsl(32, 95%, 95%);
+  --premium-200: hsl(32, 95%, 85%);
+  --premium-600: hsl(32, 95%, 65%);
+  --premium-700: hsl(32, 95%, 45%);
   
-  /* Semantic Colors */
-  --success: hsl(142, 76%, 36%);
-  --warning: hsl(38, 92%, 50%);
-  --danger: hsl(0, 84%, 60%);
-  --info: hsl(188, 95%, 43%);
+  /* Semantic Colors with Pastels */
+  --success: hsl(142, 52%, 65%);
+  --success-foreground: hsl(142, 52%, 15%);
+  --warning: hsl(32, 95%, 65%);
+  --warning-foreground: hsl(32, 95%, 15%);
+  --danger: hsl(0, 70%, 70%);
+  --danger-foreground: hsl(0, 70%, 15%);
+  --info: hsl(174, 72%, 56%);
+  --info-foreground: hsl(174, 72%, 15%);
   
   /* Score Colors */
-  --score-a: hsl(142, 76%, 36%);
-  --score-b: hsl(142, 76%, 46%);
-  --score-c: hsl(38, 92%, 50%);
-  --score-d: hsl(25, 95%, 53%);
-  --score-e: hsl(0, 84%, 60%);
+  --score-a: hsl(142, 52%, 65%);
+  --score-b: hsl(142, 52%, 75%);
+  --score-c: hsl(32, 95%, 75%);
+  --score-d: hsl(25, 95%, 75%);
+  --score-e: hsl(0, 70%, 75%);
   
   /* Base Colors */
-  --background: hsl(180, 20%, 95%);
-  --foreground: hsl(220, 15%, 9%);
+  --background: hsl(250, 100%, 99%);
+  --foreground: hsl(231, 15%, 18%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(220, 15%, 9%);
+  --card-foreground: hsl(231, 15%, 18%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(220, 15%, 9%);
-  --muted: hsl(215, 16%, 47%);
-  --muted-foreground: hsl(215, 16%, 47%);
-  --destructive: hsl(0, 84%, 60%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(215, 20%, 85%);
-  --input: hsl(215, 20%, 85%);
-  --ring: hsl(188, 95%, 43%);
+  --popover-foreground: hsl(231, 15%, 18%);
+  --muted: hsl(240, 9%, 96%);
+  --muted-foreground: hsl(240, 5%, 64%);
+  --destructive: hsl(0, 70%, 70%);
+  --destructive-foreground: hsl(0, 70%, 15%);
+  --border: hsl(240, 6%, 90%);
+  --input: hsl(240, 6%, 94%);
+  --ring: hsl(174, 72%, 56%);
   
-  --radius: 16px;
+  --radius: 1rem;
   --font-sans: 'Inter', ui-sans-serif, system-ui;
-  --shadow: 0 10px 24px rgba(2, 6, 23, 0.12);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
 }
 
 .dark {
@@ -78,8 +95,8 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.35) 0%, transparent 60%),
-                linear-gradient(115deg, hsl(158 64% 85%) 0%, hsl(258 90% 85%) 100%);
+    background: radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.4) 0%, transparent 70%),
+                linear-gradient(135deg, hsl(174 72% 90%) 0%, hsl(262 52% 90%) 50%, hsl(142 52% 90%) 100%);
     min-height: 100vh;
   }
 }

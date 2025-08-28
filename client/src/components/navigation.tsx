@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Navigation() {
   const [location] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isAuthenticated] = useState(false); // This would come from your auth context
-  const [user] = useState(null); // This would come from your auth context
+  const { user, isAuthenticated, signOutMutation } = useAuth();
 
   const isActive = (path: string) => location === path;
 
@@ -114,7 +114,7 @@ export default function Navigation() {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => window.location.href = '/api/logout'}
+                    onClick={() => signOutMutation.mutate()}
                     className="flex items-center space-x-2"
                   >
                     <LogOut className="h-4 w-4" />
@@ -122,15 +122,16 @@ export default function Navigation() {
                   </Button>
                 </>
               ) : (
-                <Button 
-                  variant="default" 
-                  size="sm"
-                  onClick={() => window.location.href = '/api/login'}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>Login with Replit</span>
-                </Button>
+                <Link href="/auth">
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    className="flex items-center space-x-2 bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span>Sign In</span>
+                  </Button>
+                </Link>
               )}
             </div>
 
@@ -185,8 +186,8 @@ export default function Navigation() {
                           <User className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">John Doe</div>
-                          <div className="text-sm text-gray-500">john@example.com</div>
+                          <div className="font-medium text-gray-900">{user?.firstName} {user?.lastName}</div>
+                          <div className="text-sm text-gray-500">{user?.email}</div>
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -198,7 +199,7 @@ export default function Navigation() {
                           variant="outline" 
                           size="sm" 
                           className="w-full justify-start"
-                          onClick={() => window.location.href = '/api/logout'}
+                          onClick={() => signOutMutation.mutate()}
                         >
                           <LogOut className="h-4 w-4 mr-2" />
                           Sign Out
@@ -216,13 +217,14 @@ export default function Navigation() {
                         <h4 className="font-semibold text-gray-900 mb-1">Sign In Required</h4>
                         <p className="text-sm text-gray-600">Access your nutrition data across all devices</p>
                       </div>
-                      <Button 
-                        className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600"
-                        onClick={() => window.location.href = '/api/login'}
-                      >
-                        <LogIn className="h-4 w-4 mr-2" />
-                        Sign In with Replit
-                      </Button>
+                      <Link href="/auth">
+                        <Button 
+                          className="w-full bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700"
+                        >
+                          <LogIn className="h-4 w-4 mr-2" />
+                          Sign In
+                        </Button>
+                      </Link>
                       <p className="text-xs text-gray-500 mt-2 text-center">
                         Secure SSO authentication via Replit
                       </p>
