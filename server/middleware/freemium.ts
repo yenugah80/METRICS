@@ -35,11 +35,11 @@ setInterval(() => {
 export async function freemiumMiddleware(req: FreemiumRequest, res: Response, next: NextFunction) {
   try {
     // Check if user is authenticated
-    const userId = req.user?.id || req.user?.claims?.sub;
+    const userId = req.user?.id;
     
     if (userId) {
       // Authenticated user - get their usage stats
-      const user = await storage.getUserById(userId);
+      const user = await storage.getUser(userId);
       const usageStats = await storage.getUserUsageStats(userId);
       
       req.usageStats = {
@@ -127,9 +127,9 @@ export async function incrementRecipeUsage(req: FreemiumRequest, res: Response, 
       const guestStats = guestUsage.get(sessionId) || { recipesGenerated: 0, firstUsed: new Date() };
       guestStats.recipesGenerated += 1;
       guestUsage.set(sessionId, guestStats);
-    } else if (req.user?.id || req.user?.claims?.sub) {
+    } else if (req.user?.id) {
       // Update authenticated user usage
-      const userId = req.user.id || req.user.claims.sub;
+      const userId = req.user.id;
       await storage.incrementUserRecipeUsage(userId);
     }
 

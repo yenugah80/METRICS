@@ -163,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get current user usage stats endpoint
-  app.get('/api/usage-stats', freemiumMiddleware, async (req: any, res) => {
+  app.get('/api/usage-stats', verifyJWT, freemiumMiddleware, async (req: AuthenticatedRequest, res) => {
     res.json({
       usageStats: req.usageStats || {
         recipesGenerated: 0,

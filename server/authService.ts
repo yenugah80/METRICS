@@ -243,8 +243,12 @@ export class AuthService {
 
 // Middleware to verify JWT token
 export async function verifyJWT(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  // Try to get token from Authorization header first, then from cookies
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const headerToken = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const cookieToken = req.cookies?.accessToken;
+  
+  const token = headerToken || cookieToken;
 
   if (!token) {
     return res.status(401).json({ 
