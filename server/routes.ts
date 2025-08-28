@@ -1057,6 +1057,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         vitaminC: nutrition.detailed_nutrition?.vitamin_c?.toString() || null
       });
 
+      // Update daily aggregates
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Get current daily totals
+      const todaysMeals = await storage.getMealsForDate(userId, today);
+      let totalCalories = 0;
+      let totalProtein = 0;
+      let totalCarbs = 0;
+      let totalFat = 0;
+      
+      for (const mealRecord of todaysMeals) {
+        const mealNutrition = await storage.getMealNutrition(mealRecord.id);
+        if (mealNutrition) {
+          totalCalories += mealNutrition.calories || 0;
+          totalProtein += parseFloat(mealNutrition.protein || "0");
+          totalCarbs += parseFloat(mealNutrition.carbs || "0");
+          totalFat += parseFloat(mealNutrition.fat || "0");
+        }
+      }
+      
+      // Update daily aggregate
+      await storage.upsertDailyAggregate(userId, today, {
+        totalCalories,
+        totalProtein: totalProtein.toString(),
+        totalCarbs: totalCarbs.toString(),
+        totalFat: totalFat.toString(),
+        mealCount: todaysMeals.length,
+        averageNutritionScore: nutrition.nutrition_score?.score || 0,
+        averageNutritionGrade: nutrition.nutrition_score?.grade || "C"
+      });
+
       console.log("Meal saved successfully:", meal.id);
       res.json({ success: true, mealId: meal.id });
     } catch (error) {
@@ -1066,10 +1098,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get recent meals for the user
-  app.get("/api/meals/recent", async (req, res) => {
+  app.get("/api/meals/recent", verifyJWT, async (req: any, res) => {
     try {
-      // For demo purposes, use a default user ID  
-      const userId = "demo-user-123";
+      // Use authenticated user's ID
+      const userId = req.user.id;
       const limit = parseInt(req.query.limit as string) || 10;
       
       const meals = await storage.getMealsByUserId(userId, limit);

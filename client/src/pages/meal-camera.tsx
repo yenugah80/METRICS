@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -113,6 +113,7 @@ export default function MealCamera() {
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
 
   // Text analysis handler
   const handleTextSubmit = async () => {
@@ -347,6 +348,11 @@ export default function MealCamera() {
 
       const result = await response.json();
       console.log('Meal saved successfully:', result.mealId);
+
+      // Invalidate dashboard queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/stats/today"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/meals/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/meals/today"] });
 
       toast({
         title: "🎉 Meal Saved Successfully!",

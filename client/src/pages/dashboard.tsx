@@ -61,7 +61,7 @@ export default function Dashboard() {
     goal_protein: 120,
     goal_carbs: 250,
     goal_fat: 65,
-    meals_logged: (dailyStatsData as any)?.mealsLogged || 0,
+    meals_logged: (dailyStatsData as any)?.mealCount || 0, // Fixed field name
   };
 
   const recentMeals: RecentMeal[] = Array.isArray(recentMealsData) ? recentMealsData.map((meal: any) => ({
