@@ -9,6 +9,7 @@ import {
   boolean,
   jsonb,
   index,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -245,3 +246,294 @@ export type InsertMealScore = z.infer<typeof insertMealScoreSchema>;
 export type DailyAggregate = typeof dailyAggregates.$inferSelect;
 export type Recipe = typeof recipes.$inferSelect;
 export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
+
+// ==== COMPREHENSIVE NUTRITION DATA ENGINEERING SYSTEM ====
+
+// Core ingredient database from USDA FDC and Open Food Facts
+export const ingredients = pgTable("ingredients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  externalId: varchar("external_id", { length: 255 }).notNull(),
+  source: varchar("source", { length: 50 }).notNull(), // 'usda_fdc' | 'open_food_facts'
+  name: text("name").notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }),
+  barcode: varchar("barcode", { length: 50 }),
+  brandName: varchar("brand_name", { length: 255 }),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  dataQuality: decimal("data_quality", { precision: 3, scale: 2 }), // 0.00-1.00
+  isActive: boolean("is_active").default(true),
+}, (table) => [
+  index("ingredients_external_id_idx").on(table.externalId),
+  index("ingredients_source_idx").on(table.source),
+  index("ingredients_barcode_idx").on(table.barcode),
+]);
+
+// Normalized nutrition data per 100g
+export const nutritionData = pgTable("nutrition_data", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ingredientId: varchar("ingredient_id").references(() => ingredients.id).notNull(),
+  
+  // Macronutrients (per 100g)
+  calories: decimal("calories", { precision: 8, scale: 2 }),
+  protein: decimal("protein", { precision: 8, scale: 3 }),
+  totalFat: decimal("total_fat", { precision: 8, scale: 3 }),
+  saturatedFat: decimal("saturated_fat", { precision: 8, scale: 3 }),
+  transFat: decimal("trans_fat", { precision: 8, scale: 3 }),
+  carbohydrates: decimal("carbohydrates", { precision: 8, scale: 3 }),
+  fiber: decimal("fiber", { precision: 8, scale: 3 }),
+  sugar: decimal("sugar", { precision: 8, scale: 3 }),
+  addedSugar: decimal("added_sugar", { precision: 8, scale: 3 }),
+  
+  // Micronutrients (per 100g)
+  sodium: decimal("sodium", { precision: 8, scale: 3 }),
+  potassium: decimal("potassium", { precision: 8, scale: 3 }),
+  cholesterol: decimal("cholesterol", { precision: 8, scale: 3 }),
+  vitaminA: decimal("vitamin_a", { precision: 8, scale: 3 }),
+  vitaminC: decimal("vitamin_c", { precision: 8, scale: 3 }),
+  vitaminD: decimal("vitamin_d", { precision: 8, scale: 3 }),
+  calcium: decimal("calcium", { precision: 8, scale: 3 }),
+  iron: decimal("iron", { precision: 8, scale: 3 }),
+  magnesium: decimal("magnesium", { precision: 8, scale: 3 }),
+  
+  // Data quality and provenance
+  dataSource: varchar("data_source", { length: 100 }),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }),
+  lastVerified: timestamp("last_verified").defaultNow(),
+}, (table) => [
+  index("nutrition_ingredient_idx").on(table.ingredientId),
+]);
+
+// Enhanced recipe ingredients with nutrition data engineering
+export const recipeIngredients = pgTable("recipe_ingredients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipeId: varchar("recipe_id").references(() => recipes.id).notNull(),
+  ingredientId: varchar("ingredient_id").references(() => ingredients.id).notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
+  unit: varchar("unit", { length: 50 }).notNull(),
+  preparation: varchar("preparation", { length: 255 }), // "chopped", "diced", etc.
+}, (table) => [
+  index("recipe_ingredients_recipe_idx").on(table.recipeId),
+  index("recipe_ingredients_ingredient_idx").on(table.ingredientId),
+]);
+
+// Unit conversion system
+export const unitConversions = pgTable("unit_conversions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fromUnit: varchar("from_unit", { length: 50 }).notNull(),
+  toUnit: varchar("to_unit", { length: 50 }).notNull(),
+  factor: decimal("factor", { precision: 15, scale: 8 }).notNull(),
+  ingredientId: varchar("ingredient_id").references(() => ingredients.id), // Ingredient-specific conversions
+  category: varchar("category", { length: 100 }), // Category-specific conversions
+  isGeneral: boolean("is_general").default(false), // Universal conversions (ml to l, etc.)
+}, (table) => [
+  index("unit_conversions_from_idx").on(table.fromUnit),
+  index("unit_conversions_to_idx").on(table.toUnit),
+  index("unit_conversions_ingredient_idx").on(table.ingredientId),
+]);
+
+// Density data for volume to weight conversions
+export const densityData = pgTable("density_data", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ingredientId: varchar("ingredient_id").references(() => ingredients.id),
+  category: varchar("category", { length: 100 }), // For category-based density
+  densityGMl: decimal("density_g_ml", { precision: 6, scale: 4 }).notNull(), // grams per ml
+  temperature: integer("temperature"), // Celsius, for temperature-dependent densities
+  state: varchar("state", { length: 50 }), // "liquid", "solid", "powder", etc.
+  source: varchar("source", { length: 100 }),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }),
+}, (table) => [
+  index("density_ingredient_idx").on(table.ingredientId),
+  index("density_category_idx").on(table.category),
+]);
+
+// Context overrides for specific use cases
+export const contextOverrides = pgTable("context_overrides", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ingredientId: varchar("ingredient_id").references(() => ingredients.id).notNull(),
+  context: varchar("context", { length: 255 }).notNull(), // "raw", "cooked", "baked", etc.
+  preparation: varchar("preparation", { length: 255 }), // "chopped", "sliced", etc.
+  
+  // Override values (if null, use base ingredient data)
+  calorieMultiplier: decimal("calorie_multiplier", { precision: 4, scale: 3 }),
+  weightMultiplier: decimal("weight_multiplier", { precision: 4, scale: 3 }),
+  densityOverride: decimal("density_override", { precision: 6, scale: 4 }),
+  
+  // Nutritional changes due to preparation
+  nutritionChanges: jsonb("nutrition_changes"), // Object with percentage changes
+  
+  isActive: boolean("is_active").default(true),
+}, (table) => [
+  index("context_ingredient_context_idx").on(table.ingredientId, table.context),
+]);
+
+// ETL Pipeline Tracking and Observability
+export const etlJobs = pgTable("etl_jobs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  jobType: varchar("job_type", { length: 100 }).notNull(), // "usda_fetch", "off_fetch", "discovery", etc.
+  status: varchar("status", { length: 50 }).notNull(), // "running", "completed", "failed", "pending"
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  recordsProcessed: integer("records_processed").default(0),
+  recordsSucceeded: integer("records_succeeded").default(0),
+  recordsFailed: integer("records_failed").default(0),
+  errorLog: jsonb("error_log"),
+  metadata: jsonb("metadata"), // Job-specific configuration and results
+}, (table) => [
+  index("etl_jobs_type_idx").on(table.jobType),
+  index("etl_jobs_status_idx").on(table.status),
+  index("etl_jobs_started_idx").on(table.startedAt),
+]);
+
+// Data quality metrics and monitoring
+export const dataQualityMetrics = pgTable("data_quality_metrics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  metricType: varchar("metric_type", { length: 100 }).notNull(),
+  entityType: varchar("entity_type", { length: 50 }).notNull(), // "ingredient", "recipe", "nutrition"
+  entityId: varchar("entity_id"),
+  score: decimal("score", { precision: 5, scale: 4 }).notNull(), // 0.0000 to 1.0000
+  details: jsonb("details"), // Specific quality issues or validations
+  measuredAt: timestamp("measured_at").defaultNow(),
+}, (table) => [
+  index("quality_metric_type_idx").on(table.metricType),
+  index("quality_entity_type_idx").on(table.entityType),
+  index("quality_entity_id_idx").on(table.entityId),
+  index("quality_measured_at_idx").on(table.measuredAt),
+]);
+
+// Discovery service tracking - for finding new ingredients
+export const discoveryQueue = pgTable("discovery_queue", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ingredientName: text("ingredient_name").notNull(),
+  source: varchar("source", { length: 50 }), // Where the name was discovered
+  priority: integer("priority").default(5), // 1-10, higher = more urgent
+  status: varchar("status", { length: 50 }).default("pending"), // "pending", "processing", "completed", "failed"
+  attempts: integer("attempts").default(0),
+  lastAttempt: timestamp("last_attempt"),
+  discoveredAt: timestamp("discovered_at").defaultNow(),
+  metadata: jsonb("metadata"), // Context about where/how it was discovered
+}, (table) => [
+  index("discovery_status_idx").on(table.status),
+  index("discovery_priority_idx").on(table.priority),
+  index("discovery_name_idx").on(table.ingredientName),
+]);
+
+// ==== RELATIONS FOR NUTRITION DATA ENGINEERING ====
+
+export const ingredientsRelations = relations(ingredients, ({ many, one }) => ({
+  nutritionData: many(nutritionData),
+  recipeIngredients: many(recipeIngredients),
+  unitConversions: many(unitConversions),
+  densityData: many(densityData),
+  contextOverrides: many(contextOverrides),
+}));
+
+export const nutritionDataRelations = relations(nutritionData, ({ one }) => ({
+  ingredient: one(ingredients, {
+    fields: [nutritionData.ingredientId],
+    references: [ingredients.id],
+  }),
+}));
+
+export const recipeIngredientsRelations = relations(recipeIngredients, ({ one }) => ({
+  recipe: one(recipes, {
+    fields: [recipeIngredients.recipeId],
+    references: [recipes.id],
+  }),
+  ingredient: one(ingredients, {
+    fields: [recipeIngredients.ingredientId],
+    references: [ingredients.id],
+  }),
+}));
+
+export const unitConversionsRelations = relations(unitConversions, ({ one }) => ({
+  ingredient: one(ingredients, {
+    fields: [unitConversions.ingredientId],
+    references: [ingredients.id],
+  }),
+}));
+
+export const densityDataRelations = relations(densityData, ({ one }) => ({
+  ingredient: one(ingredients, {
+    fields: [densityData.ingredientId],
+    references: [ingredients.id],
+  }),
+}));
+
+export const contextOverridesRelations = relations(contextOverrides, ({ one }) => ({
+  ingredient: one(ingredients, {
+    fields: [contextOverrides.ingredientId],
+    references: [ingredients.id],
+  }),
+}));
+
+// ==== INSERT SCHEMAS FOR NUTRITION DATA ENGINEERING ====
+
+export const insertIngredientSchema = createInsertSchema(ingredients).omit({
+  id: true,
+  lastUpdated: true,
+});
+
+export const insertNutritionDataSchema = createInsertSchema(nutritionData).omit({
+  id: true,
+  lastVerified: true,
+});
+
+export const insertRecipeIngredientSchema = createInsertSchema(recipeIngredients).omit({
+  id: true,
+});
+
+export const insertUnitConversionSchema = createInsertSchema(unitConversions).omit({
+  id: true,
+});
+
+export const insertDensityDataSchema = createInsertSchema(densityData).omit({
+  id: true,
+});
+
+export const insertContextOverrideSchema = createInsertSchema(contextOverrides).omit({
+  id: true,
+});
+
+export const insertEtlJobSchema = createInsertSchema(etlJobs).omit({
+  id: true,
+  startedAt: true,
+});
+
+export const insertDataQualityMetricSchema = createInsertSchema(dataQualityMetrics).omit({
+  id: true,
+  measuredAt: true,
+});
+
+export const insertDiscoveryQueueItemSchema = createInsertSchema(discoveryQueue).omit({
+  id: true,
+  discoveredAt: true,
+});
+
+// ==== TYPES FOR NUTRITION DATA ENGINEERING ====
+
+export type Ingredient = typeof ingredients.$inferSelect;
+export type InsertIngredient = z.infer<typeof insertIngredientSchema>;
+
+export type NutritionData = typeof nutritionData.$inferSelect;
+export type InsertNutritionData = z.infer<typeof insertNutritionDataSchema>;
+
+export type RecipeIngredient = typeof recipeIngredients.$inferSelect;
+export type InsertRecipeIngredient = z.infer<typeof insertRecipeIngredientSchema>;
+
+export type UnitConversion = typeof unitConversions.$inferSelect;
+export type InsertUnitConversion = z.infer<typeof insertUnitConversionSchema>;
+
+export type DensityData = typeof densityData.$inferSelect;
+export type InsertDensityData = z.infer<typeof insertDensityDataSchema>;
+
+export type ContextOverride = typeof contextOverrides.$inferSelect;
+export type InsertContextOverride = z.infer<typeof insertContextOverrideSchema>;
+
+export type EtlJob = typeof etlJobs.$inferSelect;
+export type InsertEtlJob = z.infer<typeof insertEtlJobSchema>;
+
+export type DataQualityMetric = typeof dataQualityMetrics.$inferSelect;
+export type InsertDataQualityMetric = z.infer<typeof insertDataQualityMetricSchema>;
+
+export type DiscoveryQueueItem = typeof discoveryQueue.$inferSelect;
+export type InsertDiscoveryQueueItem = z.infer<typeof insertDiscoveryQueueItemSchema>;

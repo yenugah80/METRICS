@@ -7,16 +7,25 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import * as aiService from "./openai";
 import { nutritionService } from "./nutritionApi";
+import { etlSystem } from "./etl";
 
 // Stripe setup
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2025-08-27.basil",
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize ETL system
+  try {
+    await etlSystem.initialize();
+    console.log('ETL system initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize ETL system:', error);
+  }
+
   // Auth middleware
   await setupAuth(app);
 
@@ -318,19 +327,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced nutrition search endpoints using multiple APIs
+  // Enhanced nutrition search endpoints using ETL system
   
-  // Barcode lookup using comprehensive nutrition APIs
+  // Barcode lookup using comprehensive nutrition APIs and ETL system
   app.get('/api/nutrition/barcode/:barcode', async (req, res) => {
     try {
       const { barcode } = req.params;
-      const result = await nutritionService.searchByBarcode(barcode);
       
-      if (result) {
-        res.json(result);
-      } else {
-        res.status(404).json({ message: "Product not found" });
+      // Try our ETL system first
+      try {
+        const result = await nutritionService.searchByBarcode(barcode);
+        if (result) {
+          return res.json(result);
+        }
+      } catch (error: any) {
+        console.log('ETL barcode lookup failed, falling back to legacy:', error);
       }
+      
+      // If ingredient not found, queue it for discovery
+      await etlSystem.discoverIngredient(`barcode:${barcode}`, 'barcode_lookup');
+      
+      res.status(404).json({ 
+        message: "Product not found", 
+        queued: true,
+        note: "Product queued for discovery - try again in a few minutes" 
+      });
     } catch (error) {
       console.error("Error looking up barcode:", error);
       res.status(500).json({ message: "Failed to lookup barcode" });
@@ -354,7 +375,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Nutrition estimation for foods with quantity and unit
+  // Advanced nutrition calculation using ETL system
+  app.post('/api/nutrition/calculate', async (req, res) => {
+    try {
+      const { ingredientId, quantity, unit, context, preparation } = req.body;
+      
+      if (!ingredientId || !quantity || !unit) {
+        return res.status(400).json({ 
+          message: "ingredientId, quantity, and unit are required" 
+        });
+      }
+
+      const result = await etlSystem.calculateNutrition(
+        ingredientId, 
+        quantity, 
+        unit, 
+        context, 
+        preparation
+      );
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error calculating nutrition:", error);
+      res.status(500).json({ message: "Failed to calculate nutrition: " + error.message });
+    }
+  });
+
+  // Legacy nutrition estimation for backward compatibility
   app.post('/api/nutrition/estimate', async (req, res) => {
     try {
       const { foodName, quantity, unit } = req.body;
@@ -365,9 +412,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Try our ETL system first by searching for the ingredient
+      try {
+        const searchResults = await nutritionService.searchByText(foodName);
+        if (searchResults.length > 0 && 'id' in searchResults[0]) {
+          // Use the first result and calculate nutrition
+          const result = await etlSystem.calculateNutrition(
+            (searchResults[0] as any).id,
+            quantity,
+            unit
+          );
+          return res.json(result);
+        }
+      } catch (error) {
+        console.log('ETL nutrition calculation failed, using legacy:', error);
+      }
+
+      // Fallback to legacy system
       const result = await nutritionService.estimateNutrition(foodName, quantity, unit);
       
       if (result) {
+        // Queue this ingredient for discovery in our ETL system
+        await etlSystem.discoverIngredient(foodName, 'nutrition_estimation');
         res.json(result);
       } else {
         res.status(404).json({ message: "Could not estimate nutrition for this food" });
@@ -444,9 +510,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     if (user.stripeSubscriptionId) {
       const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+      const latestInvoice = subscription.latest_invoice as any;
       res.send({
         subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        clientSecret: latestInvoice?.payment_intent?.client_secret,
       });
       return;
     }
@@ -472,13 +539,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.updateUserStripeInfo(user.id, customer.id, subscription.id);
   
+      const latestInvoice = subscription.latest_invoice as any;
       res.send({
         subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        clientSecret: latestInvoice?.payment_intent?.client_secret,
       });
     } catch (error: any) {
       console.error('Stripe subscription error:', error);
       return res.status(400).send({ error: { message: error.message } });
+    }
+  });
+
+  // ETL System Administration Routes (for monitoring)
+  app.get('/api/admin/etl/status', isAuthenticated, async (req: any, res) => {
+    try {
+      // Only allow premium users to access ETL status
+      if (!req.user.isPremium) {
+        return res.status(403).json({ message: "Premium subscription required" });
+      }
+
+      const status = await etlSystem.getSystemStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Error fetching ETL status:", error);
+      res.status(500).json({ message: "Failed to fetch ETL status" });
+    }
+  });
+
+  app.post('/api/admin/etl/discover', isAuthenticated, async (req: any, res) => {
+    try {
+      // Only allow premium users to manually trigger discovery
+      if (!req.user.isPremium) {
+        return res.status(403).json({ message: "Premium subscription required" });
+      }
+
+      const { ingredientName } = req.body;
+      if (!ingredientName) {
+        return res.status(400).json({ message: "ingredientName is required" });
+      }
+
+      await etlSystem.discoverIngredient(ingredientName, 'manual_admin');
+      res.json({ message: "Ingredient queued for discovery", ingredientName });
+    } catch (error) {
+      console.error("Error queuing ingredient discovery:", error);
+      res.status(500).json({ message: "Failed to queue ingredient discovery" });
     }
   });
 
