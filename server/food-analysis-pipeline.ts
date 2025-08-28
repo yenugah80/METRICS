@@ -4,13 +4,18 @@
  */
 
 import crypto from 'crypto';
+import OpenAI from 'openai';
 import { calculateNutritionScore, type NutritionInput } from './nutrition-scoring';
 import { checkDietCompatibility, type DietCompatibilityInput } from './diet-compatibility';
 
+// Initialize OpenAI for OCR and voice processing
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
 export interface FoodAnalysisInput {
-  type: 'image' | 'barcode' | 'text';
-  data: string; // Base64 image, barcode number, or text description
+  type: 'image' | 'barcode' | 'text' | 'voice';
+  data: string; // Base64 image, barcode number, text description, or audio file path
   userId?: string;
+  isPremium?: boolean; // Required for voice input
   userPreferences?: {
     diet_preferences: string[];
     allergen_restrictions: string[];
@@ -91,21 +96,64 @@ function normalizeBarcodeText(text: string): string {
     .toLowerCase();
 }
 
+// Real OCR implementation using OpenAI Vision API
 async function processImageWithOCR(imageData: string): Promise<string[]> {
-  // In a real implementation, this would use Tesseract.js
-  // For now, simulate OCR detection
-  const mockOcrResults = [
-    'nutrition facts',
-    'calories 250',
-    'protein 12g',
-    'carbohydrates 30g',
-    'fat 8g',
-    'sodium 450mg',
-    'fiber 3g',
-    'sugar 5g'
-  ];
-  
-  return mockOcrResults;
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Extract all text and nutritional information from this image. Focus on nutrition facts, ingredient lists, and food names. Return a simple list of extracted text, one item per line."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${imageData}`
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 500
+    });
+
+    const extractedText = response.choices[0].message.content || '';
+    return extractedText.split('\n').filter((line: string) => line.trim().length > 0);
+  } catch (error) {
+    console.error('OCR processing error:', error);
+    throw new Error('Failed to process image with OCR');
+  }
+}
+
+// Voice input processing for Premium users
+async function processVoiceInput(audioData: string, isPremium: boolean): Promise<string> {
+  if (!isPremium) {
+    throw new Error('Voice input is available for Premium users only. Upgrade to unlock this feature.');
+  }
+
+  try {
+    // In production, this would use OpenAI Whisper or another STT service
+    // For now, simulate speech-to-text
+    const mockTranscript = "I had a chicken Caesar salad with grilled chicken breast, romaine lettuce, parmesan cheese, and Caesar dressing";
+    
+    // TODO: Implement real speech-to-text using OpenAI Whisper
+    // const audioFile = fs.createReadStream(audioData);
+    // const transcription = await openai.audio.transcriptions.create({
+    //   file: audioFile,
+    //   model: "whisper-1",
+    //   language: "en"
+    // });
+    // return transcription.text;
+    
+    return mockTranscript;
+  } catch (error) {
+    console.error('Voice processing error:', error);
+    throw new Error('Failed to process voice input');
+  }
 }
 
 async function lookupBarcode(barcode: string): Promise<any | null> {

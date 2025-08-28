@@ -9,13 +9,43 @@ import OpenAI from 'openai';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export interface RecipeGenerationInput {
+  ingredients: string[];
   cuisine?: string;
-  diet?: string;
+  diet?: 'keto' | 'vegan' | 'vegetarian' | 'gluten-free' | 'none';
+  difficulty?: 'easy' | 'medium' | 'hard';
+  cookTime?: number;
+  dietaryRestrictions?: string[];
+  userId: string;
   calorie_target?: number;
   protein_target?: number;
   pantry_items?: string[];
   exclusions?: string[];
   random_seed?: string;
+}
+
+// Strict JSON schema enforced by OpenAI
+export interface StrictRecipeSchema {
+  recipe_id: string;
+  title: string;
+  cuisine: string;
+  diet: 'keto' | 'vegan' | 'vegetarian' | 'gluten-free' | 'none';
+  servings: number;
+  ingredients: Array<{
+    item: string;
+    qty: string;
+    grams: number;
+  }>;
+  steps: string[];
+  macros: {
+    cal: number;
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+    fiber_g: number;
+  };
+  prep_time_min: number;
+  cook_time_min: number;
+  allergen_flags: string[];
 }
 
 export interface GeneratedRecipe {
@@ -146,49 +176,38 @@ async function generateRecipeWithOpenAI(input: RecipeGenerationInput): Promise<G
   const constraints = input.cuisine ? getCuisineConstraints(input.cuisine) : { techniques: [], staples: [] };
   const dietConstraints = input.diet ? getDietaryConstraints(input.diet) : { forbidden: [], preferred: [] };
   
-  const prompt = `Generate a unique ${input.cuisine || 'any cuisine'} recipe that is ${input.diet || 'balanced'} diet-friendly.
+  // Strict JSON prompt enforcing exact schema
+  const systemPrompt = "You are a culinary expert and nutritionist. Output STRICT JSON only. No prose.";
+  
+  const userPrompt = `
+- Cuisine: ${input.cuisine || 'any'}
+- Diet: ${input.diet || 'none'}
+- Calorie target/serving: ${input.calorie_target || 500}
+- Protein target/serving: ${input.protein_target || 20}
+- Pantry must-use: ${input.pantry_items?.join(', ') || 'none'}
+- Exclusions: ${input.exclusions?.join(', ') || 'none'}
+- Random seed: ${input.random_seed || Math.random().toString(36)}
 
-Requirements:
-- Target calories: ${input.calorie_target || 500} per serving
-- Target protein: ${input.protein_target || 20}g per serving
-- Cuisine techniques: ${constraints.techniques.join(', ') || 'any'}
-- Must include some of these staples: ${constraints.staples.join(', ') || 'common ingredients'}
-- Dietary restrictions: Avoid ${dietConstraints.forbidden.join(', ') || 'none'}
-- Prefer these ingredients: ${dietConstraints.preferred.join(', ') || 'healthy options'}
-${input.pantry_items?.length ? `- Must use these pantry items: ${input.pantry_items.join(', ')}` : ''}
-${input.exclusions?.length ? `- Exclude these ingredients: ${input.exclusions.join(', ')}` : ''}
-- Random seed for variation: ${input.random_seed || 'default'}
+Constraints:
+- Use authentic ${input.cuisine || 'global'} techniques & staple ingredients.
+- Enforce ${input.diet || 'balanced'} restrictions; no violations.
+- Macros within ±7% of targets.
+- Unique from existing recipes (server will reject high similarity).
+- Keep steps concise, numbered, reproducible in home kitchens.
 
-Create a recipe that is NOT similar to common dishes. Be creative and diverse.
-
-Return a JSON object with this exact structure:
+Return JSON matching the contract exactly:
 {
-  "name": "Recipe Name",
-  "description": "Brief appetizing description",
-  "prep_time": 15,
-  "cook_time": 30,
-  "servings": 4,
-  "difficulty": "easy",
-  "ingredients": [
-    {
-      "name": "ingredient name",
-      "amount": "1",
-      "unit": "cup",
-      "preparation": "diced"
-    }
-  ],
-  "instructions": [
-    "Step 1 instruction",
-    "Step 2 instruction"
-  ],
-  "nutrition": {
-    "calories": 500,
-    "protein": 25,
-    "carbs": 45,
-    "fat": 18,
-    "fiber": 8
-  },
-  "tags": ["tag1", "tag2"]
+  "recipe_id": "uuid",
+  "title": "string",
+  "cuisine": "${input.cuisine || 'Global'}",
+  "diet": "${input.diet || 'none'}",
+  "servings": 2,
+  "ingredients": [{"item":"", "qty":"", "grams":0}],
+  "steps": ["..."],
+  "macros": {"cal": 0, "protein_g": 0, "carbs_g": 0, "fat_g": 0, "fiber_g": 0},
+  "prep_time_min": 15,
+  "cook_time_min": 20,
+  "allergen_flags": ["contains_nuts", "contains_dairy"]
 }`;
 
   try {
@@ -197,11 +216,11 @@ Return a JSON object with this exact structure:
       messages: [
         {
           role: "system",
-          content: "You are a creative chef AI that generates unique, nutritious recipes. Always respond with valid JSON only."
+          content: systemPrompt
         },
         {
           role: "user",
-          content: prompt
+          content: userPrompt
         }
       ],
       temperature: 0.8, // Higher creativity
@@ -338,7 +357,7 @@ export async function generateRecipe(input: RecipeGenerationInput): Promise<Gene
   const existingRecipes: GeneratedRecipe[] = [];
   
   // Get existing recipes for deduplication check
-  for (const [, entry] of recipeCache) {
+  for (const [, entry] of Array.from(recipeCache.entries())) {
     if (Date.now() - entry.created_at.getTime() < CACHE_TTL_MS) {
       existingRecipes.push(entry.recipe);
     }

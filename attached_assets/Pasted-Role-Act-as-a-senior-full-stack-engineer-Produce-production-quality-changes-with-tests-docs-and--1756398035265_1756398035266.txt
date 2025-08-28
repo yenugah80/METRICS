@@ -1,0 +1,159 @@
+Role: Act as a senior full-stack engineer. Produce production-quality changes with tests, docs, and safe fallbacks. Do not return sample code in the output—return the final PR diff, migration notes, env variables, and test results only.
+
+Scope
+
+Replace all mocked logic in the food-analysis module with real integrations and consistent math. Preserve the current public TypeScript types and response shape, but make every value sourced or computed from real data. Ensure determinism, unit consistency, and measurable performance.
+
+Functional Requirements
+
+Inputs Supported
+
+Image (base64), barcode (EAN/UPC), or free text.
+
+Optional user preferences for diets and allergens.
+
+Data Acquisition
+
+OCR: Extract text from images using a local OCR engine. Normalize casing, strip artifacts, and retain numeric units.
+
+Barcode: Resolve products and nutrient panels via a public barcode nutrition API that returns per-100g nutrient values and brand/product metadata.
+
+Text: Resolve to a single best-match food using a national food database search endpoint, preferring entries with complete macro/micro panels.
+
+Disambiguation & Fallbacks
+
+When OCR text is ambiguous, classify the most probable product/food name with an LLM only for naming, never for nutrient values.
+
+If a chosen provider lacks a nutrient value, fill only with zero or a documented estimate from the same provider’s metadata; never invent random values.
+
+If no provider returns a match, return a minimal response flagged as a failure with a user-actionable message; do not fabricate macros.
+
+Unit & Basis Consistency
+
+Treat all retrieved nutrition values as per 100g basis by default; convert units explicitly (e.g., sodium mg, fats g).
+
+Store and compute totals for the selected serving quantity in grams, but also retain per-100g in the breakdown.
+
+Do not blend per-serving and per-100g values. Always state the basis in metadata.
+
+Nutrition Score
+
+Compute a deterministic 0–100 score using only numeric nutrient inputs (sugar g/100g, sodium mg/100g, saturated fat g/100g, fiber g/100g, protein g/100g, and count of micronutrients ≥10% DV).
+
+Output: score, grade (A/B/C/D), and a structured breakdown with each penalty/bonus component and the exact inputs used.
+
+No LLM in scoring. No hardcoded “demo” constants.
+
+Diet & Allergen Checks
+
+Build a canonical ingredient token list for the analyzed food.
+
+Return compatibility per requested diet with a boolean and a concise reason (violating tokens or “no violations”).
+
+Include allergen flags derived from ingredient tokens and provider metadata.
+
+Health Suggestions
+
+Generate suggestions only from the computed breakdown (e.g., high sodium penalty present) and detected violations.
+
+Never rely on guessed values. If the relevant metric is missing, omit the suggestion.
+
+Caching
+
+Replace in-memory Map with a network cache. Cache key: SHA-256 of normalized input payload (type + normalized data).
+
+TTL: 7 days; store the entire successful result plus a small metadata record with hit count and first-seen timestamp.
+
+Mark cache hits in response metadata.
+
+Async Processing
+
+For image and text inputs, enqueue heavy tasks (OCR, database search) to a worker with idempotent job keys.
+
+Expose a status field that surfaces major phases: ocr, lookup, merge, score, done.
+
+Response Integrity
+
+Populate analysis_metadata.source truthfully (ocr, barcode, usda, hybrid) and never claim openai unless an LLM was used for name classification (not nutrients).
+
+Include total macros (calories, protein, carbs, fat) for the selected quantity and a separate detailed panel with per-100g nutrients and available micros.
+
+Non-Functional Requirements
+
+Performance: cached p50 < 1.5s, p95 < 3s; uncached p95 < 6s from API ingress to response.
+
+Reliability: timeouts and retries with jitter for all network calls; never exceed two retries per provider.
+
+Security: validate and size-limit inputs; block non-image base64 on image path; sanitize text; redact provider keys from logs.
+
+Observability: structured logs for each phase, counters for cache hit ratio, external call latency, and time spent per phase; feature flags for LLM disambiguation and barcode provider selection.
+
+Concrete Changes Required (no examples—implement directly)
+
+Replace the OCR stub with a real OCR invocation and line normalization pipeline.
+
+Replace the barcode stub with a live product lookup returning nutrient keys per 100g; handle sodium unit conversions; extract brand and product name.
+
+Replace the USDA search stub with a live search; choose the top result with the most complete panel; extract calories, protein, carbs, fat, fiber, sugars, sodium, saturated fat, and available micros in a consistent structure.
+
+Remove all invented values and heuristics (e.g., saturated fat as a fraction of total fat). Use provider values only; if a value is missing, set zero and record “missing” in metadata.
+
+Normalize units and bases; compute both per-100g and per-serving totals given the quantity returned in foods[0].
+
+Ensure the nutrition score function receives only normalized per-100g inputs and returns the full breakdown used.
+
+Wire diet/allergen checks to the canonical ingredient token list derived from provider ingredient strings; return per-diet results and allergen flags.
+
+Replace in-memory cache with a network cache; implement get/set with TTL, atomic increments for hit counts, and JSON serialization.
+
+Add async job queue for OCR and lookups with idempotent job keys; ensure API responds quickly with final results or a completed single-shot path if under the p95 SLA.
+
+Populate analysis_metadata accurately: source, processing_time_ms, confidence (derived from provider match quality), cache_hit.
+
+Add input validation and schema guards for the request and the final result; reject malformed requests.
+
+Remove any mention of “backup recipes” or unrelated generation in this module.
+
+Tests & Acceptance
+
+Unit tests for: cache key normalization; unit conversions; nutrition score math with edge cases; diet/allergen evaluation; OCR text normalization.
+
+Integration tests for each input type: a) image path with OCR, b) barcode path with provider data, c) text path with USDA search.
+
+Contract tests for the final response shape; verify presence and types of all fields; ensure analysis_metadata.source is accurate.
+
+Performance tests asserting SLAs with network stubs and with cache enabled.
+
+Determinism tests: same normalized input → identical outputs (except timestamps/hit counts).
+
+Observability Deliverables
+
+Structured log fields: request id, user id (if provided), input type, phases with durations, provider status codes, cache_hit, score, grade.
+
+Metrics: external call latency by provider, cache hit ratio, p50/p95 end-to-end latency, error rate, retry count.
+
+Dashboards: latency histograms, error rates, cache efficacy.
+
+Environment & Config
+
+Define env vars for OCR language packs, provider API keys, cache URL, queue URL, and feature flags.
+
+Provide a .env.example with all required keys and safe defaults.
+
+Provide a runbook: migrate env, start worker, warm cache strategy, and rollback plan.
+
+Definition of Done
+
+No mocked or hardcoded nutrient values remain.
+
+All three paths (image/barcode/text) return results sourced from real providers.
+
+Units and bases are consistent and documented in the metadata.
+
+Scoring and suggestions are derived solely from actual numeric inputs.
+
+Caching and async processing are in place and observable.
+
+All tests pass locally and in CI; performance SLAs are met on cached and uncached paths.
+
+Documentation updated: architecture note, data flow, provider limits, and troubleshooting.
