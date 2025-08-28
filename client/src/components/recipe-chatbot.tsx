@@ -138,11 +138,16 @@ export function RecipeChatbot() {
       setMessages(prev => [...prev, assistantMessage]);
     },
     onError: (error: any) => {
-      let content = error.message || 'I apologize, but I\'m experiencing technical difficulties. Please try again.';
+      console.error('Recipe generation error:', error);
+      let content = 'I apologize, but I\'m having trouble generating your recipe right now. Please try again in a moment.';
       
       // Handle freemium limit errors
       if (error.message?.includes('402') || error.message?.includes('Free recipe limit exceeded')) {
-        content = "🎯 You've reached your monthly limit of 5 free recipes! Upgrade to Premium for unlimited AI recipe generation, advanced culinary features, and personalized meal planning.";
+        content = "🎯 You've reached your monthly recipe limit! Upgrade to Premium for unlimited recipe generation and advanced features.";
+      } else if (error.message?.includes('401')) {
+        content = "Please sign in to continue generating recipes, or try as a guest with limited access.";
+      } else if (error.message?.includes('400')) {
+        content = "I need more information to create your recipe. Could you be more specific about what you'd like to cook?";
       }
 
       const errorMessage: ChatMessage = {
@@ -247,55 +252,49 @@ export function RecipeChatbot() {
               <p className="text-muted-foreground mb-4">
                 I'm your professional culinary assistant with authentic knowledge of global cuisines.
               </p>
-              {/* Freemium welcome message */}
-              {!isAuthenticated && (
+              {/* Simple usage info */}
+              {usageStats && !usageStats.isPremium && (
                 <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    🎯 Try 2 free recipes as a guest, or sign in for 5 free recipes per month!
-                  </p>
-                </div>
-              )}
-              {isAuthenticated && usageStats && !usageStats.isPremium && (
-                <div className="mb-4 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                  <p className="text-sm text-green-700 dark:text-green-300">
-                    🎯 You have {usageStats.remainingFree} out of 5 free recipes this month.
-                    {usageStats.remainingFree === 0 && (
-                      <div className="mt-2">
-                        <Button 
-                          size="sm" 
-                          onClick={async () => {
-                            try {
-                              const response = await apiRequest('POST', '/api/upgrade-premium');
-                              const data = await response.json();
-                              if (data.checkoutUrl) {
-                                window.open(data.checkoutUrl, '_blank');
-                              }
-                            } catch (error) {
-                              console.error('Upgrade error:', error);
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      🍳 {usageStats.remainingFree > 0 
+                        ? `${usageStats.remainingFree} free recipes remaining this month`
+                        : 'Monthly recipe limit reached'
+                      }
+                    </p>
+                    {usageStats.remainingFree === 0 && isAuthenticated && (
+                      <Button 
+                        size="sm" 
+                        onClick={async () => {
+                          try {
+                            const response = await apiRequest('POST', '/api/upgrade-premium');
+                            const data = await response.json();
+                            if (data.checkoutUrl) {
+                              window.open(data.checkoutUrl, '_blank');
                             }
-                          }}
-                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                        >
-                          <Crown className="h-4 w-4 mr-2" />
-                          Upgrade to Premium - $9.99/month
-                        </Button>
-                      </div>
+                          } catch (error) {
+                            console.error('Upgrade error:', error);
+                          }
+                        }}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                      >
+                        <Crown className="h-3 w-3 mr-1" />
+                        Upgrade
+                      </Button>
                     )}
-                  </p>
+                  </div>
                 </div>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <strong>Ask me about:</strong><br />
-                  • Authentic recipes from any cuisine<br />
-                  • Cooking techniques and tips<br />
-                  • Ingredient substitutions
+                <div className="p-4 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                     onClick={() => setInput("Show me a quick 30-minute pasta recipe")}>
+                  <strong className="text-primary">🍝 Quick Pasta Recipe</strong><br />
+                  <span className="text-sm text-muted-foreground">Get a delicious pasta recipe ready in 30 minutes</span>
                 </div>
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <strong>Try saying:</strong><br />
-                  • "Show me an authentic Italian pasta recipe"<br />
-                  • "I have chicken and vegetables, what can I make?"<br />
-                  • "Tell me about Japanese cooking techniques"
+                <div className="p-4 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                     onClick={() => setInput("I have chicken, rice, and vegetables. What can I cook?")}>
+                  <strong className="text-primary">🍗 Use My Ingredients</strong><br />
+                  <span className="text-sm text-muted-foreground">Tell me what you have and I'll create a recipe</span>
                 </div>
               </div>
             </div>
@@ -478,7 +477,7 @@ export function RecipeChatbot() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask me about recipes, cooking techniques, or ingredients..."
+            placeholder="Type your recipe request... (e.g., 'Quick pasta for 2 people')"
             disabled={chatMutation.isPending}
             className="flex-1"
             data-testid="input-recipe-chat"
@@ -486,10 +485,17 @@ export function RecipeChatbot() {
           <Button 
             onClick={handleSendMessage}
             disabled={!input.trim() || chatMutation.isPending}
-            size="icon"
+            className="bg-primary hover:bg-primary/90"
             data-testid="button-send-message"
           >
-            <Send className="h-4 w-4" />
+            {chatMutation.isPending ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Send
+              </>
+            )}
           </Button>
         </div>
         
