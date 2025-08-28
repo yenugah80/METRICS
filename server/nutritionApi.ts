@@ -178,58 +178,6 @@ export class USDAFoodDataAPI {
   }
 }
 
-// Edamam Food Database API (Requires API key)
-export class EdamamAPI {
-  private baseUrl = 'https://api.edamam.com/api/food-database/v2';
-  private appId: string;
-  private appKey: string;
-
-  constructor(appId: string, appKey: string) {
-    this.appId = appId;
-    this.appKey = appKey;
-  }
-
-  async searchByText(query: string): Promise<FoodItem[]> {
-    try {
-      const response = await fetch(
-        `${this.baseUrl}/parser?app_id=${this.appId}&app_key=${this.appKey}&ingr=${encodeURIComponent(query)}&nutrition-type=cooking`
-      );
-      const data = await response.json();
-      
-      if (data.hints && data.hints.length > 0) {
-        return data.hints.slice(0, 5).map((hint: any) => {
-          const food = hint.food;
-          const nutrients = food.nutrients || {};
-          
-          return {
-            name: food.label || 'Unknown Food',
-            quantity: 100,
-            unit: 'g',
-            nutrition: {
-              calories: nutrients.ENERC_KCAL,
-              protein: nutrients.PROCNT,
-              carbs: nutrients.CHOCDF,
-              fat: nutrients.FAT,
-              fiber: nutrients.FIBTG,
-              iron: nutrients.FE,
-              vitaminC: nutrients.VITC,
-              magnesium: nutrients.MG,
-              vitaminB12: nutrients.VITB12A,
-              sodium: nutrients.NA,
-              sugar: nutrients.SUGAR,
-            },
-            confidence: 0.85,
-            source: 'Edamam'
-          };
-        });
-      }
-      return [];
-    } catch (error) {
-      console.error('Edamam API error:', error);
-      return [];
-    }
-  }
-}
 
 // FatSecret API (Requires OAuth)
 export class FatSecretAPI {
@@ -261,7 +209,6 @@ export class FatSecretAPI {
 export class NutritionService {
   private openFoodFacts: OpenFoodFactsAPI;
   private usdaAPI?: USDAFoodDataAPI;
-  private edamamAPI?: EdamamAPI;
   private fatSecretAPI?: FatSecretAPI;
 
   constructor() {
@@ -270,10 +217,6 @@ export class NutritionService {
     // Initialize APIs if keys are available
     if (process.env.USDA_API_KEY) {
       this.usdaAPI = new USDAFoodDataAPI(process.env.USDA_API_KEY);
-    }
-    
-    if (process.env.EDAMAM_APP_ID && process.env.EDAMAM_APP_KEY) {
-      this.edamamAPI = new EdamamAPI(process.env.EDAMAM_APP_ID, process.env.EDAMAM_APP_KEY);
     }
     
     if (process.env.FATSECRET_CONSUMER_KEY && process.env.FATSECRET_CONSUMER_SECRET) {
@@ -303,10 +246,6 @@ export class NutritionService {
 
     if (this.usdaAPI) {
       promises.push(this.usdaAPI.searchByText(query));
-    }
-
-    if (this.edamamAPI) {
-      promises.push(this.edamamAPI.searchByText(query));
     }
 
     try {
