@@ -475,7 +475,7 @@ export default function MealCamera() {
                             <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
-                            <p>Deterministic nutrition scoring (0-100) using real USDA database data. Factors include macro balance, micronutrients, fiber content, and processing level.</p>
+<p>Nutrition scoring based on macro balance, micronutrients, fiber content, and processing level.</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -528,14 +528,6 @@ export default function MealCamera() {
                       <p className="text-center text-sm mt-4 text-muted-foreground">
                         {analysis.nutrition_score?.explanation || 'Nutrition analysis completed using scientific data.'}
                       </p>
-                      {analysis.confidence_score && (
-                        <div className="flex items-center justify-center mt-2 text-xs text-muted-foreground">
-                          <Database className="w-3 h-3 mr-1" />
-                          <span>Data confidence: {Math.round(analysis.confidence_score * 100)}%</span>
-                          <span className="mx-2">•</span>
-                          <span>Sources: {analysis.data_sources?.join(', ') || 'USDA, OpenFoodFacts'}</span>
-                        </div>
-                      )}
                     </div>
 
                     {/* Diet Compatibility Check */}
@@ -547,7 +539,7 @@ export default function MealCamera() {
                             <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
-                            <p>Smart diet analysis based on actual ingredients and nutritional composition using scientific data.</p>
+<p>Diet analysis based on ingredients and nutritional composition.</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -564,17 +556,7 @@ export default function MealCamera() {
                               )}
                               <span className="font-medium">{dietName.charAt(0).toUpperCase() + dietName.slice(1)}</span>
                             </div>
-                            <span className="text-xs block mt-1">{data.compatible ? '✓ Compatible' : '✗ Not Compatible'}</span>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <div className="text-xs mt-1 text-center cursor-help hover:underline">
-                                  {data.confidence && `${Math.round(data.confidence * 100)}% confident`}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{data.reason}</p>
-                              </TooltipContent>
-                            </Tooltip>
+<span className="text-xs block mt-1">{data.compatible ? '✓ Compatible' : '✗ Not Compatible'}</span>
                           </div>
                         ))}
                       </div>
@@ -604,7 +586,7 @@ export default function MealCamera() {
                             <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
-                            <p>Accurate macro and micronutrient data from USDA FoodData Central and OpenFoodFacts database.</p>
+<p>Macro and micronutrient information for this meal.</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -621,7 +603,7 @@ export default function MealCamera() {
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Total energy content calculated from USDA database values</p>
+<p>Total energy content of this meal</p>
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -894,6 +876,15 @@ export default function MealCamera() {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Simple Disclaimer */}
+        {analysis && (
+          <div className="mt-6 text-center">
+            <p className="text-xs text-muted-foreground">
+              Nutrition information is estimated and may not be perfectly accurate. Please consult healthcare professionals for dietary advice.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
