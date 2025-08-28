@@ -237,6 +237,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PUT route for profile updates (used by ProfileManagement component)
+  app.put('/api/profile', verifyJWT, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const profileData = { ...req.body, userId };
+      const profile = await storage.upsertUserProfile(profileData);
+      res.json(profile);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Meal logging routes
   app.post('/api/meals/analyze-image-old', verifyJWT, async (req: any, res) => {
     try {

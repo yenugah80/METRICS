@@ -104,6 +104,20 @@ export default function Navigation() {
                 <span>Progress</span>
               </Button>
             </Link>
+
+            {isAuthenticated && (
+              <Link href="/profile">
+                <Button
+                  variant={isActive("/profile") ? "secondary" : "ghost"}
+                  size="sm"
+                  className="flex items-center space-x-2 font-medium"
+                  data-testid="nav-profile"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Profile</span>
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Authentication & Mobile Menu */}

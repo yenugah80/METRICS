@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils, Type, Mic, Crown, Sparkles, Info, Database, Target, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import VoiceLogger from "@/components/VoiceLogger";
+import { SustainabilityCard } from "@/components/SustainabilityCard";
+import { AllergenAlert } from "@/components/AllergenAlert";
 
 interface AnalyzedFood {
   name: string;
@@ -64,6 +66,38 @@ interface NutritionAnalysis {
     };
   };
   foods: AnalyzedFood[];
+  sustainability_score?: {
+    overall_score: number;
+    grade: string;
+    co2_impact: 'low' | 'medium' | 'high';
+    water_usage: 'low' | 'medium' | 'high';
+    seasonal_score: number;
+    processing_score: number;
+    local_score: number;
+    sustainability_badges: string[];
+    environmental_impact: {
+      carbon_footprint_kg: number;
+      water_footprint_liters: number;
+      land_use_m2: number;
+    };
+    recommendations: string[];
+    seasonal_alternatives: string[];
+  };
+  allergen_analysis?: {
+    isAllergenFree: boolean;
+    detectedAllergens: string[];
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    warnings: string[];
+    allergen_details: Array<{
+      allergen: string;
+      found_in: string[];
+      risk_level: 'low' | 'medium' | 'high' | 'critical';
+      specific_ingredients: string[];
+      reaction_type: 'mild' | 'moderate' | 'severe' | 'anaphylaxis';
+    }>;
+    cross_contamination_risk: 'low' | 'medium' | 'high';
+    safe_alternatives: string[];
+  };
 }
 
 export default function MealCamera() {
@@ -697,20 +731,19 @@ export default function MealCamera() {
                       </div>
                     </div>
 
-                    {/* Allergen Safety Score */}
-                    <div className="mb-6">
-                      <h4 className="font-semibold text-base mb-3">Allergen Safety</h4>
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span className="font-bold text-green-800">SAFE</span>
-                          <span className="text-sm text-green-600">No common allergens detected</span>
-                        </div>
-                        <div className="mt-2 text-xs text-green-600">
-                          Checked: nuts, dairy, soy, gluten, shellfish, eggs, sesame
-                        </div>
+                    {/* Enhanced Allergen Analysis */}
+                    {analysis.allergen_analysis && (
+                      <div className="mb-6">
+                        <AllergenAlert analysis={analysis.allergen_analysis} />
                       </div>
-                    </div>
+                    )}
+
+                    {/* Enhanced Sustainability Analysis */}
+                    {analysis.sustainability_score && (
+                      <div className="mb-6">
+                        <SustainabilityCard score={analysis.sustainability_score} />
+                      </div>
+                    )}
 
                     {/* Prominent Macro Display */}
                     <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border">

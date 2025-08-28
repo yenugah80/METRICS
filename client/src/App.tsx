@@ -16,6 +16,7 @@ import VoiceLogging from "@/pages/voice-logging";
 import Sustainability from "@/pages/sustainability";
 import NotFound from "@/pages/not-found";
 import RecommendationsPage from "@/pages/recommendations-page";
+import Profile from "@/pages/profile";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
               <Route path="/voice" component={VoiceLogging} />
               <Route path="/sustainability" component={Sustainability} />
               <Route path="/recommendations" component={RecommendationsPage} />
+              <Route path="/profile" component={Profile} />
               <Route component={NotFound} />
             </Switch>
           </div>

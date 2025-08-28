@@ -47,15 +47,35 @@ export interface DietCompatibility {
 export interface AllergenAnalysis {
   isAllergenFree: boolean;
   detectedAllergens: string[];
-  severity: 'low' | 'medium' | 'high';
+  severity: 'low' | 'medium' | 'high' | 'critical';
   warnings: string[];
+  allergen_details: Array<{
+    allergen: string;
+    found_in: string[];
+    risk_level: 'low' | 'medium' | 'high' | 'critical';
+    specific_ingredients: string[];
+    reaction_type: 'mild' | 'moderate' | 'severe' | 'anaphylaxis';
+  }>;
+  cross_contamination_risk: 'low' | 'medium' | 'high';
+  safe_alternatives: string[];
 }
 
 export interface SustainabilityScore {
-  score: number; // 0-10
-  co2Impact: number;
-  waterUsage: number;
+  overall_score: number; // 1-10
+  grade: string; // A+, A, B+, B, C+, C, D+, D, F
+  co2_impact: 'low' | 'medium' | 'high';
+  water_usage: 'low' | 'medium' | 'high';
+  seasonal_score: number; // 1-10
+  processing_score: number; // 1-10
+  local_score: number; // 1-10
+  sustainability_badges: string[]; // ['Plant-Based', 'Local', 'Seasonal', etc.]
+  environmental_impact: {
+    carbon_footprint_kg: number;
+    water_footprint_liters: number;
+    land_use_m2: number;
+  };
   recommendations: string[];
+  seasonal_alternatives: string[];
 }
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
@@ -365,42 +385,96 @@ export async function analyzeAllergens(
       isAllergenFree: true,
       detectedAllergens: [],
       severity: 'low',
-      warnings: []
+      warnings: [],
+      allergen_details: [],
+      cross_contamination_risk: 'low',
+      safe_alternatives: []
     };
   }
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
-          content: `You are an allergen safety expert. Check if these foods contain any of the specified allergens. Consider cross-contamination risks. Return JSON:
+          content: `You are a comprehensive food allergen safety expert with knowledge of FDA regulations, cross-contamination risks, and hidden allergens. Analyze these foods for ALL specified allergens with extreme accuracy.
+
+          **Top 9 Allergens to Consider:**
+          - Milk (dairy, casein, whey, lactose)
+          - Eggs (albumin, lecithin, lysozyme)  
+          - Fish (anchovies, fish sauce, omega-3)
+          - Shellfish (crustaceans, mollusks)
+          - Tree nuts (all varieties + derivatives)
+          - Peanuts (groundnuts, arachis oil)
+          - Wheat (gluten, spelt, kamut, semolina)
+          - Soybeans (soy lecithin, miso, tempeh)
+          - Sesame (tahini, halva, za'atar)
+
+          **Analysis Requirements:**
+          1. Check EACH food item for direct allergen presence
+          2. Identify hidden/derivative allergens (e.g., "natural flavors" may contain milk)
+          3. Assess cross-contamination risks from manufacturing/preparation
+          4. Consider severity levels: mild reaction vs anaphylaxis risk
+          5. Provide specific ingredient-level warnings
+          6. Suggest safe alternatives when allergens detected
+
+          **Cross-Contamination Risks:**
+          - Shared equipment (high risk for nuts, gluten)
+          - Shared fryers (medium-high risk)
+          - Shared preparation surfaces (medium risk)  
+          - Same facility warnings (low-medium risk)
+
+          Return detailed JSON:
           {
             "isAllergenFree": boolean,
-            "detectedAllergens": ["allergen1"],
-            "severity": "low/medium/high",
-            "warnings": ["warning text"]
+            "detectedAllergens": ["specific allergen names"],
+            "severity": "low/medium/high/critical",
+            "warnings": ["specific safety warnings"],
+            "allergen_details": [
+              {
+                "allergen": "allergen name",
+                "found_in": ["food item 1", "food item 2"],
+                "risk_level": "low/medium/high/critical", 
+                "specific_ingredients": ["exact ingredient containing allergen"],
+                "reaction_type": "mild/moderate/severe/anaphylaxis"
+              }
+            ],
+            "cross_contamination_risk": "low/medium/high",
+            "safe_alternatives": ["suggested alternatives for flagged items"]
           }`
         },
         {
           role: "user",
-          content: `Check allergens: Foods: ${JSON.stringify(foods)}, User allergens: ${JSON.stringify(userAllergens)}`
+          content: `Analyze for allergens: Foods: ${JSON.stringify(foods)}, User allergens: ${JSON.stringify(userAllergens)}`
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 400,
+      max_tokens: 1000,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
-    return result;
+    
+    // Ensure proper fallback structure
+    return {
+      isAllergenFree: result.isAllergenFree ?? false,
+      detectedAllergens: result.detectedAllergens || [],
+      severity: result.severity || 'medium',
+      warnings: result.warnings || [],
+      allergen_details: result.allergen_details || [],
+      cross_contamination_risk: result.cross_contamination_risk || 'medium',
+      safe_alternatives: result.safe_alternatives || []
+    };
   } catch (error) {
     console.error('Error analyzing allergens:', error);
     return {
       isAllergenFree: false,
       detectedAllergens: [],
-      severity: 'medium',
-      warnings: ['Unable to analyze allergens - please review manually']
+      severity: 'high',
+      warnings: ['Unable to analyze allergens - please consult with a healthcare provider before consuming'],
+      allergen_details: [],
+      cross_contamination_risk: 'high',
+      safe_alternatives: []
     };
   }
 }
@@ -409,43 +483,94 @@ export async function calculateSustainabilityScore(
   foods: FoodAnalysisResult['foods']
 ): Promise<SustainabilityScore> {
   try {
+    const currentMonth = new Date().toLocaleString('default', { month: 'long' });
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
-          content: `You are a sustainability expert. Score these foods 0-10 based on environmental impact:
-          - CO2 emissions (beef=high, legumes=low)
-          - Water usage (almonds=high, grains=low)
-          - Local/seasonal availability
-          - Packaging/processing impact
-          
-          Return JSON:
+          content: `You are a comprehensive sustainability expert specializing in food environmental impact assessment. Analyze these foods using multiple criteria:
+
+          **Scoring Criteria (0-10 scale):**
+          - CO2 Emissions: beef/lamb=1-3, pork/dairy=4-6, poultry/fish=6-7, plants/legumes=8-10
+          - Water Usage: nuts/avocados=3-5, rice=5-6, vegetables=7-8, legumes/grains=8-10  
+          - Seasonality: out-of-season imports=2-4, greenhouse grown=5-6, seasonal local=8-10
+          - Processing Level: ultra-processed=2-4, processed=5-6, minimally processed=7-8, whole foods=9-10
+          - Packaging Impact: plastic/individual wrapping=2-4, recyclable=6-7, minimal/compostable=8-10
+          - Food Miles: international=2-4, national=5-6, regional=7-8, local=9-10
+
+          **Current Context:** It's ${currentMonth} - consider seasonal availability.
+
+          Return detailed JSON:
           {
-            "score": 0-10,
-            "co2Impact": number,
-            "waterUsage": number,
-            "recommendations": ["suggestion text"]
+            "overall_score": 1-10,
+            "grade": "A+/A/B+/B/C+/C/D+/D/F",
+            "co2_impact": "low/medium/high",
+            "water_usage": "low/medium/high", 
+            "seasonal_score": 1-10,
+            "processing_score": 1-10,
+            "local_score": 1-10,
+            "sustainability_badges": ["Plant-Based", "Local", "Seasonal", "Low-Carbon", "Water-Efficient"],
+            "environmental_impact": {
+              "carbon_footprint_kg": estimated_kg_co2_per_meal,
+              "water_footprint_liters": estimated_liters_per_meal,
+              "land_use_m2": estimated_m2_per_meal
+            },
+            "recommendations": [
+              "Specific actionable suggestions for improvement"
+            ],
+            "seasonal_alternatives": [
+              "Current season alternatives if applicable"
+            ]
           }`
         },
         {
           role: "user",
-          content: `Calculate sustainability score for: ${JSON.stringify(foods)}`
+          content: `Analyze sustainability for these foods: ${JSON.stringify(foods)}`
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 500,
+      max_tokens: 800,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
-    return result;
+    
+    // Ensure proper fallback structure
+    return {
+      overall_score: result.overall_score || 5,
+      grade: result.grade || 'C',
+      co2_impact: result.co2_impact || 'medium',
+      water_usage: result.water_usage || 'medium',
+      seasonal_score: result.seasonal_score || 5,
+      processing_score: result.processing_score || 5,
+      local_score: result.local_score || 5,
+      sustainability_badges: result.sustainability_badges || [],
+      environmental_impact: result.environmental_impact || {
+        carbon_footprint_kg: 0,
+        water_footprint_liters: 0,
+        land_use_m2: 0
+      },
+      recommendations: result.recommendations || ['Consider more plant-based options for better sustainability'],
+      seasonal_alternatives: result.seasonal_alternatives || []
+    };
   } catch (error) {
     console.error('Error calculating sustainability score:', error);
     return {
-      score: 5,
-      co2Impact: 0,
-      waterUsage: 0,
-      recommendations: ['Unable to calculate sustainability impact']
+      overall_score: 5,
+      grade: 'C',
+      co2_impact: 'medium',
+      water_usage: 'medium',
+      seasonal_score: 5,
+      processing_score: 5,
+      local_score: 5,
+      sustainability_badges: [],
+      environmental_impact: {
+        carbon_footprint_kg: 0,
+        water_footprint_liters: 0,
+        land_use_m2: 0
+      },
+      recommendations: ['Unable to calculate sustainability impact - please try again'],
+      seasonal_alternatives: []
     };
   }
 }
