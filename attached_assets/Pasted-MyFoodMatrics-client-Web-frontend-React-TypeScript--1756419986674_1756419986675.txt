@@ -1,0 +1,58 @@
+MyFoodMatrics/
+├── client/                                   # Web frontend (React + TypeScript)
+│   ├── src/
+│   │   ├── components/                       # Reusable UI & feature components
+│   │   │   ├── ui/                           # Base UI (buttons, cards, forms, toasts)
+│   │   │   ├── MealCard.tsx                  # Displays a logged meal
+│   │   │   ├── CameraCapture.tsx             # Capture food photo
+│   │   │   ├── BarcodeScanner.tsx            # Barcode scanning interface
+│   │   │   ├── VoiceLogger.tsx               # Voice-to-text logging
+│   │   │   ├── recipe-chatbot.tsx            # Chef AI chat UI
+│   │   │   └── SustainabilityCard.tsx        # Environmental impact insights
+│   │   ├── hooks/                            # State + utilities (auth, toasts, etc.)
+│   │   ├── lib/                              # Shared utilities (API, query client)
+│   │   ├── pages/                            # Routes (landing, dashboard, auth, recipes)
+│   │   ├── App.tsx                           # App router
+│   │   └── main.tsx                          # Entry point
+│   └── index.html
+│
+├── server/                                   # Backend (Express + Node)
+│   ├── authRoutes.ts                         # JWT signin/signup/refresh
+│   ├── routes/                               # API routes grouped by feature
+│   │   ├── routes-recipes.ts                 # Recipe endpoints
+│   │   ├── routes-chatbot.ts                 # Chef AI endpoints
+│   │   ├── recommendations.ts                # Personalized suggestions
+│   │   ├── stripe.ts                         # Payment hooks (if enabled)
+│   │   └── index.ts                          # Route loader
+│   ├── etl/                                  # ETL & nutrition data pipelines
+│   │   ├── dataFetchers.ts                   # External API pulls
+│   │   ├── dataTransformation.ts             # Normalize nutrition data
+│   │   └── monitoring.ts                     # ETL monitoring & logging
+│   ├── gamification-system.ts                # Achievement badges + points
+│   ├── food-analysis-pipeline.ts             # OCR/vision → nutrition logic
+│   ├── meal-recommendation-engine.ts         # Personalized food suggestions
+│   ├── openai.ts                             # OpenAI integration
+│   ├── db.ts                                 # Postgres (Drizzle/Prisma) connector
+│   ├── storage.ts                            # Object storage adapter (images/files)
+│   └── index.ts                              # Express server entry
+│
+├── shared/                                   # Shared models/types
+│   └── schema.ts                             # Database schema & TS types
+│
+├── flutter_nutrition_app/                    # Mobile app (Flutter/Dart)
+│   ├── lib/
+│   │   ├── core/                             # Core services (API, health)
+│   │   ├── features/                         # Screens grouped by domain
+│   │   │   ├── camera/                       # Camera-based logging
+│   │   │   ├── home/                         # Dashboard screen
+│   │   │   ├── nutrition/                    # Nutrition dashboard
+│   │   │   └── profile/                      # User profile/settings
+│   │   └── main.dart                         # App entry
+│   └── pubspec.yaml                          # Dependencies
+│
+├── attached_assets/                          # Uploaded user files / generated images
+├── drizzle.config.ts                         # Migration config (Drizzle ORM)
+├── package.json                              # Node project deps & scripts
+├── vite.config.ts                            # Frontend build config
+├── tailwind.config.ts                        # CSS styling config
+└── replit.md                                 # (Legacy) Docs for earlier setup
