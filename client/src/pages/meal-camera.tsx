@@ -518,6 +518,17 @@ export default function MealCamera() {
                           </div>
                         ))}
                       </div>
+                      
+                      {/* USDA Food Name Disclaimer */}
+                      <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <p className="text-xs text-amber-800 dark:text-amber-200">
+                          <strong>Note:</strong> Food names are abbreviated in some places by the USDA to shorten the length of their description. If you see a weird food name, please{" "}
+                          <a href="#contact" className="underline hover:no-underline font-medium">
+                            contact us
+                          </a>
+                          .
+                        </p>
+                      </div>
                     </div>
 
                     <Button
