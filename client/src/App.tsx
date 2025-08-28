@@ -15,6 +15,7 @@ import DailyProgress from "@/pages/daily-progress";
 import VoiceLogging from "@/pages/voice-logging";
 import Sustainability from "@/pages/sustainability";
 import NotFound from "@/pages/not-found";
+import RecommendationsPage from "@/pages/recommendations-page";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
               <Route path="/progress" component={DailyProgress} />
               <Route path="/voice" component={VoiceLogging} />
               <Route path="/sustainability" component={Sustainability} />
+              <Route path="/recommendations" component={RecommendationsPage} />
               <Route component={NotFound} />
             </Switch>
           </div>

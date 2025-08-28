@@ -71,6 +71,11 @@ export interface IStorage {
   // Usage tracking for freemium model
   getUserUsageStats(userId: string): Promise<{ recipesGenerated: number } | undefined>;
   incrementUserRecipeUsage(userId: string): Promise<void>;
+  
+  // Meal recommendation methods
+  getUserRecentMeals(userId: string, days: number): Promise<Meal[]>;
+  saveMealRecommendation(userId: string, recommendation: any): Promise<void>;
+  getUserFavoriteMeals(userId: string): Promise<Meal[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -346,6 +351,82 @@ export class DatabaseStorage implements IStorage {
         .where(eq(userProfiles.userId, userId));
     } catch (error) {
       console.error('Error incrementing recipe usage:', error);
+    }
+  }
+
+  // Meal recommendation methods
+  async getUserRecentMeals(userId: string, days: number): Promise<Meal[]> {
+    try {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - days);
+      
+      const recentMeals = await db
+        .select()
+        .from(meals)
+        .where(
+          and(
+            eq(meals.userId, userId),
+            gte(meals.loggedAt, daysAgo)
+          )
+        )
+        .orderBy(desc(meals.loggedAt))
+        .limit(50);
+      
+      return recentMeals;
+    } catch (error) {
+      console.error('Error getting recent meals:', error);
+      return [];
+    }
+  }
+
+  async saveMealRecommendation(userId: string, recommendation: any): Promise<void> {
+    try {
+      // For now, we could save this as a special meal entry
+      // In the future, we might want a dedicated recommendations table
+      await this.createMeal({
+        userId,
+        name: recommendation.name,
+        mealType: recommendation.mealType,
+        source: 'recommendation',
+        rawText: JSON.stringify(recommendation),
+        confidence: "0.95"
+      });
+    } catch (error) {
+      console.error('Error saving meal recommendation:', error);
+    }
+  }
+
+  async getUserFavoriteMeals(userId: string): Promise<Meal[]> {
+    try {
+      // Get meals that appear frequently in user's history
+      const frequentMeals = await db
+        .select()
+        .from(meals)
+        .where(eq(meals.userId, userId))
+        .orderBy(desc(meals.loggedAt))
+        .limit(100);
+      
+      // Simple frequency analysis
+      const mealCounts = new Map<string, { meal: Meal; count: number }>();
+      
+      frequentMeals.forEach(meal => {
+        const key = meal.name.toLowerCase();
+        if (mealCounts.has(key)) {
+          mealCounts.get(key)!.count++;
+        } else {
+          mealCounts.set(key, { meal, count: 1 });
+        }
+      });
+      
+      // Return meals that appear more than once
+      return Array.from(mealCounts.values())
+        .filter(entry => entry.count > 1)
+        .sort((a, b) => b.count - a.count)
+        .map(entry => entry.meal)
+        .slice(0, 10);
+    } catch (error) {
+      console.error('Error getting favorite meals:', error);
+      return [];
     }
   }
 }
