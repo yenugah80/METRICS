@@ -43,6 +43,7 @@ dependencies:
   
   # Health Integration
   health: ^10.1.0
+  permission_handler: ^11.1.0
   
   # Icons & Fonts
   cupertino_icons: ^1.0.2
