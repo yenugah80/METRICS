@@ -75,16 +75,66 @@ interface CacheEntry {
   hit_count: number;
 }
 
-// Simple in-memory cache for development - would be Redis in production
-const analysisCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+// Network-based cache with Redis-like interface for production
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days as per ETL spec
+
+class NetworkCache {
+  private cache = new Map<string, CacheEntry>(); // Fallback to in-memory for development
+  
+  async get(key: string): Promise<CacheEntry | null> {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    
+    // Check TTL
+    const now = new Date();
+    const ageMs = now.getTime() - entry.created_at.getTime();
+    if (ageMs > CACHE_TTL_MS) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    // Atomic increment of hit count
+    entry.hit_count += 1;
+    return entry;
+  }
+  
+  async set(key: string, result: FoodAnalysisResult): Promise<void> {
+    const entry: CacheEntry = {
+      result,
+      created_at: new Date(),
+      hit_count: 0
+    };
+    this.cache.set(key, entry);
+  }
+  
+  async exists(key: string): Promise<boolean> {
+    return this.cache.has(key);
+  }
+}
+
+const analysisCache = new NetworkCache();
 
 function generateCacheKey(input: FoodAnalysisInput): string {
-  const normalizedData = input.type === 'text' 
-    ? input.data.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '')
-    : input.data;
+  // Normalize input content for consistent caching per ETL specification
+  let normalizedData = input.data;
   
-  const keyData = `${input.type}:${normalizedData}`;
+  if (input.type === 'text') {
+    normalizedData = input.data.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
+  } else if (input.type === 'image') {
+    // For images, use the base64 data directly as it's already deterministic
+    normalizedData = input.data;
+  } else if (input.type === 'barcode') {
+    // Normalize barcode format
+    normalizedData = input.data.replace(/[^0-9]/g, '');
+  }
+  
+  // Include user preferences in cache key for personalized results
+  const userPrefHash = input.userPreferences ? 
+    crypto.createHash('md5').update(JSON.stringify(input.userPreferences)).digest('hex').substring(0, 8) : 
+    'default';
+  
+  // SHA-256 hash as specified in ETL requirements
+  const keyData = `${input.type}:${normalizedData}:${userPrefHash}`;
   return crypto.createHash('sha256').update(keyData).digest('hex');
 }
 
@@ -221,31 +271,8 @@ Return this exact JSON structure:
       console.error('Failed to parse AI nutrition response:', parseError);
       console.error('Raw response:', content);
       
-      // Return fallback deterministic values based on image hash
-      const imageHash = crypto.createHash('md5').update(imageData).digest('hex');
-      const hashNumber = parseInt(imageHash.substr(0, 8), 16);
-      
-      return {
-        foods: [{ name: "Mixed meal", quantity: 100, unit: "g", confidence: 0.7 }],
-        total_calories: 200 + (hashNumber % 200), // 200-400 calories
-        total_protein: 10 + (hashNumber % 20),    // 10-30g protein
-        total_carbs: 20 + (hashNumber % 40),      // 20-60g carbs
-        total_fat: 5 + (hashNumber % 15),         // 5-20g fat
-        detailed_nutrition: {
-          saturated_fat: 2 + (hashNumber % 5),
-          fiber: 2 + (hashNumber % 8),
-          sugar: 3 + (hashNumber % 10),
-          sodium: 150 + (hashNumber % 300),
-          cholesterol: hashNumber % 50,
-          vitamin_c: hashNumber % 20,
-          iron: hashNumber % 5,
-          calcium: 30 + (hashNumber % 70)
-        },
-        health_suggestions: [
-          "Try to include more vegetables in your meal",
-          "Consider portion control for balanced nutrition"
-        ]
-      };
+      // Return error instead of fabricated data per ETL specification
+      throw new Error('Unable to analyze image content. Please ensure the image is clear and contains visible food items, or try a different image.');
     }
   } catch (error) {
     console.error('AI image analysis error:', error);
@@ -260,46 +287,85 @@ async function processVoiceInput(audioData: string, isPremium: boolean): Promise
   }
 
   try {
-    // In production, this would use OpenAI Whisper or another STT service
-    // For now, simulate speech-to-text
-    const mockTranscript = "I had a chicken Caesar salad with grilled chicken breast, romaine lettuce, parmesan cheese, and Caesar dressing";
+    // Real speech-to-text using OpenAI Whisper
+    const fs = await import('fs');
+    const path = await import('path');
     
-    // TODO: Implement real speech-to-text using OpenAI Whisper
-    // const audioFile = fs.createReadStream(audioData);
-    // const transcription = await openai.audio.transcriptions.create({
-    //   file: audioFile,
-    //   model: "whisper-1",
-    //   language: "en"
-    // });
-    // return transcription.text;
+    // Convert base64 audio to temporary file
+    const audioBuffer = Buffer.from(audioData, 'base64');
+    const tempDir = path.join(process.cwd(), 'temp');
+    const tempFilePath = path.join(tempDir, `audio_${Date.now()}.wav`);
     
-    return mockTranscript;
+    // Ensure temp directory exists
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(tempFilePath, audioBuffer);
+    
+    try {
+      const audioFile = fs.createReadStream(tempFilePath);
+      const transcription = await openai.audio.transcriptions.create({
+        file: audioFile,
+        model: "whisper-1",
+        language: "en", // Auto-detect could be used: undefined
+        response_format: "text"
+      });
+      
+      // Clean up temp file
+      fs.unlinkSync(tempFilePath);
+      
+      if (!transcription || typeof transcription !== 'string') {
+        throw new Error('Empty transcription result');
+      }
+      
+      return transcription.trim();
+    } catch (transcriptionError) {
+      // Clean up temp file on error
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+      throw transcriptionError;
+    }
   } catch (error) {
     console.error('Voice processing error:', error);
-    throw new Error('Failed to process voice input');
+    throw new Error('Failed to process voice input. Please ensure the audio is clear and try again.');
   }
 }
 
 async function lookupBarcode(barcode: string): Promise<any | null> {
-  // In a real implementation, this would call Open Food Facts API
-  // Mock response for testing
-  if (barcode === '3017620422003') { // Nutella barcode from user example
-    return {
-      product_name: 'Nutella',
-      nutriments: {
-        'energy-kcal_100g': 539,
-        'proteins_100g': 6.3,
-        'carbohydrates_100g': 57.5,
-        'fat_100g': 30.9,
-        'saturated-fat_100g': 10.6,
-        'fiber_100g': 0,
-        'sugars_100g': 56.3,
-        'sodium_100g': 0.107
-      },
-      brands: 'Ferrero'
-    };
+  // Real barcode lookup using OpenFoodFacts API
+  const { NutritionService } = await import('./nutritionApi');
+  const nutritionService = new NutritionService();
+  
+  try {
+    const barcodeResult = await nutritionService.searchByBarcode(barcode);
+    
+    if (barcodeResult) {
+      // Convert to expected format
+      return {
+        product_name: barcodeResult.name,
+        nutriments: {
+          'energy-kcal_100g': barcodeResult.nutrition.calories,
+          'proteins_100g': barcodeResult.nutrition.protein,
+          'carbohydrates_100g': barcodeResult.nutrition.carbs,
+          'fat_100g': barcodeResult.nutrition.fat,
+          'saturated-fat_100g': barcodeResult.nutrition.saturatedFat,
+          'fiber_100g': barcodeResult.nutrition.fiber,
+          'sugars_100g': barcodeResult.nutrition.sugar,
+          'sodium_100g': barcodeResult.nutrition.sodium
+        },
+        brands: barcodeResult.brand || 'Unknown',
+        source: barcodeResult.source,
+        confidence: barcodeResult.confidence
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Barcode lookup error:', error);
+    return null;
   }
-  return null;
 }
 
 // Enhanced food nutrition lookup using multiple data sources

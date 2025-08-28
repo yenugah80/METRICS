@@ -69,7 +69,7 @@ router.get('/api/chatbot/cuisine/:cuisine', async (req, res) => {
     const { cuisine } = req.params;
     const userId = req.user?.claims?.sub;
 
-    const dummyRequest: RecipeRequest = {
+    const recipeRequest: RecipeRequest = {
       userId: userId || 'anonymous',
       conversationId: `info_${Date.now()}`,
       preferences: {
@@ -111,7 +111,7 @@ router.post('/api/chatbot/advice', freemiumMiddleware, requirePremium, async (re
       });
     }
 
-    const dummyRequest: RecipeRequest = {
+    const recipeRequest: RecipeRequest = {
       userId: userId || 'anonymous',
       conversationId: `advice_${Date.now()}`,
       preferences: {
@@ -154,7 +154,7 @@ router.post('/api/chatbot/ingredients', freemiumMiddleware, requirePremium, asyn
       });
     }
 
-    const dummyRequest: RecipeRequest = {
+    const recipeRequest: RecipeRequest = {
       userId: userId || 'anonymous',
       conversationId: `ingredients_${Date.now()}`,
       preferences: {
@@ -169,7 +169,7 @@ router.post('/api/chatbot/ingredients', freemiumMiddleware, requirePremium, asyn
     };
 
     const message = question || `Tell me about these ingredients: ${ingredients.join(', ')}`;
-    const result = await recipeChatbot.generateResponse(dummyRequest, message);
+    const result = await recipeChatbot.generateResponse(recipeRequest, message);
 
     res.json({
       success: true,
