@@ -66,10 +66,10 @@ export default function RecipesPage() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedCuisine, setSelectedCuisine] = useState<string>('');
+  const [selectedCuisine, setSelectedCuisine] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('browse');
 
   // Fetch available cuisines with authentic information
@@ -515,7 +515,7 @@ export default function RecipesPage() {
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category} value={category}>
                         {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -529,7 +529,7 @@ export default function RecipesPage() {
                     <SelectValue placeholder="Cuisine" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Cuisines</SelectItem>
+                    <SelectItem value="all">All Cuisines</SelectItem>
                     {cuisines.map((cuisine) => (
                       <SelectItem key={cuisine.key} value={cuisine.key}>
                         {cuisine.name}
@@ -543,7 +543,7 @@ export default function RecipesPage() {
                     <SelectValue placeholder="Difficulty" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Levels</SelectItem>
+                    <SelectItem value="all">All Levels</SelectItem>
                     {difficulties.map((difficulty) => (
                       <SelectItem key={difficulty} value={difficulty}>
                         {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
