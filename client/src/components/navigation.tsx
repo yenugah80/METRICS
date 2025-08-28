@@ -120,24 +120,8 @@ export default function Navigation() {
             )}
           </div>
 
-          {/* Authentication & Mobile Menu */}
-          <div className="flex items-center space-x-3">
-            {/* Desktop - Only show Sign In if not authenticated */}
-            <div className="hidden md:flex items-center space-x-2">
-              {!isAuthenticated && (
-                <Link href="/auth">
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    className="flex items-center space-x-2 bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    <span>Sign In</span>
-                  </Button>
-                </Link>
-              )}
-            </div>
-
+          {/* Mobile Menu */}
+          <div className="flex items-center">
             {/* Sidebar Toggle */}
             <Button 
               variant="ghost" 

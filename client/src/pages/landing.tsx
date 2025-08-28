@@ -34,21 +34,11 @@ export default function Landing() {
               and finally take control of your health journey.
             </p>
             
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 px-2">
+            {/* CTA Button */}
+            <div className="flex justify-center items-center mb-8 px-2">
               <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-200 w-full sm:w-auto"
-                onClick={() => window.location.href = '/demo'}
-                data-testid="button-hero-cta"
-              >
-                <Camera className="w-5 h-5 mr-2" />
-                Try Free Demo
-              </Button>
-              <Button 
-                variant="outline" 
                 size="lg"
-                className="px-8 py-4 text-lg border-2 hover:bg-gray-50"
+                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-200"
                 onClick={() => window.location.href = '/auth'}
                 data-testid="button-signup-cta"
               >
@@ -56,11 +46,6 @@ export default function Landing() {
                 Get Started Free
               </Button>
             </div>
-            
-            {/* No signup required notice */}
-            <p className="text-sm text-gray-500 mb-8">
-              ✨ Try the demo instantly - no signup required
-            </p>
             
             {/* Trust Indicators */}
             <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600 mb-12">
