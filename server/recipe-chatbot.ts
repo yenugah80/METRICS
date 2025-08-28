@@ -202,6 +202,40 @@ export class RecipeChatbot {
     topic?: string;
     ingredients?: string[];
   }> {
+    // Pre-process message to identify specific dishes and their cuisines
+    const dishToCuisineMap: Record<string, string> = {
+      'biryani': 'indian',
+      'curry': 'indian', 
+      'tandoori': 'indian',
+      'naan': 'indian',
+      'dal': 'indian',
+      'samosa': 'indian',
+      'masala': 'indian',
+      'pasta': 'italian',
+      'pizza': 'italian',
+      'risotto': 'italian',
+      'ramen': 'japanese',
+      'sushi': 'japanese',
+      'tempura': 'japanese',
+      'tacos': 'mexican',
+      'burrito': 'mexican',
+      'paella': 'spanish',
+      'pad thai': 'thai',
+      'pho': 'vietnamese',
+      'dim sum': 'chinese',
+      'couscous': 'moroccan'
+    };
+    
+    const lowerMessage = message.toLowerCase();
+    let detectedCuisine = '';
+    
+    for (const [dish, cuisine] of Object.entries(dishToCuisineMap)) {
+      if (lowerMessage.includes(dish)) {
+        detectedCuisine = cuisine;
+        break;
+      }
+    }
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -216,11 +250,21 @@ Categories:
 - ingredient_help: User asks about ingredients, substitutions, or storage
 - general: Casual conversation or unclear intent
 
+IMPORTANT: When identifying cuisine, use these mappings:
+- biryani, curry, tandoori, naan, dal, samosa, masala → "indian"
+- pasta, pizza, risotto → "italian" 
+- ramen, sushi, tempura → "japanese"
+- tacos, burrito → "mexican"
+- paella → "spanish"
+- pad thai → "thai"
+- pho → "vietnamese"
+- dim sum → "chinese"
+
 Return JSON with:
 {
   "type": "category",
   "details": "extracted details for recipes",
-  "cuisine": "specific cuisine if mentioned", 
+  "cuisine": "specific cuisine detected (use mappings above)", 
   "topic": "cooking topic if relevant",
   "ingredients": ["list of ingredients mentioned"]
 }`
@@ -237,9 +281,19 @@ Message: "${message}"`
     });
 
     try {
-      return JSON.parse(response.choices[0].message.content || '{"type": "general"}');
+      const result = JSON.parse(response.choices[0].message.content || '{"type": "general"}');
+      
+      // Override with detected cuisine if AI missed it
+      if (detectedCuisine && !result.cuisine) {
+        result.cuisine = detectedCuisine;
+      }
+      
+      return result;
     } catch {
-      return { type: 'general' };
+      return { 
+        type: 'general',
+        cuisine: detectedCuisine || undefined
+      };
     }
   }
 
@@ -248,8 +302,11 @@ Message: "${message}"`
     recipes: any[];
     suggestions: string[];
   }> {
+    // Use detected cuisine from intent analysis if available
+    const cuisinesToUse = details.cuisine ? [details.cuisine] : request.preferences.cuisines;
+    
     // Get authentic cuisine knowledge
-    const cuisineKnowledge = this.getCuisineKnowledge(request.preferences.cuisines);
+    const cuisineKnowledge = this.getCuisineKnowledge(cuisinesToUse);
     
     // Generate professional recipe prompt with real culinary knowledge
     const systemPrompt = `You are a professional chef and culinary expert with deep knowledge of global cuisines. Generate authentic, restaurant-quality recipes using traditional techniques and ingredients.
