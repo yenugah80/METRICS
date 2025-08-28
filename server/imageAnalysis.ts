@@ -10,7 +10,7 @@ export interface AnalyzedFood {
 }
 
 // Combined analysis for better performance - analyzes image and calculates nutrition in one call
-export async function analyzeFoodImageWithNutrition(base64Image: string): Promise<any> {
+export async function analyzeFoodImageWithNutrition(base64Image: string, userDietPreferences: string[] = []): Promise<any> {
   try {
     // Clean up base64 data - remove data URL prefix if present
     let cleanBase64 = base64Image;
@@ -21,6 +21,20 @@ export async function analyzeFoodImageWithNutrition(base64Image: string): Promis
       cleanBase64 = base64Image.split(',')[1];
     }
     
+    // Build diet compatibility section based on user preferences
+    let dietCompatibilitySection = '';
+    if (userDietPreferences && userDietPreferences.length > 0) {
+      const dietEntries = userDietPreferences.map(diet => 
+        `    "${diet}": {"compatible": true_or_false, "reason": "explanation"}`
+      ).join(',\n');
+      dietCompatibilitySection = `  "diet_compatibility": {
+${dietEntries}
+  },`;
+    } else {
+      // Skip diet compatibility if no preferences are set - better UX
+      dietCompatibilitySection = '';
+    }
+
     // Single API call for both food identification AND nutrition calculation
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -60,19 +74,14 @@ Return your analysis as JSON in this exact format:
     "score": score_1_to_100,
     "grade": "A|B|C|D|F",
     "explanation": "Detailed explanation of why this score was given, what's good/bad about the meal"
-  },
-  "diet_compatibility": {
-    "keto": {"compatible": true_or_false, "reason": "explanation"},
-    "vegan": {"compatible": true_or_false, "reason": "explanation"},
-    "gluten_free": {"compatible": true_or_false, "reason": "explanation"}
-  },
+  },${dietCompatibilitySection ? '\n' + dietCompatibilitySection : ''}
   "recommended_apps": {
     "primary": "MyFitnessPal|Cronometer|LoseIt",
     "reason": "Why this specific app is recommended for this meal type"
   }
 }
 
-Be accurate with nutrition values using USDA data knowledge.`
+Be accurate with nutrition values using USDA data knowledge.${userDietPreferences.length === 0 ? ' Note: User has not set diet preferences, so skip diet compatibility analysis entirely.' : ''}`
         },
         {
           role: "user", 
@@ -95,6 +104,12 @@ Be accurate with nutrition values using USDA data knowledge.`
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
+    
+    // If no diet preferences, ensure diet_compatibility is not included in response
+    if (!userDietPreferences || userDietPreferences.length === 0) {
+      delete result.diet_compatibility;
+    }
+    
     return result;
 
   } catch (error: any) {

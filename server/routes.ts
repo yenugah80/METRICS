@@ -378,6 +378,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile management endpoints
+  app.get('/api/profile', verifyJWT, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const profile = await storage.getUserProfile(userId);
+      
+      res.json({
+        success: true,
+        profile: profile || {
+          dietPreferences: [],
+          allergens: [],
+          dailyCalorieTarget: 2000,
+          dailyProteinTarget: 150,
+          dailyCarbTarget: 250,
+          dailyFatTarget: 80
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch profile"
+      });
+    }
+  });
+
+  app.post('/api/profile', verifyJWT, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { dietPreferences, allergens, dailyCalorieTarget, dailyProteinTarget, dailyCarbTarget, dailyFatTarget } = req.body;
+      
+      await storage.upsertUserProfile({
+        userId,
+        dietPreferences: dietPreferences || [],
+        allergens: allergens || [],
+        dailyCalorieTarget: dailyCalorieTarget || 2000,
+        dailyProteinTarget: dailyProteinTarget || 150,
+        dailyCarbTarget: dailyCarbTarget || 250,
+        dailyFatTarget: dailyFatTarget || 80
+      });
+      
+      res.json({
+        success: true,
+        message: "Profile updated successfully"
+      });
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update profile"
+      });
+    }
+  });
+
   app.post('/api/meals', verifyJWT, async (req: any, res) => {
     try {
       const userId = req.user.id;
@@ -780,8 +834,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Meal Analysis route - WORKING VERSION WITHOUT AUTH
-  app.post("/api/meals/analyze-image", async (req, res) => {
+  // AI Meal Analysis route - NOW WITH PROPER USER DIET PREFERENCES
+  app.post("/api/meals/analyze-image", verifyJWT, async (req: any, res) => {
     try {
       const { imageBase64 } = req.body;
       if (!imageBase64) {
@@ -790,11 +844,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Starting food analysis of meal image...");
       
-      // Import and use the combined analysis function for better performance
+      // Get user profile to check diet preferences
+      const userId = req.user.id;
+      const userProfile = await storage.getUserProfile(userId);
+      const dietPreferences = userProfile?.dietPreferences || [];
+      
+      console.log(`User diet preferences: ${dietPreferences.length > 0 ? dietPreferences.join(', ') : 'none set'}`);
+      
+      // Import and use the combined analysis function with user preferences
       const { analyzeFoodImageWithNutrition } = await import("./imageAnalysis");
       
-      const nutritionAnalysis = await analyzeFoodImageWithNutrition(imageBase64);
+      const nutritionAnalysis = await analyzeFoodImageWithNutrition(imageBase64, dietPreferences);
       console.log("Food analysis complete:", nutritionAnalysis);
+      
+      // Add helpful message if no diet preferences are set
+      if (dietPreferences.length === 0) {
+        nutritionAnalysis.diet_preferences_note = {
+          message: "Set your diet preferences in your profile to get personalized diet compatibility analysis",
+          setup_url: "/profile"
+        };
+      }
       
       res.json(nutritionAnalysis);
     } catch (error: any) {
