@@ -15,24 +15,24 @@ export default function Navigation() {
 
   return (
     <>
-    <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav className="professional-nav sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-18">
           {/* Premium Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-200">
+            <div className="w-11 h-11 bg-gradient-to-br from-slate-600 to-slate-800 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200">
               <Apple className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-black text-gray-900">MyFoodMatrics</span>
+            <span className="text-2xl font-semibold text-gray-900" style={{fontFamily: 'Playfair Display, Times New Roman, serif', letterSpacing: '0.5px'}}>MyFoodMatrics</span>
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-2">
             <Link href="/">
               <Button
                 variant={isActive("/") ? "secondary" : "ghost"}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 font-medium"
                 data-testid="nav-home"
               >
                 <Home className="h-4 w-4" />
@@ -44,7 +44,7 @@ export default function Navigation() {
               <Button
                 variant={isActive("/dashboard") ? "secondary" : "ghost"}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 font-medium"
                 data-testid="nav-dashboard"
               >
                 <BarChart3 className="h-4 w-4" />
@@ -56,7 +56,7 @@ export default function Navigation() {
               <Button
                 variant={isActive("/search") ? "secondary" : "ghost"}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 font-medium"
                 data-testid="nav-search"
               >
                 <Search className="h-4 w-4" />
@@ -68,7 +68,7 @@ export default function Navigation() {
               <Button
                 variant={isActive("/camera") ? "secondary" : "ghost"}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 font-medium"
                 data-testid="nav-camera"
               >
                 <Camera className="h-4 w-4" />
@@ -80,7 +80,7 @@ export default function Navigation() {
               <Button
                 variant={isActive("/recipes") ? "secondary" : "ghost"}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 font-medium"
                 data-testid="nav-recipes"
               >
                 <ChefHat className="h-4 w-4" />
@@ -92,7 +92,7 @@ export default function Navigation() {
               <Button
                 variant={isActive("/progress") ? "secondary" : "ghost"}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 font-medium"
                 data-testid="nav-progress"
               >
                 <Target className="h-4 w-4" />
