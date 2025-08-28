@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Navigation from "@/components/navigation";
 import Landing from "@/pages/landing";
 import AuthPage from "@/pages/auth-page";
@@ -28,15 +29,33 @@ function App() {
             <Switch>
               <Route path="/" component={Landing} />
               <Route path="/auth" component={AuthPage} />
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/search" component={SearchPage} />
-              <Route path="/camera" component={MealCamera} />
-              <Route path="/recipes" component={RecipesPage} />
-              <Route path="/progress" component={DailyProgress} />
-              <Route path="/voice" component={MealCamera} />
-              <Route path="/sustainability" component={Sustainability} />
-              <Route path="/recommendations" component={RecommendationsPage} />
-              <Route path="/profile" component={Profile} />
+              <Route path="/dashboard">
+                <ProtectedRoute><Dashboard /></ProtectedRoute>
+              </Route>
+              <Route path="/search">
+                <ProtectedRoute><SearchPage /></ProtectedRoute>
+              </Route>
+              <Route path="/camera">
+                <ProtectedRoute><MealCamera /></ProtectedRoute>
+              </Route>
+              <Route path="/recipes">
+                <ProtectedRoute><RecipesPage /></ProtectedRoute>
+              </Route>
+              <Route path="/progress">
+                <ProtectedRoute><DailyProgress /></ProtectedRoute>
+              </Route>
+              <Route path="/voice">
+                <ProtectedRoute><MealCamera /></ProtectedRoute>
+              </Route>
+              <Route path="/sustainability">
+                <ProtectedRoute><Sustainability /></ProtectedRoute>
+              </Route>
+              <Route path="/recommendations">
+                <ProtectedRoute><RecommendationsPage /></ProtectedRoute>
+              </Route>
+              <Route path="/profile">
+                <ProtectedRoute><Profile /></ProtectedRoute>
+              </Route>
               <Route component={NotFound} />
             </Switch>
           </div>

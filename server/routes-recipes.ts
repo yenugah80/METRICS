@@ -1,24 +1,8 @@
 import type { Express } from "express";
 import { storage } from "./storage";
-import { isAuthenticated } from "./replitAuth";
+import { verifyJWT, type AuthenticatedRequest } from "./authService";
 
-// Extend Express Request type to include Replit Auth claims
-declare global {
-  namespace Express {
-    interface User {
-      claims: {
-        sub: string;
-        email?: string;
-        first_name?: string;
-        last_name?: string;
-        profile_image_url?: string;
-      };
-      access_token: string;
-      refresh_token?: string;
-      expires_at: number;
-    }
-  }
-}
+// Types are now handled by AuthenticatedRequest from authService
 
 export function registerRecipeRoutes(app: Express) {
   // ==== RECIPE CRUD OPERATIONS ====
@@ -74,9 +58,9 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Create new recipe (authenticated)
-  app.post("/api/recipes", isAuthenticated, async (req, res) => {
+  app.post("/api/recipes", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const recipeData = {
         ...req.body,
         createdBy: userId,
@@ -100,10 +84,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Update recipe (authenticated)
-  app.put("/api/recipes/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/recipes/:id", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       // Check if user owns the recipe or is admin
       const existingRecipe = await storage.getRecipeById(id);
@@ -125,10 +109,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Delete recipe (authenticated)
-  app.delete("/api/recipes/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/recipes/:id", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       // Check if user owns the recipe
       const existingRecipe = await storage.getRecipeById(id);
@@ -147,9 +131,9 @@ export function registerRecipeRoutes(app: Express) {
   // ==== RECIPE FAVORITES/SAVED RECIPES ====
   
   // Get user's saved recipes
-  app.get("/api/recipes/saved", isAuthenticated, async (req, res) => {
+  app.get("/api/recipes/saved", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const savedRecipes = await storage.getUserSavedRecipes(userId);
       res.json(savedRecipes);
     } catch (error) {
@@ -159,10 +143,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Save a recipe
-  app.post("/api/recipes/:id/save", isAuthenticated, async (req, res) => {
+  app.post("/api/recipes/:id/save", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const { notes } = req.body;
       
       const savedRecipe = await storage.saveRecipe(userId, id, notes);
@@ -182,10 +166,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Unsave a recipe
-  app.delete("/api/recipes/:id/save", isAuthenticated, async (req, res) => {
+  app.delete("/api/recipes/:id/save", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       await storage.unsaveRecipe(userId, id);
       res.status(204).send();
@@ -196,10 +180,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Check if recipe is saved
-  app.get("/api/recipes/:id/saved", isAuthenticated, async (req, res) => {
+  app.get("/api/recipes/:id/saved", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       const isSaved = await storage.isRecipeSaved(userId, id);
       res.json({ isSaved });
@@ -212,9 +196,9 @@ export function registerRecipeRoutes(app: Express) {
   // ==== RECIPE COLLECTIONS ====
   
   // Get user's recipe collections
-  app.get("/api/collections", isAuthenticated, async (req, res) => {
+  app.get("/api/collections", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const collections = await storage.getUserRecipeCollections(userId);
       res.json(collections);
     } catch (error) {
@@ -224,9 +208,9 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Create new collection
-  app.post("/api/collections", isAuthenticated, async (req, res) => {
+  app.post("/api/collections", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const collectionData = { ...req.body, userId };
       
       const collection = await storage.createRecipeCollection(collectionData);
@@ -238,10 +222,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Update collection
-  app.put("/api/collections/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/collections/:id", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       // Verify ownership
       const collections = await storage.getUserRecipeCollections(userId);
@@ -258,10 +242,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Delete collection
-  app.delete("/api/collections/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/collections/:id", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       // Verify ownership
       const collections = await storage.getUserRecipeCollections(userId);
@@ -290,10 +274,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Add recipe to collection
-  app.post("/api/collections/:collectionId/recipes/:recipeId", isAuthenticated, async (req, res) => {
+  app.post("/api/collections/:collectionId/recipes/:recipeId", verifyJWT, async (req, res) => {
     try {
       const { collectionId, recipeId } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       // Verify collection ownership
       const collections = await storage.getUserRecipeCollections(userId);
@@ -310,10 +294,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Remove recipe from collection
-  app.delete("/api/collections/:collectionId/recipes/:recipeId", isAuthenticated, async (req, res) => {
+  app.delete("/api/collections/:collectionId/recipes/:recipeId", verifyJWT, async (req, res) => {
     try {
       const { collectionId, recipeId } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       // Verify collection ownership
       const collections = await storage.getUserRecipeCollections(userId);
@@ -350,10 +334,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Create or update rating
-  app.post("/api/recipes/:id/ratings", isAuthenticated, async (req, res) => {
+  app.post("/api/recipes/:id/ratings", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       // Check if user already rated this recipe
       const existingRating = await storage.getUserRecipeRating(userId, id);
@@ -389,10 +373,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Create comment
-  app.post("/api/recipes/:id/comments", isAuthenticated, async (req, res) => {
+  app.post("/api/recipes/:id/comments", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const commentData = { ...req.body, userId, recipeId: id };
       
       const comment = await storage.createRecipeComment(commentData);
@@ -404,10 +388,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Update comment
-  app.put("/api/comments/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/comments/:id", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       // Get comment to verify ownership
       const comments = await storage.getRecipeComments(''); // This needs improvement
@@ -426,10 +410,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Delete comment
-  app.delete("/api/comments/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/comments/:id", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       // Similar verification needed here
       await storage.deleteRecipeComment(id);
@@ -443,9 +427,9 @@ export function registerRecipeRoutes(app: Express) {
   // ==== SHOPPING LISTS ====
   
   // Get user's shopping lists
-  app.get("/api/shopping-lists", isAuthenticated, async (req, res) => {
+  app.get("/api/shopping-lists", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const shoppingLists = await storage.getUserShoppingLists(userId);
       res.json(shoppingLists);
     } catch (error) {
@@ -455,9 +439,9 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Create shopping list
-  app.post("/api/shopping-lists", isAuthenticated, async (req, res) => {
+  app.post("/api/shopping-lists", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const shoppingListData = { ...req.body, userId };
       
       const shoppingList = await storage.createShoppingList(shoppingListData);
@@ -469,7 +453,7 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Get shopping list items
-  app.get("/api/shopping-lists/:id/items", isAuthenticated, async (req, res) => {
+  app.get("/api/shopping-lists/:id/items", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
       const items = await storage.getShoppingListItems(id);
@@ -481,7 +465,7 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Add recipe to shopping list
-  app.post("/api/shopping-lists/:id/recipes/:recipeId", isAuthenticated, async (req, res) => {
+  app.post("/api/shopping-lists/:id/recipes/:recipeId", verifyJWT, async (req, res) => {
     try {
       const { id, recipeId } = req.params;
       const items = await storage.addRecipeToShoppingList(id, recipeId);
@@ -495,9 +479,9 @@ export function registerRecipeRoutes(app: Express) {
   // ==== MEAL PLANNING ====
   
   // Get user's meal plans
-  app.get("/api/meal-plans", isAuthenticated, async (req, res) => {
+  app.get("/api/meal-plans", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const mealPlans = await storage.getUserMealPlans(userId);
       res.json(mealPlans);
     } catch (error) {
@@ -507,9 +491,9 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Create meal plan
-  app.post("/api/meal-plans", isAuthenticated, async (req, res) => {
+  app.post("/api/meal-plans", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const mealPlanData = { ...req.body, userId };
       
       const mealPlan = await storage.createMealPlan(mealPlanData);
@@ -521,9 +505,9 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Get planned meals for date
-  app.get("/api/planned-meals", isAuthenticated, async (req, res) => {
+  app.get("/api/planned-meals", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const { date } = req.query;
       
       if (!date) {
@@ -541,9 +525,9 @@ export function registerRecipeRoutes(app: Express) {
   // ==== COOKING TIMERS ====
   
   // Get user's active timers
-  app.get("/api/timers", isAuthenticated, async (req, res) => {
+  app.get("/api/timers", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const timers = await storage.getUserActiveTimers(userId);
       res.json(timers);
     } catch (error) {
@@ -553,9 +537,9 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Create cooking timer
-  app.post("/api/timers", isAuthenticated, async (req, res) => {
+  app.post("/api/timers", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const timerData = { ...req.body, userId };
       
       const timer = await storage.createCookingTimer(timerData);
@@ -567,7 +551,7 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Update timer
-  app.put("/api/timers/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/timers/:id", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
       const timer = await storage.updateCookingTimer(id, req.body);
@@ -581,9 +565,9 @@ export function registerRecipeRoutes(app: Express) {
   // ==== RECIPE HISTORY ====
   
   // Get user's recipe history
-  app.get("/api/recipe-history", isAuthenticated, async (req, res) => {
+  app.get("/api/recipe-history", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const { limit = 50 } = req.query;
       
       const history = await storage.getUserRecipeHistory(userId, parseInt(limit as string));
@@ -595,9 +579,9 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Get recently viewed recipes
-  app.get("/api/recipes/recently-viewed", isAuthenticated, async (req, res) => {
+  app.get("/api/recipes/recently-viewed", verifyJWT, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       const { limit = 10 } = req.query;
       
       const recipes = await storage.getRecentlyViewedRecipes(userId, parseInt(limit as string));
@@ -609,10 +593,10 @@ export function registerRecipeRoutes(app: Express) {
   });
 
   // Record recipe view
-  app.post("/api/recipes/:id/view", isAuthenticated, async (req, res) => {
+  app.post("/api/recipes/:id/view", verifyJWT, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       
       await storage.recordRecipeAction({
         userId,

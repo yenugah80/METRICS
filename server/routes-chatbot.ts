@@ -5,7 +5,7 @@
 
 import { Router } from 'express';
 import { recipeChatbot, type RecipeRequest } from './recipe-chatbot';
-import { isAuthenticated } from './replitAuth';
+import { verifyJWT, type AuthenticatedRequest } from './authService';
 import { freemiumMiddleware, checkRecipeLimit, incrementRecipeUsage, requirePremium, type FreemiumRequest } from './middleware/freemium';
 
 const router = Router();
@@ -21,7 +21,7 @@ router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (
       });
     }
 
-    const userId = req.user?.claims?.sub || req.user?.id || `guest_${req.ip || 'unknown'}_${Date.now()}`;
+    const userId = req.user?.id || `guest_${req.ip || 'unknown'}_${Date.now()}`;
 
     const request: RecipeRequest = {
       userId,
