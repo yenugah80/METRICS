@@ -6,12 +6,11 @@
 import { Router } from 'express';
 import { recipeChatbot, type RecipeRequest } from './recipe-chatbot';
 import { verifyJWT, type AuthenticatedRequest } from './authService';
-import { freemiumMiddleware, checkRecipeLimit, incrementRecipeUsage, requirePremium, type FreemiumRequest } from './middleware/freemium';
 
 const router = Router();
 
-// Generate chatbot response for recipe requests (freemium model)
-router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (req: FreemiumRequest, res) => {
+// Generate chatbot response for recipe requests (completely free)
+router.post('/api/chatbot/recipe', async (req: any, res) => {
   try {
     const { message, preferences, context, conversationId } = req.body;
     
@@ -41,8 +40,7 @@ router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (
 
     const result = await recipeChatbot.generateResponse(request, message);
 
-    // Increment usage after successful generation
-    await incrementRecipeUsage(req, res, () => {});
+    // Chef AI is now completely free - no usage tracking needed!
 
     res.json({
       success: true,
@@ -51,7 +49,7 @@ router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (
       recipes: result.recipes || [],
       suggestions: result.suggestions || [],
       timestamp: new Date().toISOString(),
-      usageStats: req.usageStats
+      freeAccess: true // Chef AI is completely free!
     });
 
   } catch (error: any) {
@@ -99,8 +97,8 @@ router.get('/api/chatbot/cuisine/:cuisine', async (req, res) => {
   }
 });
 
-// Get cooking advice (premium feature)
-router.post('/api/chatbot/advice', freemiumMiddleware, requirePremium, async (req: FreemiumRequest, res) => {
+// Get cooking advice (now completely free)
+router.post('/api/chatbot/advice', async (req: any, res) => {
   try {
     const { topic, context } = req.body;
     const userId = req.user?.id;
@@ -142,8 +140,8 @@ router.post('/api/chatbot/advice', freemiumMiddleware, requirePremium, async (re
   }
 });
 
-// Get ingredient guidance (premium feature)
-router.post('/api/chatbot/ingredients', freemiumMiddleware, requirePremium, async (req: FreemiumRequest, res) => {
+// Get ingredient guidance (now completely free)
+router.post('/api/chatbot/ingredients', async (req: any, res) => {
   try {
     const { ingredients, question } = req.body;
     const userId = req.user?.id;
