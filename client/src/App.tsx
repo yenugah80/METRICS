@@ -8,6 +8,10 @@ import Landing from "@/pages/landing";
 import NutritionSearch from "@/pages/nutrition-search";
 import Dashboard from "@/pages/dashboard";
 import MealCamera from "@/pages/meal-camera";
+import RecipeGenerator from "@/pages/recipe-generator";
+import DailyProgress from "@/pages/daily-progress";
+import VoiceLogging from "@/pages/voice-logging";
+import Sustainability from "@/pages/sustainability";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -22,6 +26,10 @@ function App() {
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/search" component={NutritionSearch} />
             <Route path="/camera" component={MealCamera} />
+            <Route path="/recipes" component={RecipeGenerator} />
+            <Route path="/progress" component={DailyProgress} />
+            <Route path="/voice" component={VoiceLogging} />
+            <Route path="/sustainability" component={Sustainability} />
             <Route component={NotFound} />
           </Switch>
         </div>

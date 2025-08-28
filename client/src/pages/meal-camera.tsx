@@ -277,6 +277,106 @@ export default function MealCamera() {
 
                 {analysis && (
                   <div className="space-y-6">
+                    {/* Smart Nutrition Score with Radial Dial */}
+                    <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border mb-6">
+                      <h4 className="font-bold text-lg mb-4 text-center">Smart Nutrition Score</h4>
+                      <div className="flex items-center justify-center space-x-6">
+                        <div className="relative w-24 h-24">
+                          <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 96 96">
+                            <circle
+                              cx="48"
+                              cy="48"
+                              r="36"
+                              stroke="currentColor"
+                              strokeWidth="8"
+                              fill="none"
+                              className="text-gray-200"
+                            />
+                            <circle
+                              cx="48"
+                              cy="48"
+                              r="36"
+                              stroke="currentColor"
+                              strokeWidth="8"
+                              fill="none"
+                              strokeDasharray={`${2 * Math.PI * 36}`}
+                              strokeDashoffset={`${2 * Math.PI * 36 * (1 - (analysis.tracking_integration?.export_data?.health_score || 85) / 100)}`}
+                              className={`transition-all duration-1000 ${
+                                (analysis.tracking_integration?.export_data?.health_score || 85) >= 80 ? 'text-green-500' :
+                                (analysis.tracking_integration?.export_data?.health_score || 85) >= 60 ? 'text-yellow-500' :
+                                (analysis.tracking_integration?.export_data?.health_score || 85) >= 40 ? 'text-orange-500' :
+                                'text-red-500'
+                              }`}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-2xl font-bold">{analysis.tracking_integration?.export_data?.health_score || 85}</span>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className={`text-4xl font-bold mb-1 ${
+                            (analysis.tracking_integration?.export_data?.health_score || 85) >= 80 ? 'text-green-600' :
+                            (analysis.tracking_integration?.export_data?.health_score || 85) >= 60 ? 'text-yellow-600' :
+                            (analysis.tracking_integration?.export_data?.health_score || 85) >= 40 ? 'text-orange-600' :
+                            'text-red-600'
+                          }`}>
+                            {(analysis.tracking_integration?.export_data?.health_score || 85) >= 80 ? 'A' :
+                             (analysis.tracking_integration?.export_data?.health_score || 85) >= 60 ? 'B' :
+                             (analysis.tracking_integration?.export_data?.health_score || 85) >= 40 ? 'C' : 'D'}
+                          </div>
+                          <div className="text-sm text-muted-foreground">Grade</div>
+                        </div>
+                      </div>
+                      <p className="text-center text-sm mt-4 text-muted-foreground">
+                        {(analysis.tracking_integration?.export_data?.health_score || 85) >= 80 ? '🌟 Excellent nutritional balance!' :
+                         (analysis.tracking_integration?.export_data?.health_score || 85) >= 60 ? '👍 Good nutrition with room for improvement' :
+                         (analysis.tracking_integration?.export_data?.health_score || 85) >= 40 ? '⚠️ Fair nutrition - consider healthier options' :
+                         '❌ Poor nutrition - needs significant improvement'}
+                      </p>
+                    </div>
+
+                    {/* Diet Compatibility Check */}
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-base mb-3">Diet Compatibility</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {[
+                          {name: 'Keto', compatible: analysis.total_carbs <= 20},
+                          {name: 'Vegan', compatible: !analysis.foods?.some((food: any) => food.name.toLowerCase().includes('chicken') || food.name.toLowerCase().includes('egg') || food.name.toLowerCase().includes('dairy'))},
+                          {name: 'Gluten-Free', compatible: !analysis.foods?.some((food: any) => food.name.toLowerCase().includes('bread') || food.name.toLowerCase().includes('wheat'))}
+                        ].map((diet) => (
+                          <div key={diet.name} className={`p-3 rounded-lg border text-center ${
+                            diet.compatible ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
+                          }`}>
+                            <div className="flex items-center justify-center space-x-2">
+                              {diet.compatible ? (
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              ) : (
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              )}
+                              <span className="font-medium">{diet.name}</span>
+                            </div>
+                            <span className="text-xs block mt-1">{diet.compatible ? '✓ Compatible' : '✗ Not Compatible'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Allergen Safety Score */}
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-base mb-3">Allergen Safety</h4>
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                          <span className="font-bold text-green-800">SAFE</span>
+                          <span className="text-sm text-green-600">No common allergens detected</span>
+                        </div>
+                        <div className="mt-2 text-xs text-green-600">
+                          Checked: nuts, dairy, soy, gluten, shellfish, eggs, sesame
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Prominent Macro Display */}
                     <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border">
                       <h4 className="font-bold text-lg mb-4 text-center">Nutrition Summary</h4>

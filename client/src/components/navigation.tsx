@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Apple, Home, Search, Camera, BarChart3 } from "lucide-react";
+import { Apple, Home, Search, Camera, BarChart3, ChefHat, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Navigation() {
@@ -66,6 +66,30 @@ export default function Navigation() {
               >
                 <Camera className="h-4 w-4" />
                 <span>Camera</span>
+              </Button>
+            </Link>
+
+            <Link href="/recipes">
+              <Button
+                variant={isActive("/recipes") ? "secondary" : "ghost"}
+                size="sm"
+                className="flex items-center space-x-2"
+                data-testid="nav-recipes"
+              >
+                <ChefHat className="h-4 w-4" />
+                <span>Recipes</span>
+              </Button>
+            </Link>
+
+            <Link href="/progress">
+              <Button
+                variant={isActive("/progress") ? "secondary" : "ghost"}
+                size="sm"
+                className="flex items-center space-x-2"
+                data-testid="nav-progress"
+              >
+                <Target className="h-4 w-4" />
+                <span>Progress</span>
               </Button>
             </Link>
           </div>

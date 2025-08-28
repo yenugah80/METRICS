@@ -1,0 +1,131 @@
+Free Tier Features
+Photo/Text Meal Logging
+Snap a photo or type your meal description. Our AI instantly extracts ingredients and nutritional data using advanced OCR and NLP technology.
+
+Photo upload with OCR text extraction
+Manual text input for meal descriptions
+Real-time ingredient identification
+Basic nutritional breakdown (calories, macros)
+Edit extracted ingredients for accuracy
+
+Try Free
+Smart Nutrition Score
+Get an instant 0-100 score with A-D grading displayed on a beautiful color-coded radial dial. Understand your meal's nutritional quality at a glance.
+
+0-100 scoring with A-D letter grades
+Color-coded radial dial visualization
+Macronutrient balance analysis
+Micronutrient density scoring
+Detailed score breakdown explanation
+
+Try Free
+Diet Compatibility Check
+Simple Yes/No compliance checking for popular diets like keto, vegan, and gluten-free with specific ingredient warnings.
+
+Binary compliant/non-compliant flagging
+Support for major diet types
+Specific non-compliant ingredient alerts
+Diet rule explanations
+Customizable diet preferences
+
+Try Free
+Basic Recipe Generator
+Generate up to 5 personalized recipes daily based on your dietary preferences and available ingredients.
+
+5 recipes per day limit
+Dietary restriction support
+3 cuisine preference selections
+Complete ingredient lists with quantities
+Step-by-step cooking instructions
+
+Try Free
+Allergen Safety Score
+Basic Safe/Unsafe flagging for common allergens based on your profile settings with clear warnings.
+
+Common allergen detection
+Binary safe/unsafe classification
+Profile-based allergen preferences
+Clear warning notifications
+Ingredient allergen breakdown
+
+Try Free
+Daily Progress Score
+Track your daily wellness with aggregated meal scores, hydration reminders, and basic gamification elements.
+
+Daily wellness score calculation
+Hydration tracking reminders
+Basic achievement badges
+7-day progress trends
+Meal frequency analysis
+
+Try Free
+Premium Features
+Unlock advanced capabilities for $9.99/month or $99.99/year
+
+Premium
+Voice-Powered Meal Logging
+Simply speak your meal and let AI parse ingredients, quantities, and nutritional data with voice confirmation feedback.
+
+Natural voice command processing
+Advanced speech-to-text conversion
+Automatic ingredient parsing
+Voice confirmation feedback
+Hands-free logging experience
+
+Upgrade to Premium
+Premium
+Advanced Diet Compatibility
+Get percentage-based compliance scores with real-time alternative suggestions for complex diet combinations.
+
+Percentage-based compliance scoring
+Multi-diet combination support
+Real-time alternative suggestions
+Smart ingredient substitutions
+Advanced dietary analysis
+
+Upgrade to Premium
+Premium
+Unlimited Recipe Generator
+Unlimited recipe generation with advanced filters, mood-based suggestions, and community reviews.
+
+Unlimited daily recipe generation
+Advanced filtering options
+Mood-based recipe suggestions
+Community reviews integration
+Smart shopping list generation
+
+Upgrade to Premium
+Premium
+Sustainability Score
+Environmental impact scoring (0-10) with CO₂ emissions, water usage analysis, and local sourcing suggestions.
+
+Environmental impact scoring
+CO₂ emissions tracking
+Water usage analysis
+Local sourcing recommendations
+Sustainability tips and insights
+
+Upgrade to Premium
+Premium
+Advanced Allergen Analysis
+Custom allergen detection with severity levels and personalized sensitivity tracking for comprehensive safety.
+
+Custom allergen sensitivity tracking
+Severity level classifications
+Personalized sensitivity profiles
+Advanced warning systems
+Health condition linking
+
+Upgrade to Premium
+Premium
+Personalized Wellness Tracking
+Advanced progress tracking with biometric integration, mood analysis, and personalized health insights.
+
+Biometric data integration
+Mood-linked nutrition suggestions
+Advanced trend analysis
+Personalized health insights
+Wearable device connectivity
+
+Upgrade to Premium
+Ready to Transform Your Nutrition Journey?
