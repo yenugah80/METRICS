@@ -122,13 +122,13 @@ export default function DailyProgress() {
 
   const todayStats = weekData.find(day => day.date === currentDate.toISOString().split('T')[0]) || {
     date: currentDate.toISOString().split('T')[0],
-    totalCalories: 1250,
+    totalCalories: 0,
     targetCalories: 2000,
-    mealsLogged: 2,
-    waterIntake: 6,
+    mealsLogged: 0,
+    waterIntake: waterIntake,
     targetWater: 8,
-    wellnessScore: 78,
-    achievements: ["Morning Meal Logged"]
+    wellnessScore: 0,
+    achievements: []
   };
 
   const addWaterGlass = () => {

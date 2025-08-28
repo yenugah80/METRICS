@@ -847,6 +847,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calculate comprehensive wellness score based on nutrition quality, not just calories
+  async function calculateWellnessScore(dayMeals: any[], dayCalories: number): Promise<number> {
+    if (dayMeals.length === 0) return 0;
+    
+    let totalProtein = 0;
+    let totalCarbs = 0;
+    let totalFat = 0;
+    let totalFiber = 0;
+    
+    // Calculate total macros from all meals
+    for (const meal of dayMeals) {
+      const nutrition = await storage.getMealNutrition(meal.id);
+      if (nutrition) {
+        totalProtein += nutrition.protein || 0;
+        totalCarbs += nutrition.carbs || 0;
+        totalFat += nutrition.fat || 0;
+        totalFiber += nutrition.fiber || 0;
+      }
+    }
+    
+    let score = 0;
+    
+    // 1. Calorie balance score (40% of total score)
+    const calorieTarget = 2000;
+    const calorieRatio = dayCalories / calorieTarget;
+    if (calorieRatio >= 0.8 && calorieRatio <= 1.2) {
+      score += 40; // Perfect range
+    } else if (calorieRatio >= 0.6 && calorieRatio <= 1.4) {
+      score += 30; // Good range
+    } else if (calorieRatio >= 0.4 && calorieRatio <= 1.6) {
+      score += 20; // Acceptable range
+    } else {
+      score += 10; // Outside healthy range
+    }
+    
+    // 2. Macro balance score (30% of total score)
+    const totalMacros = totalProtein + totalCarbs + totalFat;
+    if (totalMacros > 0) {
+      const proteinPct = (totalProtein * 4) / (dayCalories || 1);
+      const carbsPct = (totalCarbs * 4) / (dayCalories || 1);
+      const fatPct = (totalFat * 9) / (dayCalories || 1);
+      
+      // Ideal ranges: Protein 15-25%, Carbs 45-65%, Fat 20-35%
+      let macroScore = 0;
+      if (proteinPct >= 0.15 && proteinPct <= 0.25) macroScore += 10;
+      else if (proteinPct >= 0.10 && proteinPct <= 0.30) macroScore += 7;
+      else macroScore += 3;
+      
+      if (carbsPct >= 0.45 && carbsPct <= 0.65) macroScore += 10;
+      else if (carbsPct >= 0.35 && carbsPct <= 0.75) macroScore += 7;
+      else macroScore += 3;
+      
+      if (fatPct >= 0.20 && fatPct <= 0.35) macroScore += 10;
+      else if (fatPct >= 0.15 && fatPct <= 0.40) macroScore += 7;
+      else macroScore += 3;
+      
+      score += macroScore;
+    }
+    
+    // 3. Meal frequency score (20% of total score)
+    if (dayMeals.length >= 3) {
+      score += 20; // 3+ meals is ideal
+    } else if (dayMeals.length === 2) {
+      score += 15; // 2 meals is good
+    } else if (dayMeals.length === 1) {
+      score += 10; // 1 meal is okay
+    }
+    
+    // 4. Fiber intake bonus (10% of total score)
+    if (totalFiber >= 25) {
+      score += 10; // Excellent fiber intake
+    } else if (totalFiber >= 18) {
+      score += 7; // Good fiber intake
+    } else if (totalFiber >= 10) {
+      score += 5; // Moderate fiber intake
+    } else {
+      score += 2; // Low fiber intake
+    }
+    
+    return Math.min(100, Math.max(0, Math.round(score)));
+  }
+  
+  // Generate achievements based on real data
+  function generateAchievements(dayCalories: number, mealsLogged: number, wellnessScore: number): string[] {
+    const achievements: string[] = [];
+    
+    if (mealsLogged >= 1) achievements.push("Meal Logger");
+    if (mealsLogged >= 3) achievements.push("Three Square Meals");
+    if (dayCalories >= 1800 && dayCalories <= 2200) achievements.push("Calorie Balance Master");
+    if (wellnessScore >= 80) achievements.push("Wellness Champion");
+    else if (wellnessScore >= 60) achievements.push("Health Conscious");
+    if (dayCalories > 0 && mealsLogged > 0) achievements.push("Nutrition Tracker");
+    
+    return achievements;
+  }
+
   // Get weekly stats
   app.get('/api/stats/weekly', isAuthenticated, async (req: any, res) => {
     try {
@@ -868,15 +964,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
+        // Calculate real wellness score based on nutritional quality
+        const wellnessScore = await calculateWellnessScore(dayMeals, dayCalories);
+        
         weekData.push({
           date: date.toISOString().split('T')[0],
           totalCalories: dayCalories,
           targetCalories: 2000,
           mealsLogged: dayMeals.length,
-          waterIntake: 8, // Default value
+          waterIntake: 8, // TODO: Track real water intake
           targetWater: 8,
-          wellnessScore: Math.min(100, Math.round((dayCalories / 2000) * 100)),
-          achievements: dayCalories >= 2000 ? ["Calorie Goal Met"] : []
+          wellnessScore: wellnessScore,
+          achievements: generateAchievements(dayCalories, dayMeals.length, wellnessScore)
         });
       }
       
@@ -893,36 +992,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const allMeals = await storage.getMealsByUserId(userId, 100);
       
+      // Calculate real stats for badges
+      let totalCalories = 0;
+      let totalDays = 0;
+      let wellnessScores: number[] = [];
+      
+      // Get recent meals data for calculations
+      const today = new Date();
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        
+        const dayMeals = await storage.getMealsForDate(userId, date);
+        let dayCalories = 0;
+        
+        for (const meal of dayMeals) {
+          const nutrition = await storage.getMealNutrition(meal.id);
+          if (nutrition) {
+            dayCalories += nutrition.calories || 0;
+          }
+        }
+        
+        if (dayMeals.length > 0) {
+          totalDays++;
+          totalCalories += dayCalories;
+          const dayWellnessScore = await calculateWellnessScore(dayMeals, dayCalories);
+          wellnessScores.push(dayWellnessScore);
+        }
+      }
+      
+      const avgWellnessScore = wellnessScores.length > 0 ? 
+        wellnessScores.reduce((a, b) => a + b, 0) / wellnessScores.length : 0;
+      
       const badges = [
         {
           id: "first_meal",
           name: "First Steps",
           description: "Log your first meal",
-          icon: "🍽️",
+          icon: "⭐",
           unlocked: allMeals.length > 0,
-          unlockedDate: allMeals.length > 0 ? allMeals[0]?.loggedAt?.toISOString() : undefined
+          unlockedDate: allMeals.length > 0 ? allMeals[0]?.loggedAt?.toISOString().split('T')[0] : undefined
         },
         {
-          id: "week_streak",
-          name: "Week Warrior",
-          description: "Log meals for 7 consecutive days",
-          icon: "🔥",
-          unlocked: allMeals.length >= 7,
-          unlockedDate: allMeals.length >= 7 ? allMeals[6]?.loggedAt?.toISOString() : undefined
+          id: "calorie_tracker",
+          name: "Calorie Tracker", 
+          description: "Track calories for your health",
+          icon: "🏆",
+          unlocked: totalCalories > 0,
+          unlockedDate: totalCalories > 0 ? new Date().toISOString().split('T')[0] : undefined
         },
         {
-          id: "nutrition_expert",
-          name: "Nutrition Expert",
-          description: "Log 50 meals",
-          icon: "🧠",
-          unlocked: allMeals.length >= 50,
-          unlockedDate: allMeals.length >= 50 ? allMeals[49]?.loggedAt?.toISOString() : undefined
+          id: "hydration_hero",
+          name: "Hydration Hero",
+          description: "Meet water intake goal",
+          icon: "💧",
+          unlocked: false, // Will be true when water tracking is implemented
+          unlockedDate: undefined
+        },
+        {
+          id: "nutrition_ninja",
+          name: "Nutrition Ninja",
+          description: "Analyze food with smart camera",
+          icon: "⚡",
+          unlocked: allMeals.length >= 3,
+          unlockedDate: allMeals.length >= 3 ? allMeals[2]?.loggedAt?.toISOString().split('T')[0] : undefined
+        },
+        {
+          id: "goal_crusher",
+          name: "Goal Crusher",
+          description: "Meet daily calorie goals",
+          icon: "🎯",
+          unlocked: avgWellnessScore >= 60,
+          unlockedDate: avgWellnessScore >= 60 ? new Date().toISOString().split('T')[0] : undefined
         }
       ];
       
       res.json(badges);
     } catch (error) {
-      console.error("Error fetching badges:", error);
+      console.error("Error fetching achievement badges:", error);
       res.status(500).json({ message: "Failed to fetch badges" });
     }
   });
