@@ -53,7 +53,7 @@ export default function Landing() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Photo Analysis</h3>
               <p className="text-muted-foreground">
-                Snap a photo and get instant AI-powered food recognition with detailed nutrition breakdown.
+                Snap a photo and get instant food recognition with detailed nutrition breakdown.
               </p>
             </CardContent>
           </Card>

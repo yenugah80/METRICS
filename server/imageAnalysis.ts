@@ -20,9 +20,9 @@ export async function analyzeFoodImage(base64Image: string): Promise<AnalyzedFoo
       cleanBase64 = base64Image.split(',')[1];
     }
     
-    // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+    // Use GPT-4o mini model for vision analysis - compatible with user's API key
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -63,7 +63,7 @@ Focus on:
         },
       ],
       response_format: { type: "json_object" },
-      max_tokens: 1000,
+      max_completion_tokens: 1000,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{"foods": []}');

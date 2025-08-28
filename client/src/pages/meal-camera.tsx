@@ -117,7 +117,7 @@ export default function MealCamera() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2">AI Meal Analysis</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Meal Analysis</h1>
           <p className="text-muted-foreground">
             Upload a photo of your meal and get instant nutrition tracking
           </p>

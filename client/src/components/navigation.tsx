@@ -65,7 +65,7 @@ export default function Navigation() {
                 data-testid="nav-camera"
               >
                 <Camera className="h-4 w-4" />
-                <span>AI Camera</span>
+                <span>Camera</span>
               </Button>
             </Link>
           </div>
