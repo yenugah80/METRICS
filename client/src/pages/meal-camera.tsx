@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -92,16 +93,7 @@ export default function MealCamera() {
     
     setIsAnalyzing(true);
     try {
-      const response = await fetch("/api/meals/analyze-text", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textInput }),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to analyze meal description");
-      }
-      
+      const response = await apiRequest("POST", "/api/meals/analyze-text", { text: textInput });
       const data = await response.json();
       setAnalysis(data);
       toast({
@@ -136,16 +128,7 @@ export default function MealCamera() {
     
     setIsAnalyzing(true);
     try {
-      const response = await fetch("/api/meals/analyze-voice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ audioText: transcript }),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to analyze voice input");
-      }
-      
+      const response = await apiRequest("POST", "/api/meals/analyze-voice", { audioText: transcript });
       const data = await response.json();
       setAnalysis(data);
       toast({
@@ -165,16 +148,7 @@ export default function MealCamera() {
 
   const analyzeMutation = useMutation({
     mutationFn: async (imageBase64: string) => {
-      const response = await fetch("/api/meals/analyze-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64 }),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to analyze meal");
-      }
-      
+      const response = await apiRequest("POST", "/api/meals/analyze-image", { imageBase64 });
       return response.json();
     },
     onSuccess: (data: NutritionAnalysis) => {
@@ -249,23 +223,13 @@ export default function MealCamera() {
     
     try {
       // Save meal to database
-      const response = await fetch('/api/meals/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: `Meal from ${new Date().toLocaleTimeString()}`,
-          mealType: 'lunch', // Default to lunch, could be made configurable
-          imageUrl: selectedImage, // Store the base64 image
-          foods: analysis.foods,
-          nutrition: analysis
-        }),
+      const response = await apiRequest('POST', '/api/meals/save', {
+        name: `Meal from ${new Date().toLocaleTimeString()}`,
+        mealType: 'lunch', // Default to lunch, could be made configurable
+        imageUrl: selectedImage, // Store the base64 image
+        foods: analysis.foods,
+        nutrition: analysis
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to save meal');
-      }
 
       const result = await response.json();
       console.log('Meal saved successfully:', result.mealId);

@@ -873,10 +873,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Save analyzed meal to database  
-  app.post("/api/meals/save", async (req, res) => {
+  app.post("/api/meals/save", verifyJWT, async (req: any, res) => {
     try {
-      // For demo purposes, use a default user ID
-      const userId = "demo-user-123";
+      // Use authenticated user ID instead of demo user
+      const userId = req.user.id;
       const { name, mealType, imageUrl, foods, nutrition } = req.body;
 
       if (!name || !foods || !nutrition) {
