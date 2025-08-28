@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
+import compression from "compression";
 import { chatbotRoutes } from './routes-chatbot';
 import { stripeRoutes } from './routes/stripe';
 import Stripe from "stripe";
@@ -19,11 +20,25 @@ import { generateRecipe, type RecipeGenerationInput } from "./recipe-generation-
 import { calculateNutritionScore, type NutritionInput } from "./nutrition-scoring";
 import { checkDietCompatibility, type DietCompatibilityInput } from "./diet-compatibility";
 import { freemiumMiddleware, type FreemiumRequest } from "./middleware/freemium";
-import { db } from "./db";
+import { db } from "./performance/database";
 import { users } from "../shared/schema";
 import { eq } from "drizzle-orm";
 import { recommendationRoutes } from "./routes/recommendations";
 import { registerRecipeRoutes } from "./routes-recipes";
+
+// Security and Performance Imports
+import { 
+  securityHeaders, 
+  generalRateLimit, 
+  authRateLimit, 
+  apiRateLimit, 
+  validateRequest,
+  validateContentType,
+  secureErrorResponse,
+  logSecurityEvent 
+} from "./security/security";
+import { logger, PerformanceMonitor } from "./logging/logger";
+import { getCacheHealthStatus } from "./performance/cache";
 
 // Stripe setup
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -34,16 +49,64 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize ETL system
-  try {
-    await etlSystem.initialize();
-    console.log('ETL system initialized successfully');
-  } catch (error) {
-    console.error('Failed to initialize ETL system:', error);
-  }
+  // SECURITY & PERFORMANCE MIDDLEWARE
+  // Apply compression for better performance
+  app.use(compression({
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) return false;
+      return compression.filter(req, res);
+    },
+    level: 6,
+    threshold: 1024
+  }));
+
+  // Security headers
+  app.use(securityHeaders);
+
+  // Request logging with performance monitoring
+  app.use(logger.requestLogger());
+
+  // Content type validation for POST/PUT requests
+  app.use('/api', validateContentType('application/json'));
+
+  // Rate limiting
+  app.use('/api/auth', authRateLimit);
+  app.use('/api', apiRateLimit);
+  app.use(generalRateLimit);
 
   // Add cookie parser middleware for JWT tokens
   app.use(cookieParser());
+
+  // Initialize ETL system with proper error handling
+  try {
+    PerformanceMonitor.start('etl-initialization');
+    await etlSystem.initialize();
+    PerformanceMonitor.end('etl-initialization');
+    logger.info('ETL system initialized successfully');
+  } catch (error) {
+    logger.error('Failed to initialize ETL system', error);
+  }
+
+  // Health monitoring endpoints
+  app.get('/health', async (req, res) => {
+    const { healthCheck } = await import('./health/monitoring');
+    await healthCheck(req, res);
+  });
+  
+  app.get('/health/live', async (req, res) => {
+    const { livenessProbe } = await import('./health/monitoring');
+    livenessProbe(req, res);
+  });
+  
+  app.get('/health/ready', async (req, res) => {
+    const { readinessProbe } = await import('./health/monitoring');
+    await readinessProbe(req, res);
+  });
+  
+  app.get('/metrics', async (req, res) => {
+    const { metricsEndpoint } = await import('./health/monitoring');
+    metricsEndpoint(req, res);
+  });
 
   // Enhanced authentication routes with multi-provider support
   app.use('/api/auth', authRoutes);
@@ -98,8 +161,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ checkoutUrl: session.url });
     } catch (error) {
-      console.error('Premium upgrade error:', error);
-      res.status(500).json({ error: 'Failed to create checkout session' });
+      logger.error('Premium upgrade error', error, req);
+      res.status(500).json(secureErrorResponse(error, req));
     }
   });
 
@@ -111,8 +174,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET || 'placeholder');
     } catch (err: any) {
-      console.log(`Webhook signature verification failed.`, err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+      logger.security('Stripe webhook signature verification failed', { error: err.message }, req);
+      return res.status(400).send(`Webhook Error: Invalid signature`);
     }
 
     // Handle the event
@@ -132,9 +195,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               })
               .where(eq(users.id, session.metadata.userId));
             
-            console.log('User upgraded to premium:', session.metadata.userId);
+            logger.payment('User upgraded to premium', { userId: session.metadata.userId }, req);
           } catch (error) {
-            console.error('Error upgrading user to premium:', error);
+            logger.error('Error upgrading user to premium', error, req);
           }
         }
         break;
@@ -150,13 +213,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
             .where(eq(users.stripeSubscriptionId, subscription.id));
           
-          console.log('User downgraded from premium');
+          logger.payment('User downgraded from premium', {}, req);
         } catch (error) {
-          console.error('Error downgrading user from premium:', error);
+          logger.error('Error downgrading user from premium', error, req);
         }
         break;
       default:
-        console.log(`Unhandled event type ${event.type}`);
+        logger.warn('Unhandled Stripe event type', { eventType: event.type }, req);
     }
 
     res.json({received: true});
@@ -195,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
-      console.error("Error checking object access:", error);
+      logger.error('Error checking object access', error, req);
       if (error instanceof ObjectNotFoundError) {
         return res.sendStatus(404);
       }
@@ -216,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const profile = await storage.getUserProfile(userId);
       res.json(profile);
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      logger.error('Error fetching profile', error, req);
       res.status(500).json({ message: "Failed to fetch profile" });
     }
   });
@@ -228,7 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const profile = await storage.upsertUserProfile(profileData);
       res.json(profile);
     } catch (error) {
-      console.error("Error saving profile:", error);
+      logger.error('Error saving profile', error, req);
       res.status(500).json({ message: "Failed to save profile" });
     }
   });
@@ -241,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const profile = await storage.upsertUserProfile(profileData);
       res.json(profile);
     } catch (error) {
-      console.error("Error updating profile:", error);
+      logger.error('Error updating profile', error, req);
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
@@ -293,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(result);
     } catch (error) {
-      console.error("Error analyzing image:", error);
+      logger.error('Error analyzing image', error, req);
       res.status(500).json({ message: "Failed to analyze image" });
     }
   });
@@ -352,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(result);
     } catch (error) {
-      console.error("Error analyzing voice:", error);
+      logger.error('Error analyzing voice', error, req);
       res.status(500).json({ message: "Failed to analyze voice input" });
     }
   });
@@ -404,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(result);
     } catch (error) {
-      console.error("Error analyzing text:", error);
+      logger.error('Error analyzing text', error, req);
       res.status(500).json({ message: "Failed to analyze text description" });
     }
   });
@@ -443,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: result
       });
     } catch (error) {
-      console.error('Food analysis error:', error);
+      logger.error('Food analysis error', error, req);
       res.status(500).json({
         success: false,
         message: "Failed to analyze food",
@@ -473,7 +536,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         input: nutritionData
       });
     } catch (error) {
-      console.error('Nutrition scoring error:', error);
+      logger.error('Nutrition scoring error', error, req);
       res.status(500).json({
         success: false,
         message: "Failed to calculate nutrition score",
@@ -505,7 +568,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         compatibility
       });
     } catch (error) {
-      console.error('Diet compatibility error:', error);
+      logger.error('Diet compatibility error', error, req);
       res.status(500).json({
         success: false,
         message: "Failed to check diet compatibility",
@@ -532,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      logger.error('Error fetching user profile', error, req);
       res.status(500).json({
         success: false,
         message: "Failed to fetch profile"
@@ -560,7 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Profile updated successfully"
       });
     } catch (error) {
-      console.error('Error updating user profile:', error);
+      logger.error('Error updating user profile', error, req);
       res.status(500).json({
         success: false,
         message: "Failed to update profile"
@@ -657,7 +720,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ meal, nutrition, scores: nutritionScore });
     } catch (error) {
-      console.error("Error creating meal:", error);
+      logger.error('Error creating meal', error, req);
       res.status(500).json({ message: "Failed to create meal" });
     }
   });
@@ -682,7 +745,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(200).json({ objectPath });
     } catch (error) {
-      console.error("Error setting image ACL:", error);
+      logger.error('Error setting image ACL', error, req);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -694,7 +757,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const meals = await storage.getMealsByUserId(userId, 20);
       res.json(meals);
     } catch (error) {
-      console.error("Error fetching meals:", error);
+      logger.error('Error fetching meals', error, req);
       res.status(500).json({ message: "Failed to fetch meals" });
     }
   });

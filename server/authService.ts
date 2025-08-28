@@ -25,9 +25,27 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-// JWT configuration
-const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || "your-access-secret-key";
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
+// JWT configuration - SECURITY: No fallback secrets allowed in production
+const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 
+  (process.env.NODE_ENV === 'development' ? 'dev-access-secret-key-at-least-32-chars-long' : undefined);
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 
+  (process.env.NODE_ENV === 'development' ? 'dev-refresh-secret-key-at-least-32-chars-long' : undefined);
+
+// Validate required secrets at startup
+if (!JWT_ACCESS_SECRET || !JWT_REFRESH_SECRET) {
+  throw new Error('SECURITY ERROR: JWT_ACCESS_SECRET and JWT_REFRESH_SECRET environment variables must be set in production');
+}
+
+// Validate secret strength
+if (JWT_ACCESS_SECRET.length < 32 || JWT_REFRESH_SECRET.length < 32) {
+  throw new Error('SECURITY ERROR: JWT secrets must be at least 32 characters long');
+}
+
+// Warn in development if using default secrets
+if (process.env.NODE_ENV === 'development' && 
+    (JWT_ACCESS_SECRET.includes('dev-') || JWT_REFRESH_SECRET.includes('dev-'))) {
+  console.warn('⚠️  WARNING: Using default JWT secrets in development. Set JWT_ACCESS_SECRET and JWT_REFRESH_SECRET for production.');
+}
 const ACCESS_TOKEN_EXPIRES = "15m";
 const REFRESH_TOKEN_EXPIRES = "30d";
 
