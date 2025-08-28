@@ -10,7 +10,7 @@ import AuthPage from "@/pages/auth-page";
 import SearchPage from "@/pages/search";
 import Dashboard from "@/pages/dashboard";
 import MealCamera from "@/pages/meal-camera";
-import RecipeGenerator from "@/pages/recipe-generator";
+import RecipesPage from "@/pages/recipes-page";
 import DailyProgress from "@/pages/daily-progress";
 import VoiceLogging from "@/pages/voice-logging";
 import Sustainability from "@/pages/sustainability";
@@ -30,7 +30,7 @@ function App() {
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/search" component={SearchPage} />
               <Route path="/camera" component={MealCamera} />
-              <Route path="/recipes" component={RecipeGenerator} />
+              <Route path="/recipes" component={RecipesPage} />
               <Route path="/progress" component={DailyProgress} />
               <Route path="/voice" component={VoiceLogging} />
               <Route path="/sustainability" component={Sustainability} />

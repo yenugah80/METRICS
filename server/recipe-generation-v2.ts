@@ -266,81 +266,8 @@ Return JSON matching the contract exactly:
   }
 }
 
-function generateFallbackRecipe(input: RecipeGenerationInput): GeneratedRecipe {
-  const fallbackRecipes = [
-    {
-      name: "Simple Veggie Stir-Fry",
-      description: "Quick and healthy vegetable stir-fry with minimal ingredients",
-      prep_time: 10,
-      cook_time: 15,
-      servings: 2,
-      difficulty: "easy" as const,
-      ingredients: [
-        { name: "mixed vegetables", amount: "2", unit: "cups", preparation: "chopped" },
-        { name: "olive oil", amount: "2", unit: "tbsp" },
-        { name: "garlic", amount: "2", unit: "cloves", preparation: "minced" },
-        { name: "soy sauce", amount: "2", unit: "tbsp" }
-      ],
-      instructions: [
-        "Heat olive oil in a large pan over medium-high heat",
-        "Add minced garlic and cook for 30 seconds",
-        "Add vegetables and stir-fry for 5-7 minutes",
-        "Add soy sauce and cook for 2 more minutes",
-        "Serve hot"
-      ],
-      nutrition: {
-        calories: input.calorie_target || 300,
-        protein: input.protein_target || 8,
-        carbs: 25,
-        fat: 15,
-        fiber: 6
-      },
-      tags: ["quick", "healthy", "vegetarian"]
-    },
-    {
-      name: "Basic Protein Bowl",
-      description: "Simple protein and grain bowl with vegetables",
-      prep_time: 15,
-      cook_time: 20,
-      servings: 2,
-      difficulty: "easy" as const,
-      ingredients: [
-        { name: "quinoa", amount: "1", unit: "cup" },
-        { name: "chicken breast", amount: "8", unit: "oz", preparation: "diced" },
-        { name: "broccoli", amount: "1", unit: "cup", preparation: "chopped" },
-        { name: "olive oil", amount: "2", unit: "tbsp" }
-      ],
-      instructions: [
-        "Cook quinoa according to package instructions",
-        "Season and cook chicken in olive oil until done",
-        "Steam broccoli until tender",
-        "Combine all ingredients in bowls",
-        "Season to taste and serve"
-      ],
-      nutrition: {
-        calories: input.calorie_target || 450,
-        protein: input.protein_target || 30,
-        carbs: 40,
-        fat: 12,
-        fiber: 8
-      },
-      tags: ["protein", "healthy", "balanced"]
-    }
-  ];
-  
-  const baseRecipe = fallbackRecipes[Math.floor(Math.random() * fallbackRecipes.length)];
-  const recipeText = `${baseRecipe.name} ${baseRecipe.ingredients.map(i => i.name).join(' ')} ${baseRecipe.instructions.join(' ')}`;
-  const simHash = generateSimHash(recipeText);
-  
-  return {
-    ...baseRecipe,
-    id: crypto.randomUUID(),
-    cuisine_type: input.cuisine || 'international',
-    diet_type: input.diet || 'balanced',
-    created_by: 'fallback',
-    sim_hash: simHash
-  };
-}
+// REMOVED: No fallback recipes - only authentic AI-generated content
+// All recipe generation now uses real global cuisine knowledge
 
 export async function generateRecipe(input: RecipeGenerationInput): Promise<GeneratedRecipe> {
   // Check cache first
@@ -390,17 +317,8 @@ export async function generateRecipe(input: RecipeGenerationInput): Promise<Gene
       attempts++;
       
       if (attempts >= maxAttempts) {
-        console.log('All OpenAI attempts failed, using fallback recipe');
-        const fallbackRecipe = generateFallbackRecipe(input);
-        
-        // Cache the fallback recipe
-        recipeCache.set(cacheKey, {
-          recipe: fallbackRecipe,
-          created_at: new Date(),
-          hit_count: 1
-        });
-        
-        return fallbackRecipe;
+        console.error('All recipe generation attempts failed');
+        throw new Error('Unable to generate authentic recipes at this time. Please try again later or contact support for assistance.');
       }
     }
   }

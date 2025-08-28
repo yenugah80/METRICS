@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { chatbotRoutes } from './routes-chatbot';
 import Stripe from "stripe";
 import cookieParser from "cookie-parser";
 import { storage } from "./storage";
@@ -211,7 +212,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const compatibility = await checkDietCompatibility({ foods, dietPreferences });
+      const compatibility = await checkDietCompatibility({ 
+        ingredients: foods.map((f: any) => f.name || f), 
+        diet_preferences: dietPreferences || [],
+        allergen_restrictions: []
+      });
 
       res.json({
         success: true,
@@ -412,7 +417,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Recipe generation route
+  // Professional recipe chatbot routes - handles all recipe generation
+  app.use(chatbotRoutes);
+
+  // Legacy recipe generation route (replaced by chatbot)
   app.post('/api/recipes/generate', isAuthenticated, async (req: any, res) => {
     try {
       const { cuisine, dietType, preferences } = req.body;

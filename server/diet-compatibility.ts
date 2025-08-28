@@ -202,8 +202,8 @@ export function checkDietCompatibility(input: DietCompatibilityInput): DietCompa
     violations,
     allergen_safety: detected_allergens.length > 0 ? 'unsafe' : 'safe',
     allergen_details: {
-      detected_allergens: [...new Set(detected_allergens)],
-      violating_ingredients: [...new Set(violating_ingredients)]
+      detected_allergens: Array.from(new Set(detected_allergens)),
+      violating_ingredients: Array.from(new Set(violating_ingredients))
     }
   };
 }
