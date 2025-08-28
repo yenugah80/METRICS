@@ -127,17 +127,19 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardContent className="flex items-center p-6">
-              <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mr-4">
-                <Plus className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Log Meal</h3>
-                <p className="text-sm text-muted-foreground">Add to your diary</p>
-              </div>
-            </CardContent>
-          </Card>
+          <Link href="/camera">
+            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <CardContent className="flex items-center p-6">
+                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mr-4">
+                  <Plus className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">AI Camera</h3>
+                  <p className="text-sm text-muted-foreground">Photo meal analysis</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

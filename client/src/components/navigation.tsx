@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Apple, Home, Search, Plus, BarChart3 } from "lucide-react";
+import { Apple, Home, Search, Camera, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Navigation() {
@@ -54,6 +54,18 @@ export default function Navigation() {
               >
                 <Search className="h-4 w-4" />
                 <span>Search</span>
+              </Button>
+            </Link>
+
+            <Link href="/camera">
+              <Button
+                variant={isActive("/camera") ? "secondary" : "ghost"}
+                size="sm"
+                className="flex items-center space-x-2"
+                data-testid="nav-camera"
+              >
+                <Camera className="h-4 w-4" />
+                <span>AI Camera</span>
               </Button>
             </Link>
           </div>

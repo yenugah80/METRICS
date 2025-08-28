@@ -7,6 +7,7 @@ import Navigation from "@/components/navigation";
 import Landing from "@/pages/landing";
 import NutritionSearch from "@/pages/nutrition-search";
 import Dashboard from "@/pages/dashboard";
+import MealCamera from "@/pages/meal-camera";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
             <Route path="/" component={Landing} />
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/search" component={NutritionSearch} />
+            <Route path="/camera" component={MealCamera} />
             <Route component={NotFound} />
           </Switch>
         </div>
