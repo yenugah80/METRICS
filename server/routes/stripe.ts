@@ -75,7 +75,7 @@ router.post('/create-subscription', freemiumMiddleware, async (req: FreemiumRequ
             name: 'MyFoodMatrics Premium',
             description: 'Unlimited recipe generation, voice logging, and advanced nutrition insights'
           },
-          unit_amount: 999, // $9.99 per month
+          unit_amount: 699, // $6.99 per month
           recurring: {
             interval: 'month'
           }

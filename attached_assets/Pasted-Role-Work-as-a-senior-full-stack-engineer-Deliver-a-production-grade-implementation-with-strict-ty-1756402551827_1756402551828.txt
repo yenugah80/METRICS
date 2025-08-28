@@ -1,0 +1,197 @@
+Role: Work as a senior full-stack engineer. Deliver a production-grade implementation with strict typing, migrations, tests, observability, and a single PR. No sample code in the output—return the final PR diff, schema changes, runtime configs, and test results only.
+
+Objectives
+
+Replace all mocked logic with real integrations (OCR, Barcode, USDA) and consistent nutrition math.
+
+Support Image, Barcode, Text, and Voice as inputs; gate Voice behind Premium entitlement.
+
+Meet performance SLOs with caching and async workers.
+
+Preserve current public types and response shape; fill every field from real data or mark as missing—never fabricate.
+
+Functional Requirements
+
+Inputs
+
+image (base64), barcode (EAN/UPC), text (freeform), voice (audio file).
+
+Optional user context: diet preferences, allergen restrictions, premium flag, locale.
+
+Validate MIME types, size limits, and schemas; reject oversize or malformed payloads.
+
+Voice (Premium)
+
+Accept short audio (≤90s). Transcribe with a speech-to-text engine.
+
+Language auto-detect; include diarization disabled.
+
+Map the transcript to a normalized food query string for downstream lookup.
+
+Enforce premium: non-premium requests return a clear upgrade error and no processing.
+
+Data Acquisition
+
+OCR (image): extract text and numerics; normalize tokens and units; persist raw text in metadata.
+
+Barcode: query a public barcode nutrition API that returns per-100g nutrient values and product/brand metadata.
+
+Text/Voice: search a national food database; choose the best result by coverage of required nutrients and recency/quality signals.
+
+Normalization (ETL)
+
+Standardize units: grams for macros/fiber/sugar/saturated fat per 100g; milligrams for sodium per 100g; kcal for energy per 100g.
+
+Keep two bases: per-100g canonical panel and per-serving totals (driven by quantity/serving size). Never mix bases.
+
+Mark any missing nutrient explicitly in metadata; do not estimate unless the provider supplies an explicit rule.
+
+Disambiguation
+
+Use an LLM only to classify the most likely food/product name from noisy OCR or voice text when multiple candidates tie; never use an LLM to invent nutrient values.
+
+If classification confidence is low, return a user-actionable ambiguity message and no fabricated macros.
+
+Nutrition Score
+
+Deterministic 0–100 score and A–D grade using only numeric inputs: sugar g/100g, sodium mg/100g, saturated fat g/100g, fiber g/100g, protein g/100g, and count of micronutrients ≥10% DV.
+
+Return a structured breakdown showing each input value, penalty/bonus, and the final sum.
+
+Diet & Allergen
+
+Build a canonical ingredient token list from provider ingredient strings.
+
+For each requested diet, return compatible + reason (violating tokens or “no violations”).
+
+Return allergen flags where detected (e.g., peanuts, tree nuts, dairy, soy, wheat, egg, fish, shellfish, sesame).
+
+Health Suggestions
+
+Generate suggestions strictly from the score breakdown and violations (e.g., high sodium penalty → reduce salt). Omit suggestions if the triggering metric is missing.
+
+Caching
+
+Replace in-memory Map with a network cache.
+
+Cache key: SHA-256 of normalized input (type + normalized content + locale + user pref hash).
+
+TTL: 7 days. Store full result, first-seen timestamp, and hit count (atomic increment).
+
+Response metadata must show cache_hit and processing_time_ms.
+
+Async & Resiliency
+
+Queue heavy tasks (OCR, DB search, speech) to a worker. Idempotent job keys based on the cache key.
+
+Timeouts and retries (max 2 with jitter) for external calls; circuit-break on persistent failures and return actionable messages.
+
+Phased status tracking: ingest, ocr|stt, lookup, merge, score, done.
+
+Accuracy & Honesty
+
+Populate analysis_metadata.source precisely (barcode, usda, ocr, voice, hybrid) and confidence based on provider match quality.
+
+Do not set openai as a source unless used for name classification; log that in metadata when used.
+
+Frontend Output Parity
+
+Ensure the response contains everything needed by the existing UI: image preview URL (when present), Smart Nutrition Score, grade, diet compatibility badges, allergen safety, and suggestions, with consistent labels and units.
+
+Keep typography tokens unchanged; no visual regressions.
+
+API Surface (no examples, implement directly)
+
+POST /analysis → accepts image/barcode/text/voice, returns final analysis with full metadata; if queued, block until completion under SLOs; otherwise return a clear error.
+
+GET /analysis/:id/status → phased status, timings, and cache indicators.
+
+GET /providers/health → readiness of OCR, Speech, Barcode API, USDA, Cache, Queue.
+
+Data Model & Storage
+
+Persist analyses with: normalized input fingerprint, canonical per-100g panel, per-serving totals, provider artifacts (minimized), score breakdown, diet results, allergen flags, suggestions, metadata (source, timings, confidence, cache flags), user id (nullable), and premium flag snapshot.
+
+Index by fingerprint and user id for fast cache hits and history.
+
+Config & Environment
+
+Define environment variables for: OCR language packs, Speech API key/model, Barcode API base URL/key, USDA API key, Cache URL, Queue URL, timeouts, retry counts, feature flags (enable_voice_premium, enable_llm_name_disambiguation, prefer_usda_over_barcode).
+
+Provide .env.example with all keys and safe defaults plus a README section describing rate limits and quotas.
+
+Security & Compliance
+
+Strict input validation and content-type checks; size limits for base64 and audio.
+
+Strip EXIF metadata.
+
+PII-safe logging; never log raw audio or full images—only hashed identifiers.
+
+Secrets pulled from environment; redact in logs.
+
+Observability
+
+Structured logs per phase with durations, provider status codes, retry counts, cache hit status, and final score/grade.
+
+Metrics: end-to-end latency (p50/p95), cache hit ratio, provider latency/error rates, STT WER proxy (where available), queue depth, time in queue.
+
+Tracing across API → worker → providers.
+
+Performance SLOs
+
+Cached: p50 < 1.5s, p95 < 3s.
+
+Uncached: p95 < 6s for single-item analyses.
+
+Provider timeouts tuned to meet SLOs; fail fast with guidance on user action.
+
+Tests & Validation
+
+Unit: normalization, unit conversions, cache key determinism, score math (edge cases), diet/allergen rules, voice gating logic.
+
+Integration: full flows for image→OCR→lookup→score; barcode→lookup→score; text→search→score; voice (premium) → STT → search → score.
+
+Contract: response schema validation with required/optional fields and units.
+
+Load/perf: SLO assertions with and without cache; queue throughput tests; provider backoff behavior.
+
+Security: file-type spoofing, oversize payloads, injection attempts in text/voice transcripts.
+
+Rollout & UX
+
+Feature flag voice: soft launch for Premium only; return upgrade CTA for non-premium.
+
+Backward-compatible API; no breaking changes to field names or units.
+
+Migrate cache from in-memory to network without downtime; include warm-cache strategy for top queries.
+
+Definition of Done
+
+No mocked values remain; every nutrient originates from a real provider or is explicitly marked missing.
+
+Voice path fully operational and correctly gated by Premium.
+
+Units and bases are consistent and documented in analysis_metadata.
+
+Scoring, diet, allergen, and suggestions derive solely from actual numeric inputs and tokens.
+
+Caching, async processing, and observability are in place and validated.
+
+All tests pass locally and in CI; SLOs met for cached/uncached paths.
+
+Documentation includes architecture diagram description, data flow, provider quotas, troubleshooting steps, and rollback plan.
+
+Output Required (from the agent)
+
+Single PR diff with all code, infra configs, and migrations.
+
+Updated schemas and migration notes.
+
+.env.example and README updates.
+
+Test run summary (unit, integration, perf).
+
+Verification checklist mapped to each acceptance criterion above with pass/fail.
+
+Implement exactly as specified. Do not include illustrative code snippets—return the final artifacts listed under “Output Required.”

@@ -188,18 +188,30 @@ Base estimates on USDA nutrition data. Be realistic and helpful with health insi
   } catch (error) {
     console.error("Error estimating nutrition:", error);
     
-    // Fallback to simple estimation if AI fails
+    // Fallback to nutrition API lookup for real data instead of mock estimates
+    const { NutritionService } = await import('./nutritionApi');
+    const nutritionService = new NutritionService();
+    
     let totalCalories = 0;
     let totalProtein = 0;
     let totalCarbs = 0;
     let totalFat = 0;
-
-    for (const food of foods) {
-      const estimatedCaloriesPerUnit = getEstimatedCalories(food.name);
-      totalCalories += estimatedCaloriesPerUnit * (food.quantity / 100);
-      totalProtein += getEstimatedProtein(food.name) * (food.quantity / 100);
-      totalCarbs += getEstimatedCarbs(food.name) * (food.quantity / 100);
-      totalFat += getEstimatedFat(food.name) * (food.quantity / 100);
+    
+    try {
+      for (const food of foods) {
+        const nutritionData = await nutritionService.estimateNutrition(food.name, food.quantity, food.unit);
+        if (nutritionData?.nutrition) {
+          const nutrition = nutritionData.nutrition;
+          totalCalories += nutrition.calories || 0;
+          totalProtein += nutrition.protein || 0;
+          totalCarbs += nutrition.carbs || 0;
+          totalFat += nutrition.fat || 0;
+        }
+      }
+    } catch (nutritionError) {
+      console.error("Error with nutrition API fallback:", nutritionError);
+      // Return explicit error rather than fabricated data
+      throw new Error("Unable to analyze nutrition data. Please try again or ensure the food items are clearly visible.");
     }
 
     return {
@@ -212,88 +224,6 @@ Base estimates on USDA nutrition data. Be realistic and helpful with health insi
   }
 }
 
-// Simple estimation functions - in production, you'd use your nutrition APIs
-function getEstimatedCalories(foodName: string): number {
-  const estimates: { [key: string]: number } = {
-    "banana": 89,
-    "apple": 52,
-    "rice": 130,
-    "chicken": 165,
-    "bread": 265,
-    "egg": 155,
-    "milk": 42,
-    "cheese": 113,
-    "pasta": 131,
-    "salmon": 208,
-    "broccoli": 34,
-    "potato": 77,
-    "avocado": 160,
-    "yogurt": 59
-  };
-  
-  // Find closest match
-  for (const [key, calories] of Object.entries(estimates)) {
-    if (foodName.toLowerCase().includes(key)) {
-      return calories;
-    }
-  }
-  return 100; // Default estimate
-}
-
-function getEstimatedProtein(foodName: string): number {
-  const estimates: { [key: string]: number } = {
-    "chicken": 31,
-    "salmon": 25,
-    "egg": 13,
-    "milk": 3.4,
-    "cheese": 7,
-    "yogurt": 10,
-    "rice": 2.7,
-    "bread": 9,
-    "pasta": 5
-  };
-  
-  for (const [key, protein] of Object.entries(estimates)) {
-    if (foodName.toLowerCase().includes(key)) {
-      return protein;
-    }
-  }
-  return 2; // Default
-}
-
-function getEstimatedCarbs(foodName: string): number {
-  const estimates: { [key: string]: number } = {
-    "banana": 23,
-    "apple": 14,
-    "rice": 28,
-    "bread": 49,
-    "pasta": 25,
-    "potato": 17,
-    "milk": 5
-  };
-  
-  for (const [key, carbs] of Object.entries(estimates)) {
-    if (foodName.toLowerCase().includes(key)) {
-      return carbs;
-    }
-  }
-  return 5; // Default
-}
-
-function getEstimatedFat(foodName: string): number {
-  const estimates: { [key: string]: number } = {
-    "avocado": 15,
-    "salmon": 14,
-    "cheese": 9,
-    "egg": 11,
-    "milk": 1,
-    "chicken": 3.6
-  };
-  
-  for (const [key, fat] of Object.entries(estimates)) {
-    if (foodName.toLowerCase().includes(key)) {
-      return fat;
-    }
-  }
-  return 1; // Default
-}
+// These mock estimation functions have been removed.
+// The system now uses real nutrition APIs (USDA, OpenFoodFacts) for accurate data.
+// See nutritionApi.ts for the actual nutrition database integrations.
