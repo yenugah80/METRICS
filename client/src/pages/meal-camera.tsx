@@ -18,6 +18,9 @@ interface AnalyzedFood {
   quantity: number;
   unit: string;
   confidence: number;
+  calories?: number;
+  protein?: number;
+  source?: string;
 }
 
 interface NutritionAnalysis {
@@ -36,6 +39,20 @@ interface NutritionAnalysis {
     calcium?: number;
   };
   health_suggestions?: string[];
+  nutrition_score?: {
+    score: number;
+    grade: string;
+    explanation: string;
+  };
+  diet_compatibility?: {
+    [key: string]: {
+      compatible: boolean;
+      reason: string;
+      confidence?: number;
+    };
+  };
+  confidence_score?: number;
+  data_sources?: string[];
   tracking_integration?: {
     summary?: string;
     compatible_apps?: string[];
