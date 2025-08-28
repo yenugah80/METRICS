@@ -295,7 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced nutrition search endpoints using multiple APIs
   
   // Barcode lookup using comprehensive nutrition APIs
-  app.get('/api/nutrition/barcode/:barcode', isAuthenticated, async (req, res) => {
+  app.get('/api/nutrition/barcode/:barcode', async (req, res) => {
     try {
       const { barcode } = req.params;
       const result = await nutritionService.searchByBarcode(barcode);
@@ -312,7 +312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Text-based food search using multiple nutrition APIs
-  app.get('/api/nutrition/search', isAuthenticated, async (req, res) => {
+  app.get('/api/nutrition/search', async (req, res) => {
     try {
       const { q: query } = req.query;
       
@@ -329,7 +329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Nutrition estimation for foods with quantity and unit
-  app.post('/api/nutrition/estimate', isAuthenticated, async (req, res) => {
+  app.post('/api/nutrition/estimate', async (req, res) => {
     try {
       const { foodName, quantity, unit } = req.body;
       
@@ -353,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Batch nutrition lookup for multiple foods
-  app.post('/api/nutrition/batch', isAuthenticated, async (req, res) => {
+  app.post('/api/nutrition/batch', async (req, res) => {
     try {
       const { foods } = req.body;
       
