@@ -168,9 +168,9 @@ export default function MealCamera() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Meal Analysis</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Food Analysis</h1>
           <p className="text-muted-foreground">
-            Upload a photo of your meal and get instant nutrition tracking
+            Capture your meal and get instant food identification with complete nutrition analysis
           </p>
         </div>
 
@@ -252,7 +252,7 @@ export default function MealCamera() {
                   {analyzeMutation.isPending && <Loader2 className="h-5 w-5 animate-spin" />}
                   {analysis && <CheckCircle className="h-5 w-5 text-green-600" />}
                   {analyzeMutation.isError && <AlertCircle className="h-5 w-5 text-red-600" />}
-                  <span>AI Analysis</span>
+                  <span>Food Analysis</span>
                 </CardTitle>
                 <CardDescription>
                   {analyzeMutation.isPending && "Analyzing your meal..."}
@@ -270,7 +270,7 @@ export default function MealCamera() {
                     <Progress value={33} className="h-2" />
                     <div className="flex items-center space-x-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Calculating nutrition...</span>
+                      <span className="text-sm">Computing nutrition and health insights...</span>
                     </div>
                   </div>
                 )}

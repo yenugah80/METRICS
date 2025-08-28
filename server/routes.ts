@@ -315,16 +315,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Image data is required" });
       }
 
-      console.log("Starting AI analysis of meal image...");
+      console.log("Starting food analysis of meal image...");
       
-      // Import and use the image analysis function
-      const { analyzeFoodImage, estimateNutrition } = await import("./imageAnalysis");
+      // Import and use the combined analysis function for better performance
+      const { analyzeFoodImageWithNutrition } = await import("./imageAnalysis");
       
-      const analyzedFoods = await analyzeFoodImage(imageBase64);
-      console.log("AI identified foods:", analyzedFoods);
-      
-      const nutritionAnalysis = await estimateNutrition(analyzedFoods);
-      console.log("Nutrition analysis complete:", nutritionAnalysis);
+      const nutritionAnalysis = await analyzeFoodImageWithNutrition(imageBase64);
+      console.log("Food analysis complete:", nutritionAnalysis);
       
       res.json(nutritionAnalysis);
     } catch (error: any) {

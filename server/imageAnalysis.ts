@@ -9,7 +9,8 @@ export interface AnalyzedFood {
   confidence: number;
 }
 
-export async function analyzeFoodImage(base64Image: string): Promise<AnalyzedFood[]> {
+// Combined analysis for better performance - analyzes image and calculates nutrition in one call
+export async function analyzeFoodImageWithNutrition(base64Image: string): Promise<any> {
   try {
     // Clean up base64 data - remove data URL prefix if present
     let cleanBase64 = base64Image;
@@ -20,38 +21,65 @@ export async function analyzeFoodImage(base64Image: string): Promise<AnalyzedFoo
       cleanBase64 = base64Image.split(',')[1];
     }
     
-    // Use GPT-4o mini model for vision analysis - compatible with user's API key
+    // Single API call for both food identification AND nutrition calculation
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `You are a nutrition expert analyzing food images. Identify all food items visible in the image with their estimated quantities. 
+          content: `You are a nutrition expert analyzing food images. Identify all food items AND calculate comprehensive nutrition in ONE response.
 
 Return your analysis as JSON in this exact format:
 {
   "foods": [
     {
-      "name": "food item name (use common names like 'banana', 'grilled chicken breast', 'white rice')",
+      "name": "food item name",
       "quantity": estimated_amount_as_number,
       "unit": "unit (g, ml, pieces, cups, etc)",
       "confidence": confidence_score_0_to_1
     }
-  ]
+  ],
+  "total_calories": total_calories_as_number,
+  "total_protein": total_protein_grams_as_number,
+  "total_carbs": total_carbs_grams_as_number,
+  "total_fat": total_fat_grams_as_number,
+  "detailed_nutrition": {
+    "saturated_fat": saturated_fat_grams_as_number,
+    "fiber": fiber_grams_as_number,
+    "sugar": sugar_grams_as_number,
+    "sodium": sodium_mg_as_number,
+    "cholesterol": cholesterol_mg_as_number,
+    "vitamin_c": vitamin_c_mg_as_number,
+    "iron": iron_mg_as_number,
+    "calcium": calcium_mg_as_number
+  },
+  "health_suggestions": [
+    "Array of 3-5 specific health insights based on this meal"
+  ],
+  "nutrition_score": {
+    "score": score_1_to_100,
+    "grade": "A|B|C|D|F",
+    "explanation": "Detailed explanation of why this score was given, what's good/bad about the meal"
+  },
+  "diet_compatibility": {
+    "keto": {"compatible": true_or_false, "reason": "explanation"},
+    "vegan": {"compatible": true_or_false, "reason": "explanation"},
+    "gluten_free": {"compatible": true_or_false, "reason": "explanation"}
+  },
+  "recommended_apps": {
+    "primary": "MyFitnessPal|Cronometer|LoseIt",
+    "reason": "Why this specific app is recommended for this meal type"
+  }
 }
 
-Focus on:
-- Common food names that would be found in nutrition databases
-- Realistic portion estimates  
-- Only include foods you can clearly identify
-- Use standard units (grams for solids, ml for liquids, pieces for countable items)`
+Be accurate with nutrition values using USDA data knowledge.`
         },
         {
           role: "user", 
           content: [
             {
               type: "text",
-              text: "Analyze this food image and identify all visible food items with their estimated quantities."
+              text: "Analyze this food image - identify all foods AND calculate complete nutrition analysis with explanations."
             },
             {
               type: "image_url",
@@ -63,16 +91,22 @@ Focus on:
         },
       ],
       response_format: { type: "json_object" },
-      max_completion_tokens: 1000,
+      max_completion_tokens: 2000,
     });
 
-    const result = JSON.parse(response.choices[0].message.content || '{"foods": []}');
-    return result.foods || [];
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    return result;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error analyzing food image:", error);
-    throw new Error("Failed to analyze food image: " + error.message);
+    throw new Error("Failed to analyze food image: " + (error?.message || "Unknown error"));
   }
+}
+
+// Keep the original function for backward compatibility
+export async function analyzeFoodImage(base64Image: string): Promise<AnalyzedFood[]> {
+  const result = await analyzeFoodImageWithNutrition(base64Image);
+  return result.foods || [];
 }
 
 export async function estimateNutrition(foods: AnalyzedFood[]): Promise<any> {
@@ -117,7 +151,7 @@ Return your analysis as JSON in this exact format:
   ],
   "tracking_integration": {
     "summary": "Brief summary of how this meal fits into health tracking goals",
-    "compatible_apps": ["MyFitnessPal", "Cronometer", "Lose It!", "Apple Health", "Google Fit"],
+    "compatible_apps": ["Specialized apps recommended based on meal complexity and tracking needs"],
     "export_data": {
       "meal_type": "breakfast|lunch|dinner|snack",
       "health_score": score_1_to_10,
