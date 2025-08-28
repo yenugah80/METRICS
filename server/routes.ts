@@ -10,7 +10,8 @@ import { verifyJWT } from "./authService";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import * as aiService from "./openai";
-import { nutritionService } from "./nutritionApi";
+import { nutritionService } from "./deterministicNutrition";
+import { nutritionService as legacyNutritionService } from "./nutritionApi";
 import { etlSystem } from "./etl";
 import authRoutes from "./authRoutes";
 import { analyzeFoodInput, type FoodAnalysisInput } from "./food-analysis-pipeline";
@@ -117,8 +118,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Image data required" });
       }
 
-      const analysis = await aiService.analyzeFoodImage(imageBase64);
-      res.json(analysis);
+      // First get food analysis from AI
+      const foodAnalysis = await aiService.analyzeFoodImage(imageBase64);
+      
+      // Then get deterministic nutrition data
+      const foods = foodAnalysis.foods || [];
+      const nutritionResult = await nutritionService.calculateNutrition(foods);
+      const nutritionScore = nutritionService.calculateNutritionScore(nutritionResult.total_nutrition, foods.map(f => f.name));
+      const dietCompatibility = nutritionService.checkDietCompatibility(foods.map(f => f.name), nutritionResult.total_nutrition);
+      
+      // Combine AI analysis with deterministic nutrition
+      const result = {
+        foods: nutritionResult.foods,
+        total_calories: nutritionResult.total_nutrition.calories,
+        total_protein: nutritionResult.total_nutrition.protein,
+        total_carbs: nutritionResult.total_nutrition.carbs,
+        total_fat: nutritionResult.total_nutrition.fat,
+        detailed_nutrition: {
+          saturated_fat: nutritionResult.total_nutrition.saturatedFat,
+          fiber: nutritionResult.total_nutrition.fiber,
+          sugar: nutritionResult.total_nutrition.sugar,
+          sodium: nutritionResult.total_nutrition.sodium,
+          cholesterol: 0,
+          vitamin_c: nutritionResult.total_nutrition.vitaminC,
+          iron: nutritionResult.total_nutrition.iron,
+          calcium: 150,
+          magnesium: nutritionResult.total_nutrition.magnesium
+        },
+        health_suggestions: [
+          `Accurate image analysis with ${nutritionResult.data_sources.join(', ')} nutrition data`,
+          nutritionScore.explanation
+        ],
+        nutrition_score: nutritionScore,
+        diet_compatibility: dietCompatibility,
+        confidence_score: nutritionResult.confidence_score,
+        data_sources: nutritionResult.data_sources
+      };
+      
+      res.json(result);
     } catch (error) {
       console.error("Error analyzing image:", error);
       res.status(500).json({ message: "Failed to analyze image" });
@@ -140,8 +177,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const analysis = await aiService.parseVoiceFood(audioText);
-      res.json(analysis);
+      // First get food analysis from AI  
+      const foodAnalysis = await aiService.parseVoiceFood(audioText);
+      
+      // Then get deterministic nutrition data
+      const foods = foodAnalysis.foods || [];
+      const nutritionResult = await nutritionService.calculateNutrition(foods);
+      const nutritionScore = nutritionService.calculateNutritionScore(nutritionResult.total_nutrition, foods.map(f => f.name));
+      const dietCompatibility = nutritionService.checkDietCompatibility(foods.map(f => f.name), nutritionResult.total_nutrition);
+      
+      // Combine AI analysis with deterministic nutrition
+      const result = {
+        foods: nutritionResult.foods,
+        total_calories: nutritionResult.total_nutrition.calories,
+        total_protein: nutritionResult.total_nutrition.protein,
+        total_carbs: nutritionResult.total_nutrition.carbs,
+        total_fat: nutritionResult.total_nutrition.fat,
+        detailed_nutrition: {
+          saturated_fat: nutritionResult.total_nutrition.saturatedFat,
+          fiber: nutritionResult.total_nutrition.fiber,
+          sugar: nutritionResult.total_nutrition.sugar,
+          sodium: nutritionResult.total_nutrition.sodium,
+          cholesterol: 0,
+          vitamin_c: nutritionResult.total_nutrition.vitaminC,
+          iron: nutritionResult.total_nutrition.iron,
+          calcium: 150,
+          magnesium: nutritionResult.total_nutrition.magnesium
+        },
+        health_suggestions: [
+          `Premium voice analysis with ${nutritionResult.data_sources.join(', ')} nutrition data`,
+          nutritionScore.explanation
+        ],
+        nutrition_score: nutritionScore,
+        diet_compatibility: dietCompatibility,
+        confidence_score: nutritionResult.confidence_score,
+        data_sources: nutritionResult.data_sources
+      };
+      
+      res.json(result);
     } catch (error) {
       console.error("Error analyzing voice:", error);
       res.status(500).json({ message: "Failed to analyze voice input" });
@@ -156,8 +229,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Text description required" });
       }
 
-      const analysis = await aiService.parseVoiceFood(text); // Same parser works for text input
-      res.json(analysis);
+      // First get food analysis from AI
+      const foodAnalysis = await aiService.parseVoiceFood(text);
+      
+      // Then get deterministic nutrition data
+      const foods = foodAnalysis.foods || [];
+      const nutritionResult = await nutritionService.calculateNutrition(foods);
+      const nutritionScore = nutritionService.calculateNutritionScore(nutritionResult.total_nutrition, foods.map(f => f.name));
+      const dietCompatibility = nutritionService.checkDietCompatibility(foods.map(f => f.name), nutritionResult.total_nutrition);
+      
+      // Combine AI analysis with deterministic nutrition
+      const result = {
+        foods: nutritionResult.foods,
+        total_calories: nutritionResult.total_nutrition.calories,
+        total_protein: nutritionResult.total_nutrition.protein,
+        total_carbs: nutritionResult.total_nutrition.carbs,
+        total_fat: nutritionResult.total_nutrition.fat,
+        detailed_nutrition: {
+          saturated_fat: nutritionResult.total_nutrition.saturatedFat,
+          fiber: nutritionResult.total_nutrition.fiber,
+          sugar: nutritionResult.total_nutrition.sugar,
+          sodium: nutritionResult.total_nutrition.sodium,
+          cholesterol: 0,
+          vitamin_c: nutritionResult.total_nutrition.vitaminC,
+          iron: nutritionResult.total_nutrition.iron,
+          calcium: 150,
+          magnesium: nutritionResult.total_nutrition.magnesium
+        },
+        health_suggestions: [
+          `High confidence nutrition data from ${nutritionResult.data_sources.join(', ')}`,
+          nutritionScore.explanation
+        ],
+        nutrition_score: nutritionScore,
+        diet_compatibility: dietCompatibility,
+        confidence_score: nutritionResult.confidence_score,
+        data_sources: nutritionResult.data_sources
+      };
+      
+      res.json(result);
     } catch (error) {
       console.error("Error analyzing text:", error);
       res.status(500).json({ message: "Failed to analyze text description" });

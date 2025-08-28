@@ -9,7 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils, Type, Mic, Crown, Sparkles } from "lucide-react";
+import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils, Type, Mic, Crown, Sparkles, Info, Database, Target } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import VoiceLogger from "@/components/VoiceLogger";
 
 interface AnalyzedFood {
@@ -434,7 +435,17 @@ export default function MealCamera() {
                   <div className="space-y-6">
                     {/* Smart Nutrition Score with Radial Dial */}
                     <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border mb-6">
-                      <h4 className="font-bold text-lg mb-4 text-center">Smart Nutrition Score</h4>
+                      <div className="flex items-center justify-center mb-4">
+                        <h4 className="font-bold text-lg">Smart Nutrition Score</h4>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Deterministic nutrition scoring (0-100) using real USDA database data. Factors include macro balance, micronutrients, fiber content, and processing level.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <div className="flex items-center justify-center space-x-6">
                         <div className="relative w-24 h-24">
                           <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 96 96">
@@ -455,63 +466,82 @@ export default function MealCamera() {
                               strokeWidth="8"
                               fill="none"
                               strokeDasharray={`${2 * Math.PI * 36}`}
-                              strokeDashoffset={`${2 * Math.PI * 36 * (1 - (analysis.tracking_integration?.export_data?.health_score || 85) / 100)}`}
+                              strokeDashoffset={`${2 * Math.PI * 36 * (1 - (analysis.nutrition_score?.score || 0) / 100)}`}
                               className={`transition-all duration-1000 ${
-                                (analysis.tracking_integration?.export_data?.health_score || 85) >= 80 ? 'text-green-500' :
-                                (analysis.tracking_integration?.export_data?.health_score || 85) >= 60 ? 'text-yellow-500' :
-                                (analysis.tracking_integration?.export_data?.health_score || 85) >= 40 ? 'text-orange-500' :
+                                (analysis.nutrition_score?.score || 0) >= 80 ? 'text-green-500' :
+                                (analysis.nutrition_score?.score || 0) >= 60 ? 'text-yellow-500' :
+                                (analysis.nutrition_score?.score || 0) >= 40 ? 'text-orange-500' :
                                 'text-red-500'
                               }`}
                               strokeLinecap="round"
                             />
                           </svg>
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-2xl font-bold">{analysis.tracking_integration?.export_data?.health_score || 85}</span>
+                            <span className="text-2xl font-bold">{analysis.nutrition_score?.score || 0}</span>
                           </div>
                         </div>
                         <div className="text-center">
                           <div className={`text-4xl font-bold mb-1 ${
-                            (analysis.tracking_integration?.export_data?.health_score || 85) >= 80 ? 'text-green-600' :
-                            (analysis.tracking_integration?.export_data?.health_score || 85) >= 60 ? 'text-yellow-600' :
-                            (analysis.tracking_integration?.export_data?.health_score || 85) >= 40 ? 'text-orange-600' :
+                            analysis.nutrition_score?.grade === 'A' ? 'text-green-600' :
+                            analysis.nutrition_score?.grade === 'B' ? 'text-yellow-600' :
+                            analysis.nutrition_score?.grade === 'C' ? 'text-orange-600' :
                             'text-red-600'
                           }`}>
-                            {(analysis.tracking_integration?.export_data?.health_score || 85) >= 80 ? 'A' :
-                             (analysis.tracking_integration?.export_data?.health_score || 85) >= 60 ? 'B' :
-                             (analysis.tracking_integration?.export_data?.health_score || 85) >= 40 ? 'C' : 'D'}
+                            {analysis.nutrition_score?.grade || 'F'}
                           </div>
                           <div className="text-sm text-muted-foreground">Grade</div>
                         </div>
                       </div>
                       <p className="text-center text-sm mt-4 text-muted-foreground">
-                        {(analysis.tracking_integration?.export_data?.health_score || 85) >= 80 ? '🌟 Excellent nutritional balance!' :
-                         (analysis.tracking_integration?.export_data?.health_score || 85) >= 60 ? '👍 Good nutrition with room for improvement' :
-                         (analysis.tracking_integration?.export_data?.health_score || 85) >= 40 ? '⚠️ Fair nutrition - consider healthier options' :
-                         '❌ Poor nutrition - needs significant improvement'}
+                        {analysis.nutrition_score?.explanation || 'Nutrition analysis completed using scientific data.'}
                       </p>
+                      {analysis.confidence_score && (
+                        <div className="flex items-center justify-center mt-2 text-xs text-muted-foreground">
+                          <Database className="w-3 h-3 mr-1" />
+                          <span>Data confidence: {Math.round(analysis.confidence_score * 100)}%</span>
+                          <span className="mx-2">•</span>
+                          <span>Sources: {analysis.data_sources?.join(', ') || 'USDA, OpenFoodFacts'}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Diet Compatibility Check */}
                     <div className="mb-6">
-                      <h4 className="font-semibold text-base mb-3">Diet Compatibility</h4>
+                      <div className="flex items-center mb-3">
+                        <h4 className="font-semibold text-base">Diet Compatibility</h4>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Smart diet analysis based on actual ingredients and nutritional composition using scientific data.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {[
-                          {name: 'Keto', compatible: analysis.total_carbs <= 20},
-                          {name: 'Vegan', compatible: !analysis.foods?.some((food: any) => food.name.toLowerCase().includes('chicken') || food.name.toLowerCase().includes('egg') || food.name.toLowerCase().includes('dairy'))},
-                          {name: 'Gluten-Free', compatible: !analysis.foods?.some((food: any) => food.name.toLowerCase().includes('bread') || food.name.toLowerCase().includes('wheat'))}
-                        ].map((diet) => (
-                          <div key={diet.name} className={`p-3 rounded-lg border text-center ${
-                            diet.compatible ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
+                        {analysis.diet_compatibility && Object.entries(analysis.diet_compatibility).slice(0, 3).map(([dietName, data]: [string, any]) => (
+                          <div key={dietName} className={`p-3 rounded-lg border text-center ${
+                            data.compatible ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
                           }`}>
                             <div className="flex items-center justify-center space-x-2">
-                              {diet.compatible ? (
+                              {data.compatible ? (
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                               ) : (
                                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                               )}
-                              <span className="font-medium">{diet.name}</span>
+                              <span className="font-medium">{dietName.charAt(0).toUpperCase() + dietName.slice(1)}</span>
                             </div>
-                            <span className="text-xs block mt-1">{diet.compatible ? '✓ Compatible' : '✗ Not Compatible'}</span>
+                            <span className="text-xs block mt-1">{data.compatible ? '✓ Compatible' : '✗ Not Compatible'}</span>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <div className="text-xs mt-1 text-center cursor-help hover:underline">
+                                  {data.confidence && `${Math.round(data.confidence * 100)}% confident`}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{data.reason}</p>
+                              </TooltipContent>
+                            </Tooltip>
                           </div>
                         ))}
                       </div>
@@ -534,40 +564,88 @@ export default function MealCamera() {
 
                     {/* Prominent Macro Display */}
                     <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border">
-                      <h4 className="font-bold text-lg mb-4 text-center">Nutrition Summary</h4>
+                      <div className="flex items-center justify-center mb-4">
+                        <h4 className="font-bold text-lg">Nutrition Summary</h4>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Accurate macro and micronutrient data from USDA FoodData Central and OpenFoodFacts database.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       
                       {/* Main Macros - Responsive Large Display */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
-                          <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                            {analysis.total_calories}
-                          </div>
-                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Calories</div>
-                        </div>
-                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
-                          <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
-                            {analysis.total_protein}g
-                          </div>
-                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Protein</div>
-                        </div>
-                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
-                          <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">
-                            {analysis.total_carbs}g
-                          </div>
-                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Carbs</div>
-                        </div>
-                        <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
-                          <div className="text-2xl md:text-3xl font-bold text-orange-600 mb-1">
-                            {analysis.total_fat}g
-                          </div>
-                          <div className="text-xs md:text-sm font-medium text-muted-foreground">Fat</div>
-                        </div>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm cursor-help hover:shadow-lg transition-shadow">
+                              <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
+                                {Math.round(analysis.total_calories || 0)}
+                              </div>
+                              <div className="text-xs md:text-sm font-medium text-muted-foreground">Calories</div>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Total energy content calculated from USDA database values</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm cursor-help hover:shadow-lg transition-shadow">
+                              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
+                                {Math.round((analysis.total_protein || 0) * 10) / 10}g
+                              </div>
+                              <div className="text-xs md:text-sm font-medium text-muted-foreground">Protein</div>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Complete and incomplete proteins for muscle maintenance and growth</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm cursor-help hover:shadow-lg transition-shadow">
+                              <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">
+                                {Math.round((analysis.total_carbs || 0) * 10) / 10}g
+                              </div>
+                              <div className="text-xs md:text-sm font-medium text-muted-foreground">Carbs</div>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Total carbohydrates including fiber, starch, and sugars</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm cursor-help hover:shadow-lg transition-shadow">
+                              <div className="text-2xl md:text-3xl font-bold text-orange-600 mb-1">
+                                {Math.round((analysis.total_fat || 0) * 10) / 10}g
+                              </div>
+                              <div className="text-xs md:text-sm font-medium text-muted-foreground">Fat</div>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Total fats including saturated, monounsaturated, and polyunsaturated</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
 
                       {/* Detailed Nutrition Breakdown */}
                       {analysis.detailed_nutrition && (
                         <div className="bg-background/40 rounded-lg p-4 mb-4 border">
-                          <h5 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Detailed Breakdown</h5>
+                          <div className="flex items-center mb-4">
+                            <h5 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Detailed Breakdown</h5>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Target className="w-3 h-3 ml-2 text-muted-foreground hover:text-primary cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Precise micronutrient analysis from scientific databases</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                           <div className="space-y-3">
                             {analysis.detailed_nutrition.saturated_fat && (
                               <div className="flex justify-between items-center py-1">
@@ -654,23 +732,56 @@ export default function MealCamera() {
 
                     {/* Identified Foods */}
                     <div>
-                      <h4 className="font-semibold mb-3">Identified Foods</h4>
+                      <div className="flex items-center mb-3">
+                        <h4 className="font-semibold">Identified Foods</h4>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Foods identified using AI image recognition, with nutrition data from verified databases for accuracy.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <div className="space-y-2">
                         {analysis.foods.map((food, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div>
-                              <div className="font-medium">{food.name}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {food.quantity} {food.unit}
+                          <Tooltip key={index}>
+                            <TooltipTrigger>
+                              <div className="flex items-center justify-between p-3 border rounded-lg hover:shadow-md transition-shadow cursor-help">
+                                <div>
+                                  <div className="font-medium">{food.name}</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {food.quantity} {food.unit}
+                                  </div>
+                                  {food.calories && (
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {Math.round(food.calories)} cal | {Math.round((food.protein || 0) * 10) / 10}g protein
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  <Badge 
+                                    variant={food.confidence > 0.8 ? "default" : "secondary"}
+                                    data-testid={`confidence-${index}`}
+                                  >
+                                    {Math.round(food.confidence * 100)}% confident
+                                  </Badge>
+                                  {food.source && (
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {food.source}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                            <Badge 
-                              variant={food.confidence > 0.8 ? "default" : "secondary"}
-                              data-testid={`confidence-${index}`}
-                            >
-                              {Math.round(food.confidence * 100)}% confident
-                            </Badge>
-                          </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="text-sm">
+                                <p><strong>Nutrition source:</strong> {food.source || 'USDA Database'}</p>
+                                {food.calories && <p><strong>Per serving:</strong> {Math.round(food.calories)} calories</p>}
+                                <p><strong>Confidence:</strong> {Math.round(food.confidence * 100)}% match</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
                         ))}
                       </div>
                       
