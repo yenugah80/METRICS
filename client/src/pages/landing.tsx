@@ -89,85 +89,180 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Photo Analysis - Primary Feature */}
-            <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-emerald-50 to-cyan-50 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <Camera className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Instant Photo Analysis</h3>
-                <p className="text-gray-600 mb-4 leading-relaxed">
-                  Point, shoot, done! Our AI instantly recognizes your food and breaks down every macro and micronutrient.
-                </p>
-                <div className="text-sm text-emerald-600 font-semibold">
-                  🚀 Works with any food • 99% accuracy
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Barcode Scanner */}
-            <Card className="border-0 shadow-lg bg-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Scan className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Lightning-Fast Barcode Scan</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Scan any package and get comprehensive nutrition data from our database of 2M+ products.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Smart Scoring */}
-            <Card className="border-0 shadow-lg bg-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Target className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Nutrition Scoring</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Get A-F grades for every meal based on nutritional quality, processing level, and your goals.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Premium Features Row */}
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group lg:col-span-2">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <Leaf className="w-6 h-6 text-white" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* AI Photo Analysis - Hero Feature */}
+            <Card className="relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-emerald-400 via-cyan-400 to-blue-500 hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 group lg:col-span-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5"></div>
+              <CardContent className="relative p-8 text-white">
+                <div className="flex items-start gap-6">
+                  <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mb-6 shadow-2xl group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
+                    <Camera className="w-10 h-10 text-white" />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <h3 className="text-xl font-bold text-gray-900">Sustainability Impact</h3>
-                      <Crown className="w-5 h-5 text-amber-500" />
-                      <Badge className="bg-amber-100 text-amber-800 text-xs">PREMIUM</Badge>
-                    </div>
-                    <p className="text-gray-600 mb-4">
-                      Track your environmental footprint with CO₂ emissions, water usage, and ethical sourcing insights for every meal.
+                    <Badge className="mb-4 bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                      🔥 Most Popular Feature
+                    </Badge>
+                    <h3 className="text-3xl font-bold mb-4">AI-Powered Food Recognition</h3>
+                    <p className="text-white/90 mb-6 text-lg leading-relaxed">
+                      Revolutionary computer vision that instantly identifies your food, estimates portions, and calculates precise nutrition data. Works with any meal, anywhere.
                     </p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded">🌱 Carbon Footprint</span>
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">💧 Water Usage</span>
-                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded">🌍 Ethical Sourcing</span>
+                    <div className="flex flex-wrap gap-3">
+                      <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">📸 99.7% Accuracy</span>
+                      <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">⚡ Instant Results</span>
+                      <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">🌍 2M+ Foods</span>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Smart Recipes */}
-            <Card className="border-0 shadow-lg bg-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <ChefHat className="w-6 h-6 text-white" />
+            {/* Personalized Meal Engine */}
+            <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:rotate-1 group">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
+              <CardContent className="relative p-6 text-white">
+                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+                  <Star className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Personalized Recipes</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Get AI-generated recipes tailored to your dietary preferences, restrictions, and nutrition goals.
+                <h3 className="text-xl font-bold mb-3">Smart Meal Recommendations</h3>
+                <p className="text-white/90 text-sm leading-relaxed mb-4">
+                  AI learns your taste preferences, dietary restrictions, and nutrition goals to suggest perfect meals every time.
                 </p>
+                <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                  🧠 Machine Learning Powered
+                </Badge>
+              </CardContent>
+            </Card>
+
+            {/* AR Food Scanning */}
+            <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-orange-500 to-red-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:-rotate-1 group">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="absolute bottom-0 right-0 w-20 h-20 bg-white/5 rounded-full blur-2xl"></div>
+              <CardContent className="relative p-6 text-white">
+                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-300">
+                  <Scan className="w-7 h-7 text-white" />
+                </div>
+                <Badge className="mb-3 bg-white/20 text-white border-white/30 text-xs">
+                  🚀 Coming Soon
+                </Badge>
+                <h3 className="text-xl font-bold mb-3">AR Nutrition Overlay</h3>
+                <p className="text-white/90 text-sm leading-relaxed">
+                  Point your camera at any food and see nutrition facts floating in real-time with augmented reality technology.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Voice Logging with Animation */}
+            <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-indigo-500 to-purple-600 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 group">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="absolute top-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-3xl transform -translate-x-16 -translate-y-16"></div>
+              <CardContent className="relative p-6 text-white">
+                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300">
+                  <Mic className="w-7 h-7 text-white group-hover:animate-pulse" />
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-xl font-bold">Voice-Powered Logging</h3>
+                  <Crown className="w-5 h-5 text-amber-400" />
+                </div>
+                <p className="text-white/90 text-sm leading-relaxed mb-4">
+                  Just speak your meal aloud. Our AI transcribes, identifies foods, and logs everything automatically. Hands-free nutrition tracking.
+                </p>
+                <Badge className="bg-amber-500/30 text-amber-200 border-amber-400/50 text-xs">
+                  PREMIUM FEATURE
+                </Badge>
+              </CardContent>
+            </Card>
+
+            {/* Social Health Challenges */}
+            <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-teal-500 to-cyan-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:rotate-1 group lg:col-span-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5"></div>
+              <div className="absolute bottom-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+              <CardContent className="relative p-8 text-white">
+                <div className="flex items-start gap-6">
+                  <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500">
+                    <Users className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <Badge className="mb-4 bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                      🎯 Social Features
+                    </Badge>
+                    <h3 className="text-2xl font-bold mb-4">Health Challenges & Social Sharing</h3>
+                    <p className="text-white/90 mb-6 text-lg leading-relaxed">
+                      Join community challenges, share progress with friends, and compete in nutrition goals. Make healthy eating social and fun.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">🏆 Weekly Challenges</span>
+                      <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">👥 Friend Leaderboards</span>
+                      <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">📱 Social Sharing</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Mood & Nutrition Tracker */}
+            <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-pink-500 to-rose-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:-rotate-1 group">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
+              <CardContent className="relative p-6 text-white">
+                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+                  <TrendingUp className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">Mood & Energy Correlation</h3>
+                <p className="text-white/90 text-sm leading-relaxed mb-4">
+                  Track how different foods affect your mood, energy levels, and overall wellbeing with intelligent pattern recognition.
+                </p>
+                <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                  🧠 Behavioral Analytics
+                </Badge>
+              </CardContent>
+            </Card>
+
+            {/* Gamified Nutrition Education */}
+            <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-amber-500 to-orange-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:rotate-1 group lg:col-span-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5"></div>
+              <div className="absolute top-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-3xl transform -translate-x-16 -translate-y-8"></div>
+              <CardContent className="relative p-8 text-white">
+                <div className="flex items-start gap-6">
+                  <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                    <Target className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <Badge className="mb-4 bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                      🎮 Gamification
+                    </Badge>
+                    <h3 className="text-2xl font-bold mb-4">Interactive Nutrition Games</h3>
+                    <p className="text-white/90 mb-6 text-lg leading-relaxed">
+                      Learn nutrition science through engaging mini-games, quizzes, and challenges. Earn badges, level up your knowledge, and unlock achievements.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">🎲 Mini Games</span>
+                      <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">🏅 Achievement System</span>
+                      <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">📚 Learn Science</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Sustainability Scoring */}
+            <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-green-500 to-emerald-600 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:-rotate-1 group">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full blur-2xl"></div>
+              <CardContent className="relative p-6 text-white">
+                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-300">
+                  <Leaf className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-xl font-bold">Environmental Impact</h3>
+                  <Crown className="w-5 h-5 text-amber-400" />
+                </div>
+                <p className="text-white/90 text-sm leading-relaxed mb-4">
+                  See the carbon footprint, water usage, and ethical sourcing score for every meal. Make choices that are good for you and the planet.
+                </p>
+                <Badge className="bg-amber-500/30 text-amber-200 border-amber-400/50 text-xs">
+                  PREMIUM FEATURE
+                </Badge>
               </CardContent>
             </Card>
           </div>
