@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { ChefHat, Send, Clock, Users, Star, Globe } from 'lucide-react';
+import { ChefHat, Send, Clock, Users, Star, Globe, Crown, AlertTriangle } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
 interface ChatMessage {
@@ -70,9 +70,14 @@ const DEFAULT_PREFERENCES: RecipePreferences = {
 };
 
 export function RecipeChatbot() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [usageStats, setUsageStats] = useState<{
+    recipesGenerated: number;
+    remainingFree: number;
+    isPremium: boolean;
+  } | null>(null);
   const [preferences, setPreferences] = useState<RecipePreferences>(DEFAULT_PREFERENCES);
   const [conversationId, setConversationId] = useState<string>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -84,6 +89,23 @@ export function RecipeChatbot() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Fetch initial usage stats
+  useEffect(() => {
+    const fetchUsageStats = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/usage-stats');
+        const data = await response.json();
+        if (data.usageStats) {
+          setUsageStats(data.usageStats);
+        }
+      } catch (error) {
+        console.error('Error fetching usage stats:', error);
+      }
+    };
+
+    fetchUsageStats();
+  }, [isAuthenticated]);
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, prefs }: { message: string; prefs: RecipePreferences }) => {
@@ -99,6 +121,11 @@ export function RecipeChatbot() {
         setConversationId(data.conversationId);
       }
 
+      // Update usage stats from response
+      if (data.usageStats) {
+        setUsageStats(data.usageStats);
+      }
+
       const assistantMessage: ChatMessage = {
         id: `msg_${Date.now()}_assistant`,
         role: 'assistant',
@@ -111,10 +138,17 @@ export function RecipeChatbot() {
       setMessages(prev => [...prev, assistantMessage]);
     },
     onError: (error: any) => {
+      let content = error.message || 'I apologize, but I\'m experiencing technical difficulties. Please try again.';
+      
+      // Handle freemium limit errors
+      if (error.message?.includes('402') || error.message?.includes('Free recipe limit exceeded')) {
+        content = "🎯 You've reached your monthly limit of 5 free recipes! Upgrade to Premium for unlimited AI recipe generation, advanced culinary features, and personalized meal planning.";
+      }
+
       const errorMessage: ChatMessage = {
         id: `msg_${Date.now()}_error`,
         role: 'assistant',
-        content: error.message || 'I apologize, but I\'m experiencing technical difficulties. Please try again.',
+        content,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -174,6 +208,28 @@ export function RecipeChatbot() {
           <p className="text-sm text-muted-foreground">Your professional culinary assistant</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          {/* Usage Stats Display */}
+          {usageStats && (
+            <div className="flex items-center gap-2">
+              {usageStats.isPremium ? (
+                <Badge variant="default" className="text-xs bg-gradient-to-r from-purple-600 to-blue-600">
+                  <Crown className="h-3 w-3 mr-1" />
+                  Premium - Unlimited
+                </Badge>
+              ) : (
+                <Badge 
+                  variant={usageStats.remainingFree > 0 ? "secondary" : "destructive"} 
+                  className="text-xs"
+                >
+                  {usageStats.remainingFree > 0 ? (
+                    `${usageStats.remainingFree}/5 free recipes left`
+                  ) : (
+                    <><AlertTriangle className="h-3 w-3 mr-1" />Limit reached</>
+                  )}
+                </Badge>
+              )}
+            </div>
+          )}
           <Badge variant="secondary" className="text-xs">
             <Globe className="h-3 w-3 mr-1" />
             Global Cuisine Expert
@@ -191,6 +247,43 @@ export function RecipeChatbot() {
               <p className="text-muted-foreground mb-4">
                 I'm your professional culinary assistant with authentic knowledge of global cuisines.
               </p>
+              {/* Freemium welcome message */}
+              {!isAuthenticated && (
+                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    🎯 Try 2 free recipes as a guest, or sign in for 5 free recipes per month!
+                  </p>
+                </div>
+              )}
+              {isAuthenticated && usageStats && !usageStats.isPremium && (
+                <div className="mb-4 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    🎯 You have {usageStats.remainingFree} out of 5 free recipes this month.
+                    {usageStats.remainingFree === 0 && (
+                      <div className="mt-2">
+                        <Button 
+                          size="sm" 
+                          onClick={async () => {
+                            try {
+                              const response = await apiRequest('POST', '/api/upgrade-premium');
+                              const data = await response.json();
+                              if (data.checkoutUrl) {
+                                window.open(data.checkoutUrl, '_blank');
+                              }
+                            } catch (error) {
+                              console.error('Upgrade error:', error);
+                            }
+                          }}
+                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                        >
+                          <Crown className="h-4 w-4 mr-2" />
+                          Upgrade to Premium - $9.99/month
+                        </Button>
+                      </div>
+                    )}
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <div className="p-3 bg-muted/30 rounded-lg">
                   <strong>Ask me about:</strong><br />

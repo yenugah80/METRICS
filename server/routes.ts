@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { chatbotRoutes } from './routes-chatbot';
 import { stripeRoutes } from './routes/stripe';
@@ -19,6 +20,9 @@ import { generateRecipe, type RecipeGenerationInput } from "./recipe-generation-
 import { calculateNutritionScore, type NutritionInput } from "./nutrition-scoring";
 import { checkDietCompatibility, type DietCompatibilityInput } from "./diet-compatibility";
 import { freemiumMiddleware, type FreemiumRequest } from "./middleware/freemium";
+import { db } from "./db";
+import { users } from "../shared/schema";
+import { eq } from "drizzle-orm";
 import { recommendationRoutes } from "./routes/recommendations";
 import { registerRecipeRoutes } from "./routes-recipes";
 
@@ -51,8 +55,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stripe subscription routes
   app.use('/api/stripe', stripeRoutes);
 
-  // Recipe chatbot routes
+  // Recipe chatbot routes with freemium middleware
+  app.use('/api/chatbot', freemiumMiddleware);
   app.use(chatbotRoutes);
+
+  // Premium upgrade endpoint
+  app.post('/api/upgrade-premium', verifyJWT, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Create Stripe checkout session for premium subscription
+      const session = await stripe.checkout.sessions.create({
+        mode: 'subscription',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'MyFoodMatrics Premium',
+                description: 'Unlimited AI recipe generation, advanced nutrition insights, and premium features',
+              },
+              unit_amount: 999, // $9.99/month
+              recurring: {
+                interval: 'month',
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${req.protocol}://${req.get('host')}/recipes?upgraded=true`,
+        cancel_url: `${req.protocol}://${req.get('host')}/recipes?upgrade=cancelled`,
+        customer_email: user.email,
+        metadata: {
+          userId: userId,
+        },
+      });
+
+      res.json({ checkoutUrl: session.url });
+    } catch (error) {
+      console.error('Premium upgrade error:', error);
+      res.status(500).json({ error: 'Failed to create checkout session' });
+    }
+  });
+
+  // Stripe webhook to handle successful subscriptions
+  app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET || 'placeholder');
+    } catch (err: any) {
+      console.log(`Webhook signature verification failed.`, err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object;
+        if (session.metadata?.userId) {
+          try {
+            // Update user to premium
+            await db
+              .update(users)
+              .set({ 
+                isPremium: true,
+                stripeCustomerId: session.customer as string,
+                stripeSubscriptionId: session.subscription as string,
+                updatedAt: new Date()
+              })
+              .where(eq(users.id, session.metadata.userId));
+            
+            console.log('User upgraded to premium:', session.metadata.userId);
+          } catch (error) {
+            console.error('Error upgrading user to premium:', error);
+          }
+        }
+        break;
+      case 'customer.subscription.deleted':
+        const subscription = event.data.object;
+        try {
+          // Downgrade user from premium
+          await db
+            .update(users)
+            .set({ 
+              isPremium: false,
+              updatedAt: new Date()
+            })
+            .where(eq(users.stripeSubscriptionId, subscription.id));
+          
+          console.log('User downgraded from premium');
+        } catch (error) {
+          console.error('Error downgrading user from premium:', error);
+        }
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({received: true});
+  });
+
+  // Get current user usage stats endpoint
+  app.get('/api/usage-stats', freemiumMiddleware, async (req: any, res) => {
+    res.json({
+      usageStats: req.usageStats || {
+        recipesGenerated: 0,
+        remainingFree: 5,
+        isPremium: false
+      }
+    });
+  });
 
   // Comprehensive recipe system routes
   registerRecipeRoutes(app);

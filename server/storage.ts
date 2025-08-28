@@ -462,10 +462,30 @@ export class DatabaseStorage implements IStorage {
   // Usage tracking for freemium model
   async getUserUsageStats(userId: string): Promise<{ recipesGenerated: number } | undefined> {
     try {
-      // For now, we'll track this in user profiles
-      const profile = await this.getUserProfile(userId);
+      // Get user to check monthly reset
+      const user = await this.getUserById(userId);
+      if (!user) return { recipesGenerated: 0 };
+      
+      // Check if we need to reset monthly count
+      const now = new Date();
+      const lastReset = user.lastRecipeResetDate ? new Date(user.lastRecipeResetDate) : new Date();
+      const shouldReset = now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear();
+      
+      if (shouldReset) {
+        // Reset monthly count
+        await db
+          .update(users)
+          .set({
+            recipesGeneratedThisMonth: 0,
+            lastRecipeResetDate: now
+          })
+          .where(eq(users.id, userId));
+        
+        return { recipesGenerated: 0 };
+      }
+      
       return {
-        recipesGenerated: profile?.recipesGenerated || 0
+        recipesGenerated: user.recipesGeneratedThisMonth || 0
       };
     } catch (error) {
       console.error('Error getting usage stats:', error);
@@ -475,23 +495,17 @@ export class DatabaseStorage implements IStorage {
 
   async incrementUserRecipeUsage(userId: string): Promise<void> {
     try {
-      // First ensure user profile exists
-      let profile = await this.getUserProfile(userId);
-      if (!profile) {
-        profile = await this.upsertUserProfile({
-          userId,
-          recipesGenerated: 0
-        });
-      }
+      // Get current user and increment monthly count
+      const user = await this.getUserById(userId);
+      if (!user) return;
 
-      // Increment recipe count
       await db
-        .update(userProfiles)
+        .update(users)
         .set({
-          recipesGenerated: (profile.recipesGenerated || 0) + 1,
+          recipesGeneratedThisMonth: (user.recipesGeneratedThisMonth || 0) + 1,
           updatedAt: new Date()
         })
-        .where(eq(userProfiles.userId, userId));
+        .where(eq(users.id, userId));
     } catch (error) {
       console.error('Error incrementing recipe usage:', error);
     }

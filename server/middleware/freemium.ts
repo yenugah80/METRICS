@@ -39,13 +39,13 @@ export async function freemiumMiddleware(req: FreemiumRequest, res: Response, ne
     
     if (userId) {
       // Authenticated user - get their usage stats
-      const userProfile = await storage.getUserProfile(userId);
+      const user = await storage.getUserById(userId);
       const usageStats = await storage.getUserUsageStats(userId);
       
       req.usageStats = {
         recipesGenerated: usageStats?.recipesGenerated || 0,
-        remainingFree: Math.max(0, 1 - (usageStats?.recipesGenerated || 0)),
-        isPremium: false // Will be updated from user data
+        remainingFree: Math.max(0, 5 - (usageStats?.recipesGenerated || 0)),
+        isPremium: user?.isPremium || false
       };
       req.isGuest = false;
     } else {
@@ -55,7 +55,7 @@ export async function freemiumMiddleware(req: FreemiumRequest, res: Response, ne
       
       req.usageStats = {
         recipesGenerated: guestStats.recipesGenerated,
-        remainingFree: Math.max(0, 1 - guestStats.recipesGenerated),
+        remainingFree: Math.max(0, 2 - guestStats.recipesGenerated), // Guests get 2 recipes to try
         isPremium: false
       };
       req.isGuest = true;
