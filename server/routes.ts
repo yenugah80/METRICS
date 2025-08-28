@@ -6,8 +6,7 @@ import { stripeRoutes } from './routes/stripe';
 import Stripe from "stripe";
 import cookieParser from "cookie-parser";
 import { storage } from "./storage";
-import { setupAuth, verifyJWT as sessionAuth } from "./auth";
-import { verifyJWT } from "./authService";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import * as aiService from "./openai";
@@ -60,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(chatbotRoutes);
 
   // Premium upgrade endpoint
-  app.post('/api/upgrade-premium', verifyJWT, async (req, res) => {
+  app.post('/api/upgrade-premium', isAuthenticated, async (req, res) => {
     try {
       const userId = req.user?.claims?.sub || req.user?.id;
       if (!userId) {
@@ -184,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/recommendations', recommendationRoutes);
 
   // Object storage routes for meal images
-  app.get("/objects/:objectPath(*)", verifyJWT, async (req, res) => {
+  app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
     const userId = req.user?.id;
     const objectStorageService = new ObjectStorageService();
     try {
@@ -207,14 +206,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/objects/upload", verifyJWT, async (req, res) => {
+  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     const objectStorageService = new ObjectStorageService();
     const uploadURL = await objectStorageService.getObjectEntityUploadURL();
     res.json({ uploadURL });
   });
 
   // User profile routes
-  app.get('/api/profile', verifyJWT, async (req: any, res) => {
+  app.get('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const profile = await storage.getUserProfile(userId);
@@ -225,7 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/profile', verifyJWT, async (req: any, res) => {
+  app.post('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const profileData = { ...req.body, userId };
@@ -238,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PUT route for profile updates (used by ProfileManagement component)
-  app.put('/api/profile', verifyJWT, async (req: any, res) => {
+  app.put('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const profileData = { ...req.body, userId };
@@ -251,7 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Meal logging routes
-  app.post('/api/meals/analyze-image-old', verifyJWT, async (req: any, res) => {
+  app.post('/api/meals/analyze-image-old', isAuthenticated, async (req: any, res) => {
     try {
       const { imageBase64 } = req.body;
       if (!imageBase64) {
@@ -302,7 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/meals/analyze-voice', verifyJWT, async (req: any, res) => {
+  app.post('/api/meals/analyze-voice', isAuthenticated, async (req: any, res) => {
     try {
       const { audioText } = req.body;
       if (!audioText) {
@@ -362,7 +361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Text analysis endpoint for meal descriptions
-  app.post('/api/meals/analyze-text', verifyJWT, async (req: any, res) => {
+  app.post('/api/meals/analyze-text', isAuthenticated, async (req: any, res) => {
     try {
       const { text } = req.body;
       if (!text) {
@@ -414,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Enhanced food analysis endpoint with deterministic nutrition scoring and diet compatibility
-  app.post("/api/analyze-food", verifyJWT, async (req: any, res) => {
+  app.post("/api/analyze-food", isAuthenticated, async (req: any, res) => {
     try {
       const { type, data, ingredients } = req.body;
       const userId = req.user.id;
@@ -457,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Nutrition scoring endpoint for testing and demonstration
-  app.post("/api/nutrition/score", verifyJWT, async (req: any, res) => {
+  app.post("/api/nutrition/score", isAuthenticated, async (req: any, res) => {
     try {
       const nutritionData = req.body;
       
@@ -487,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Diet compatibility check endpoint
-  app.post("/api/nutrition/diet-check", verifyJWT, async (req: any, res) => {
+  app.post("/api/nutrition/diet-check", isAuthenticated, async (req: any, res) => {
     try {
       const { foods, dietPreferences } = req.body;
       
@@ -519,7 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User profile management endpoints
-  app.get('/api/profile', verifyJWT, async (req: any, res) => {
+  app.get('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const profile = await storage.getUserProfile(userId);
@@ -544,7 +543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/profile', verifyJWT, async (req: any, res) => {
+  app.post('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { dietPreferences, allergens, dailyCalorieTarget, dailyProteinTarget, dailyCarbTarget, dailyFatTarget } = req.body;
@@ -572,7 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/meals', verifyJWT, async (req: any, res) => {
+  app.post('/api/meals', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { name, mealType, imageUrl, rawText, source, foods, confidence } = req.body;
@@ -667,7 +666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Handle image upload ACL after meal creation
-  app.put("/api/meals/image-acl", verifyJWT, async (req: any, res) => {
+  app.put("/api/meals/image-acl", isAuthenticated, async (req: any, res) => {
     if (!req.body.imageUrl) {
       return res.status(400).json({ error: "imageUrl is required" });
     }
@@ -692,7 +691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get meals routes
-  app.get('/api/meals', verifyJWT, async (req: any, res) => {
+  app.get('/api/meals', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const meals = await storage.getMealsByUserId(userId, 20);
@@ -703,7 +702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/meals/today', verifyJWT, async (req: any, res) => {
+  app.get('/api/meals/today', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const today = new Date();
@@ -733,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Daily stats route
-  app.get('/api/stats/today', verifyJWT, async (req: any, res) => {
+  app.get('/api/stats/today', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const today = new Date();
@@ -746,7 +745,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Recipe routes
-  app.get('/api/recipes', verifyJWT, async (req: any, res) => {
+  app.get('/api/recipes', isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.id);
       const recipes = await storage.getRecipes(user?.isPremium || false, 10);
@@ -761,7 +760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(chatbotRoutes);
 
   // Legacy recipe generation route (replaced by chatbot)
-  app.post('/api/recipes/generate', verifyJWT, async (req: any, res) => {
+  app.post('/api/recipes/generate', isAuthenticated, async (req: any, res) => {
     try {
       const { cuisine, dietType, preferences } = req.body;
       const user = await storage.getUser(req.user.id);
@@ -809,7 +808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get today's stats
-  app.get('/api/stats/today-detailed', verifyJWT, async (req: any, res) => {
+  app.get('/api/stats/today-detailed', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const today = new Date();
@@ -849,7 +848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get weekly stats
-  app.get('/api/stats/weekly', verifyJWT, async (req: any, res) => {
+  app.get('/api/stats/weekly', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const weekData = [];
@@ -889,7 +888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get achievement badges
-  app.get('/api/achievements/badges', verifyJWT, async (req: any, res) => {
+  app.get('/api/achievements/badges', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const allMeals = await storage.getMealsByUserId(userId, 100);
@@ -929,7 +928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add food item to meal
-  app.post('/api/meals/add-item', verifyJWT, async (req: any, res) => {
+  app.post('/api/meals/add-item', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { name, quantity, unit, nutrition, source } = req.body;
@@ -975,7 +974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Meal Analysis route - NOW WITH PROPER USER DIET PREFERENCES
-  app.post("/api/meals/analyze-image", verifyJWT, async (req: any, res) => {
+  app.post("/api/meals/analyze-image", isAuthenticated, async (req: any, res) => {
     try {
       const { imageBase64 } = req.body;
       if (!imageBase64) {
@@ -1013,7 +1012,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Save analyzed meal to database  
-  app.post("/api/meals/save", verifyJWT, async (req: any, res) => {
+  app.post("/api/meals/save", isAuthenticated, async (req: any, res) => {
     try {
       // Use authenticated user ID instead of demo user
       const userId = req.user.id;
@@ -1098,7 +1097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get recent meals for the user
-  app.get("/api/meals/recent", verifyJWT, async (req: any, res) => {
+  app.get("/api/meals/recent", isAuthenticated, async (req: any, res) => {
     try {
       // Use authenticated user's ID
       const userId = req.user.id;
@@ -1304,7 +1303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stripe subscription route
-  app.post('/api/create-subscription', verifyJWT, async (req: any, res) => {
+  app.post('/api/create-subscription', isAuthenticated, async (req: any, res) => {
     const user = req.user;
 
     if (user.stripeSubscriptionId) {
@@ -1350,7 +1349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ETL System Administration Routes (for monitoring)
-  app.get('/api/admin/etl/status', verifyJWT, async (req: any, res) => {
+  app.get('/api/admin/etl/status', isAuthenticated, async (req: any, res) => {
     try {
       // Only allow premium users to access ETL status
       if (!req.user.isPremium) {
@@ -1365,7 +1364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/etl/discover', verifyJWT, async (req: any, res) => {
+  app.post('/api/admin/etl/discover', isAuthenticated, async (req: any, res) => {
     try {
       // Only allow premium users to manually trigger discovery
       if (!req.user.isPremium) {
