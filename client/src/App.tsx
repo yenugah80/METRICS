@@ -7,7 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Navigation from "@/components/navigation";
 import Landing from "@/pages/landing";
 import AuthPage from "@/pages/auth-page";
-import NutritionSearch from "@/pages/nutrition-search";
+import SearchPage from "@/pages/search";
 import Dashboard from "@/pages/dashboard";
 import MealCamera from "@/pages/meal-camera";
 import RecipeGenerator from "@/pages/recipe-generator";
@@ -28,7 +28,7 @@ function App() {
               <Route path="/" component={Landing} />
               <Route path="/auth" component={AuthPage} />
               <Route path="/dashboard" component={Dashboard} />
-              <Route path="/search" component={NutritionSearch} />
+              <Route path="/search" component={SearchPage} />
               <Route path="/camera" component={MealCamera} />
               <Route path="/recipes" component={RecipeGenerator} />
               <Route path="/progress" component={DailyProgress} />

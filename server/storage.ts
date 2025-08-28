@@ -63,6 +63,10 @@ export interface IStorage {
   // Recipe operations
   getRecipes(isPremium: boolean, limit?: number): Promise<Recipe[]>;
   getRecipeById(id: string): Promise<Recipe | undefined>;
+  
+  // Additional operations for search and meal management
+  getTodaysMeal(userId: string): Promise<Meal | undefined>;
+  createNutritionData(nutrition: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -261,6 +265,46 @@ export class DatabaseStorage implements IStorage {
   async getRecipeById(id: string): Promise<Recipe | undefined> {
     const [recipe] = await db.select().from(recipes).where(eq(recipes.id, id));
     return recipe;
+  }
+
+  async getTodaysMeal(userId: string): Promise<Meal | undefined> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const [meal] = await db
+      .select()
+      .from(meals)
+      .where(
+        and(
+          eq(meals.userId, userId),
+          gte(meals.loggedAt, today),
+          lt(meals.loggedAt, tomorrow)
+        )
+      )
+      .orderBy(desc(meals.loggedAt))
+      .limit(1);
+    
+    return meal;
+  }
+
+  async createNutritionData(nutrition: any): Promise<any> {
+    const [result] = await db
+      .insert(mealNutrition)
+      .values({
+        mealId: nutrition.mealItemId, // Using mealId as expected by the schema
+        calories: nutrition.calories || 0,
+        protein: nutrition.protein?.toString() || "0",
+        carbs: nutrition.carbs?.toString() || "0",
+        fat: nutrition.fat?.toString() || "0",
+        fiber: nutrition.fiber?.toString() || "0",
+        sugar: nutrition.sugar?.toString() || "0",
+        sodium: nutrition.sodium?.toString() || "0"
+      })
+      .returning();
+    
+    return result;
   }
 }
 

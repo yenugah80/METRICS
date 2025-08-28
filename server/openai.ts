@@ -156,6 +156,49 @@ export async function generateRecipes(cuisine: string, dietType: string, prefere
   }
 }
 
+export async function estimateNutritionFromName(foodName: string): Promise<any> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: `You are a nutrition expert. Estimate nutrition information for the given food name. Return JSON in this format:
+          {
+            "name": "food name",
+            "quantity": 100,
+            "unit": "g",
+            "nutrition": {
+              "calories": number,
+              "protein": number,
+              "carbs": number,
+              "fat": number,
+              "fiber": number,
+              "sodium": number,
+              "sugar": number
+            },
+            "confidence": 0.8,
+            "source": "AI Estimate"
+          }
+          Use standard serving sizes and USDA nutrition data knowledge.`
+        },
+        {
+          role: "user",
+          content: `Estimate nutrition for: ${foodName}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 500,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    return result;
+  } catch (error) {
+    console.error('Error estimating nutrition:', error);
+    return null;
+  }
+}
+
 export async function parseVoiceFood(audioText: string): Promise<FoodAnalysisResult> {
   try {
     const response = await openai.chat.completions.create({

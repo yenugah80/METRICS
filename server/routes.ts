@@ -324,6 +324,203 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Food search route
+  app.post('/api/foods/search', async (req, res) => {
+    try {
+      const { query } = req.body;
+      
+      if (!query || query.trim().length === 0) {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+
+      // Import nutrition API service
+      const { NutritionService } = await import("./nutritionApi");
+      const nutritionService = new NutritionService();
+      
+      let results = await nutritionService.searchByText(query);
+      
+      // If no results from APIs, use OpenAI to generate nutrition estimates
+      if (results.length === 0) {
+        const { estimateNutritionFromName } = await import("./openai");
+        const aiEstimate = await estimateNutritionFromName(query);
+        if (aiEstimate) {
+          results = [aiEstimate];
+        }
+      }
+      
+      res.json(results);
+    } catch (error) {
+      console.error("Error searching foods:", error);
+      res.status(500).json({ message: "Failed to search foods" });
+    }
+  });
+
+  // Get today's stats
+  app.get('/api/stats/today', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      // Get today's meals and calculate totals
+      const todaysMeals = await storage.getMealsForDate(userId, today);
+      
+      let totalCalories = 0;
+      let totalProtein = 0;
+      let totalCarbs = 0;
+      let totalFat = 0;
+      
+      for (const meal of todaysMeals) {
+        const nutrition = await storage.getMealNutrition(meal.id);
+        if (nutrition) {
+          totalCalories += nutrition.calories || 0;
+          totalProtein += parseFloat(nutrition.protein || "0");
+          totalCarbs += parseFloat(nutrition.carbs || "0");
+          totalFat += parseFloat(nutrition.fat || "0");
+        }
+      }
+      
+      res.json({
+        totalCalories,
+        totalProtein: totalProtein.toString(),
+        totalCarbs: totalCarbs.toString(),
+        totalFat: totalFat.toString(),
+        mealsLogged: todaysMeals.length
+      });
+    } catch (error) {
+      console.error("Error fetching today's stats:", error);
+      res.status(500).json({ message: "Failed to fetch today's stats" });
+    }
+  });
+
+  // Get weekly stats
+  app.get('/api/stats/weekly', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const weekData = [];
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        
+        const dayMeals = await storage.getMealsForDate(userId, date);
+        let dayCalories = 0;
+        
+        for (const meal of dayMeals) {
+          const nutrition = await storage.getMealNutrition(meal.id);
+          if (nutrition) {
+            dayCalories += nutrition.calories || 0;
+          }
+        }
+        
+        weekData.push({
+          date: date.toISOString().split('T')[0],
+          totalCalories: dayCalories,
+          targetCalories: 2000,
+          mealsLogged: dayMeals.length,
+          waterIntake: 8, // Default value
+          targetWater: 8,
+          wellnessScore: Math.min(100, Math.round((dayCalories / 2000) * 100)),
+          achievements: dayCalories >= 2000 ? ["Calorie Goal Met"] : []
+        });
+      }
+      
+      res.json(weekData);
+    } catch (error) {
+      console.error("Error fetching weekly stats:", error);
+      res.status(500).json({ message: "Failed to fetch weekly stats" });
+    }
+  });
+
+  // Get achievement badges
+  app.get('/api/achievements/badges', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const allMeals = await storage.getMealsByUserId(userId, 100);
+      
+      const badges = [
+        {
+          id: "first_meal",
+          name: "First Steps",
+          description: "Log your first meal",
+          icon: "🍽️",
+          unlocked: allMeals.length > 0,
+          unlockedDate: allMeals.length > 0 ? allMeals[0]?.loggedAt?.toISOString() : undefined
+        },
+        {
+          id: "week_streak",
+          name: "Week Warrior",
+          description: "Log meals for 7 consecutive days",
+          icon: "🔥",
+          unlocked: allMeals.length >= 7,
+          unlockedDate: allMeals.length >= 7 ? allMeals[6]?.loggedAt?.toISOString() : undefined
+        },
+        {
+          id: "nutrition_expert",
+          name: "Nutrition Expert",
+          description: "Log 50 meals",
+          icon: "🧠",
+          unlocked: allMeals.length >= 50,
+          unlockedDate: allMeals.length >= 50 ? allMeals[49]?.loggedAt?.toISOString() : undefined
+        }
+      ];
+      
+      res.json(badges);
+    } catch (error) {
+      console.error("Error fetching badges:", error);
+      res.status(500).json({ message: "Failed to fetch badges" });
+    }
+  });
+
+  // Add food item to meal
+  app.post('/api/meals/add-item', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { name, quantity, unit, nutrition, source } = req.body;
+      
+      // Create or get today's meal
+      const today = new Date().toISOString().split('T')[0];
+      let meal = await storage.getTodaysMeal(userId);
+      
+      if (!meal) {
+        meal = await storage.createMeal({
+          userId,
+          name: "Daily Intake",
+          mealType: "snack",
+          source: source || "search",
+          confidence: "0.9"
+        });
+      }
+      
+      // Add meal item
+      const mealItem = await storage.createMealItem({
+        mealId: meal.id,
+        name,
+        quantity: quantity.toString(),
+        unit,
+        confidence: "0.9"
+      });
+      
+      // Add nutrition data
+      await storage.createNutritionData({
+        mealItemId: mealItem.id,
+        calories: nutrition.calories || 0,
+        protein: nutrition.protein || 0,
+        carbs: nutrition.carbs || 0,
+        fat: nutrition.fat || 0,
+        fiber: nutrition.fiber || 0
+      });
+      
+      res.json({ success: true, mealItem });
+    } catch (error) {
+      console.error("Error adding meal item:", error);
+      res.status(500).json({ message: "Failed to add meal item" });
+    }
+  });
+
   // AI Meal Analysis route - WORKING VERSION WITHOUT AUTH
   app.post("/api/meals/analyze-image", async (req, res) => {
     try {

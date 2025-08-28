@@ -54,9 +54,9 @@ export default function Dashboard() {
   // Transform API data to match component interface
   const dailyStats: DailyStats = {
     calories: dailyStatsData?.totalCalories || 0,
-    protein: parseFloat(dailyStatsData?.totalProtein || "0"),
-    carbs: parseFloat(dailyStatsData?.totalCarbs || "0"),
-    fat: parseFloat(dailyStatsData?.totalFat || "0"),
+    protein: parseFloat(dailyStatsData?.totalProtein?.toString() || "0"),
+    carbs: parseFloat(dailyStatsData?.totalCarbs?.toString() || "0"),
+    fat: parseFloat(dailyStatsData?.totalFat?.toString() || "0"),
     goal_calories: 2000, // Default goals - could be made configurable
     goal_protein: 120,
     goal_carbs: 250,
@@ -64,7 +64,7 @@ export default function Dashboard() {
     meals_logged: dailyStatsData?.mealsLogged || 0,
   };
 
-  const recentMeals: RecentMeal[] = (recentMealsData || []).map((meal: any) => ({
+  const recentMeals: RecentMeal[] = Array.isArray(recentMealsData) ? recentMealsData.map((meal: any) => ({
     id: meal.id,
     name: meal.name,
     time: new Date(meal.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -74,7 +74,7 @@ export default function Dashboard() {
       carbs: parseFloat(meal.nutrition?.carbs || "0"),
       fat: parseFloat(meal.nutrition?.fat || "0"),
     },
-  }));
+  })) : [];
 
   if (statsLoading || mealsLoading) {
     return (
@@ -290,7 +290,7 @@ export default function Dashboard() {
                   onClick={() => {
                     window.location.href = "/search";
                     setTimeout(() => {
-                      const barcodeTab = document.querySelector('[data-tab="barcode"]');
+                      const barcodeTab = document.querySelector('[data-tab="barcode"]') as HTMLElement;
                       if (barcodeTab) barcodeTab.click();
                     }, 100);
                   }}

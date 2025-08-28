@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Apple, Home, Search, Camera, BarChart3, ChefHat, Target, User, LogIn, LogOut, Smartphone, Download, Menu, X } from "lucide-react";
-import logoImage from "@assets/generated_images/Hand-drawn_nutrition_app_logo_e40d4572.png";
+import logoImage from "@assets/generated_images/Clean_logo_without_text_a1c8a720.png";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,7 @@ export default function Navigation() {
                 className="w-10 h-10 object-contain"
               />
             </div>
-            <span className="text-2xl font-semibold text-gray-900" style={{fontFamily: 'Playfair Display, Times New Roman, serif', letterSpacing: '0.5px'}}>MyFoodMatrics</span>
+            <span className="text-2xl font-bold text-gray-900" style={{fontFamily: 'Playfair Display, Times New Roman, serif', letterSpacing: '0.5px'}}>MyFoodMatrics</span>
           </Link>
 
           {/* Navigation Links */}

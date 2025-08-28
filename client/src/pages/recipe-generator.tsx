@@ -46,118 +46,120 @@ export default function RecipeGenerator() {
 
     setIsGenerating(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Mock recipe generation
-    const mockRecipes: Recipe[] = [
-      {
-        id: "1",
-        name: "Mediterranean Quinoa Bowl",
-        description: "A nutritious bowl packed with quinoa, fresh vegetables, and a tangy lemon dressing",
-        prepTime: 25,
-        servings: 2,
-        difficulty: "Easy",
-        ingredients: [
-          "1 cup quinoa",
-          "2 cups vegetable broth",
-          "1 cucumber, diced",
-          "1 cup cherry tomatoes, halved",
-          "1/2 red onion, sliced",
-          "1/4 cup kalamata olives",
-          "1/4 cup feta cheese",
-          "2 tbsp olive oil",
-          "1 lemon, juiced",
-          "1 tsp oregano"
-        ],
-        instructions: [
-          "Rinse quinoa and cook in vegetable broth for 15 minutes",
-          "Let quinoa cool to room temperature",
-          "Dice cucumber and halve cherry tomatoes",
-          "Slice red onion thinly",
-          "Whisk together olive oil, lemon juice, and oregano",
-          "Combine all ingredients in a large bowl",
-          "Toss with dressing and serve"
-        ],
-        nutrition: {
-          calories: 420,
-          protein: 18,
-          carbs: 52,
-          fat: 16
-        },
-        tags: ["Vegetarian", "Mediterranean", "High Protein", "Gluten-Free"]
-      },
-      {
-        id: "2", 
-        name: "Spicy Black Bean Tacos",
-        description: "Plant-based tacos with seasoned black beans, fresh salsa, and avocado",
-        prepTime: 20,
-        servings: 4,
-        difficulty: "Easy",
-        ingredients: [
-          "2 cans black beans, drained",
-          "8 corn tortillas",
-          "1 avocado, sliced",
-          "1/2 red onion, diced",
-          "2 tomatoes, diced",
-          "1/4 cup cilantro, chopped",
-          "1 lime, juiced",
-          "1 tsp cumin",
-          "1 tsp chili powder",
-          "1/2 tsp paprika"
-        ],
-        instructions: [
-          "Heat black beans with cumin, chili powder, and paprika",
-          "Warm tortillas in a dry pan",
-          "Dice tomatoes and red onion for salsa",
-          "Mix tomatoes, onion, cilantro, and lime juice",
-          "Slice avocado",
-          "Assemble tacos with beans, salsa, and avocado",
-          "Serve immediately"
-        ],
-        nutrition: {
-          calories: 280,
-          protein: 12,
-          carbs: 45,
-          fat: 8
-        },
-        tags: ["Vegan", "Mexican", "High Fiber", "Quick"]
-      }
-    ];
-
     try {
       // Try real API call to generate recipes
       const response = await fetch('/api/recipes/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cuisine, dietType, preferences: [] })
+        body: JSON.stringify({ 
+          cuisine, 
+          dietType, 
+          preferences: [] 
+        })
       });
-      
+
       if (response.ok) {
-        const newRecipes = await response.json();
-        setRecipes(prev => [...newRecipes, ...prev]);
-        setDailyCount(prev => prev + newRecipes.length);
+        const generatedRecipes = await response.json();
+        setRecipes(generatedRecipes);
+        setDailyCount(prev => prev + 1);
         
         toast({
           title: "Recipes generated!",
-          description: `Generated ${newRecipes.length} personalized recipes based on your preferences.`,
+          description: `Generated ${generatedRecipes.length} personalized recipes for you`,
         });
-        setIsGenerating(false);
-        return;
+      } else {
+        throw new Error('Failed to generate recipes');
       }
     } catch (error) {
-      console.warn('Recipe API failed, using mock data:', error);
+      console.error('Recipe generation error:', error);
+      
+      // Fallback to example recipes if API fails
+      const fallbackRecipes: Recipe[] = [
+        {
+          id: "1",
+          name: "Mediterranean Quinoa Bowl",
+          description: "A nutritious bowl packed with quinoa, fresh vegetables, and a tangy lemon dressing",
+          prepTime: 25,
+          servings: 2,
+          difficulty: "Easy",
+          ingredients: [
+            "1 cup quinoa",
+            "2 cups vegetable broth",
+            "1 cucumber, diced",
+            "1 cup cherry tomatoes, halved",
+            "1/2 red onion, sliced",
+            "1/4 cup kalamata olives",
+            "1/4 cup feta cheese",
+            "2 tbsp olive oil",
+            "1 lemon, juiced",
+            "1 tsp oregano"
+          ],
+          instructions: [
+            "Rinse quinoa and cook in vegetable broth for 15 minutes",
+            "Let quinoa cool to room temperature",
+            "Dice cucumber and halve cherry tomatoes",
+            "Slice red onion thinly",
+            "Whisk together olive oil, lemon juice, and oregano",
+            "Combine all ingredients in a large bowl",
+            "Toss with dressing and serve"
+          ],
+          nutrition: {
+            calories: 420,
+            protein: 18,
+            carbs: 52,
+            fat: 16
+          },
+          tags: ["Vegetarian", "Mediterranean", "High Protein", "Gluten-Free"]
+        },
+        {
+          id: "2", 
+          name: "Spicy Black Bean Tacos",
+          description: "Plant-based tacos with seasoned black beans, fresh salsa, and avocado",
+          prepTime: 20,
+          servings: 4,
+          difficulty: "Easy",
+          ingredients: [
+            "2 cans black beans, drained",
+            "8 corn tortillas",
+            "1 avocado, sliced",
+            "1/2 red onion, diced",
+            "2 tomatoes, diced",
+            "1/4 cup cilantro, chopped",
+            "1 lime, juiced",
+            "1 tsp cumin",
+            "1 tsp chili powder",
+            "1/2 tsp paprika"
+          ],
+          instructions: [
+            "Heat black beans with cumin, chili powder, and paprika",
+            "Warm tortillas in a dry pan",
+            "Dice tomatoes and red onion for salsa",
+            "Mix tomatoes, onion, cilantro, and lime juice",
+            "Slice avocado",
+            "Assemble tacos with beans, salsa, and avocado",
+            "Serve immediately"
+          ],
+          nutrition: {
+            calories: 280,
+            protein: 12,
+            carbs: 45,
+            fat: 8
+          },
+          tags: ["Vegan", "Mexican", "High Fiber", "Quick"]
+        }
+      ];
+      
+      setRecipes(fallbackRecipes);
+      setDailyCount(prev => prev + 1);
+      
+      toast({
+        title: "Generated backup recipes",
+        description: "Used fallback recipes due to API error. Try again for fresh AI-generated content.",
+        variant: "default",
+      });
+    } finally {
+      setIsGenerating(false);
     }
-    
-    // Fallback to mock recipe generation
-    setRecipes(prev => [...mockRecipes, ...prev]);
-    setDailyCount(prev => prev + mockRecipes.length);
-    setIsGenerating(false);
-
-    toast({
-      title: "Recipes generated!",
-      description: `Generated ${mockRecipes.length} sample recipes. API integration coming soon!`,
-    });
   };
 
   return (
