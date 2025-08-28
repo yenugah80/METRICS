@@ -313,40 +313,40 @@ export default function MealCamera() {
                       {analysis.detailed_nutrition && (
                         <div className="bg-background/40 rounded-lg p-4 mb-4 border">
                           <h5 className="font-semibold mb-4 text-sm uppercase tracking-wide text-muted-foreground">Detailed Breakdown</h5>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                          <div className="space-y-3">
                             {analysis.detailed_nutrition.saturated_fat && (
-                              <div className="flex justify-between">
-                                <span>Saturated Fat</span>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-muted-foreground">Saturated Fat</span>
                                 <span className="font-medium">{analysis.detailed_nutrition.saturated_fat}g</span>
                               </div>
                             )}
                             {analysis.detailed_nutrition.fiber && (
-                              <div className="flex justify-between">
-                                <span>Fiber</span>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-muted-foreground">Fiber</span>
                                 <span className="font-medium">{analysis.detailed_nutrition.fiber}g</span>
                               </div>
                             )}
                             {analysis.detailed_nutrition.sugar && (
-                              <div className="flex justify-between">
-                                <span>Sugar</span>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-muted-foreground">Sugar</span>
                                 <span className="font-medium">{analysis.detailed_nutrition.sugar}g</span>
                               </div>
                             )}
                             {analysis.detailed_nutrition.sodium && (
-                              <div className="flex justify-between">
-                                <span>Sodium</span>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-muted-foreground">Sodium</span>
                                 <span className="font-medium">{analysis.detailed_nutrition.sodium}mg</span>
                               </div>
                             )}
                             {analysis.detailed_nutrition.cholesterol && (
-                              <div className="flex justify-between">
-                                <span>Cholesterol</span>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-muted-foreground">Cholesterol</span>
                                 <span className="font-medium">{analysis.detailed_nutrition.cholesterol}mg</span>
                               </div>
                             )}
                             {analysis.detailed_nutrition.vitamin_c && (
-                              <div className="flex justify-between">
-                                <span>Vitamin C</span>
+                              <div className="flex justify-between items-center py-1">
+                                <span className="text-muted-foreground">Vitamin C</span>
                                 <span className="font-medium">{analysis.detailed_nutrition.vitamin_c}mg</span>
                               </div>
                             )}
