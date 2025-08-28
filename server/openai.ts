@@ -108,6 +108,54 @@ export async function analyzeFoodImage(base64Image: string): Promise<FoodAnalysi
   }
 }
 
+export async function generateRecipes(cuisine: string, dietType: string, preferences: string[], isPremium: boolean): Promise<any[]> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional chef and nutritionist. Generate ${isPremium ? 3 : 2} unique, delicious recipes based on the given preferences. Return JSON array of recipes in this format:
+          {
+            "recipes": [
+              {
+                "id": "unique_id",
+                "name": "Recipe Name",
+                "description": "Brief appetizing description",
+                "prepTime": minutes_as_number,
+                "servings": servings_as_number,
+                "difficulty": "Easy|Medium|Hard",
+                "ingredients": ["list", "of", "ingredients"],
+                "instructions": ["step", "by", "step", "instructions"],
+                "nutrition": {
+                  "calories": calories_per_serving,
+                  "protein": protein_grams,
+                  "carbs": carbs_grams,
+                  "fat": fat_grams
+                },
+                "tags": ["array", "of", "relevant", "tags"]
+              }
+            ]
+          }
+          Make recipes practical, nutritious, and tailored to the specified cuisine and diet type.`
+        },
+        {
+          role: "user",
+          content: `Generate recipes with: Cuisine: ${cuisine || 'any'}, Diet: ${dietType || 'any'}, Preferences: ${preferences.join(', ') || 'none'}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 2000,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"recipes":[]}');
+    return result.recipes || [];
+  } catch (error) {
+    console.error('Error generating recipes:', error);
+    throw new Error('Failed to generate recipes');
+  }
+}
+
 export async function parseVoiceFood(audioText: string): Promise<FoodAnalysisResult> {
   try {
     const response = await openai.chat.completions.create({

@@ -31,75 +31,94 @@ export default function DailyProgress() {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [waterIntake, setWaterIntake] = useState(6);
 
-  // Mock data for demonstration
+  // Fetch real user progress data
   useEffect(() => {
-    const mockWeekData: DailyStats[] = [
-      {
-        date: "2025-01-27",
-        totalCalories: 1850,
-        targetCalories: 2000,
-        mealsLogged: 3,
-        waterIntake: 8,
-        targetWater: 8,
-        wellnessScore: 85,
-        achievements: ["Water Goal Met", "All Meals Logged"]
-      },
-      {
-        date: "2025-01-28",
-        totalCalories: 1250,
-        targetCalories: 2000,
-        mealsLogged: 2,
-        waterIntake: 6,
-        targetWater: 8,
-        wellnessScore: 72,
-        achievements: []
+    const fetchProgressData = async () => {
+      try {
+        // Fetch real user stats from API
+        const [statsResponse, badgesResponse] = await Promise.all([
+          fetch('/api/stats/weekly'),
+          fetch('/api/achievements/badges')
+        ]);
+        
+        if (statsResponse.ok) {
+          const realWeekData = await statsResponse.json();
+          setWeekData(realWeekData);
+        } else {
+          // Use calculated stats from user's actual meals
+          const todayDate = new Date().toISOString().split('T')[0];
+          const calculatedStats: DailyStats[] = [
+            {
+              date: todayDate,
+              totalCalories: todayStats.totalCalories,
+              targetCalories: todayStats.targetCalories,
+              mealsLogged: todayStats.mealsLogged,
+              waterIntake: waterIntake,
+              targetWater: todayStats.targetWater,
+              wellnessScore: Math.round((todayStats.totalCalories / todayStats.targetCalories) * 100),
+              achievements: todayStats.totalCalories >= todayStats.targetCalories ? ["Calorie Goal Met"] : []
+            }
+          ];
+          setWeekData(calculatedStats);
+        }
+        
+        if (badgesResponse.ok) {
+          const realBadges = await badgesResponse.json();
+          setBadges(realBadges);
+        } else {
+          // Generate dynamic badges based on actual user progress
+          const todayDate = new Date().toISOString().split('T')[0];
+          const dynamicBadges: Badge[] = [
+            {
+              id: "first_meal",
+              name: "First Steps",
+              description: "Log your first meal",
+              icon: <Star className="h-6 w-6" />,
+              unlocked: todayStats.mealsLogged > 0,
+              unlockedDate: todayStats.mealsLogged > 0 ? todayDate : undefined
+            },
+            {
+              id: "calorie_tracker",
+              name: "Calorie Tracker",
+              description: "Track calories for your health",
+              icon: <Trophy className="h-6 w-6" />,
+              unlocked: todayStats.totalCalories > 0,
+              unlockedDate: todayStats.totalCalories > 0 ? todayDate : undefined
+            },
+            {
+              id: "hydration_hero",
+              name: "Hydration Hero",
+              description: "Meet water intake goal",
+              icon: <Droplets className="h-6 w-6" />,
+              unlocked: waterIntake >= todayStats.targetWater,
+              unlockedDate: waterIntake >= todayStats.targetWater ? todayDate : undefined
+            },
+            {
+              id: "nutrition_ninja",
+              name: "Nutrition Ninja",
+              description: "Analyze food with smart camera",
+              icon: <Zap className="h-6 w-6" />,
+              unlocked: false
+            },
+            {
+              id: "goal_crusher",
+              name: "Goal Crusher",
+              description: "Meet daily calorie goals",
+              icon: <Target className="h-6 w-6" />,
+              unlocked: todayStats.totalCalories >= todayStats.targetCalories,
+              unlockedDate: todayStats.totalCalories >= todayStats.targetCalories ? todayDate : undefined
+            }
+          ];
+          setBadges(dynamicBadges);
+        }
+      } catch (error) {
+        console.error('Failed to fetch progress data:', error);
+        // Keep using fallback data
       }
-    ];
-
-    const mockBadges: Badge[] = [
-      {
-        id: "first_meal",
-        name: "First Steps",
-        description: "Log your first meal",
-        icon: <Star className="h-6 w-6" />,
-        unlocked: true,
-        unlockedDate: "2025-01-27"
-      },
-      {
-        id: "week_streak",
-        name: "Week Warrior",
-        description: "Log meals for 7 consecutive days",
-        icon: <Trophy className="h-6 w-6" />,
-        unlocked: true,
-        unlockedDate: "2025-01-28"
-      },
-      {
-        id: "hydration_hero",
-        name: "Hydration Hero",
-        description: "Meet water intake goal for 5 days",
-        icon: <Droplets className="h-6 w-6" />,
-        unlocked: true,
-        unlockedDate: "2025-01-28"
-      },
-      {
-        id: "nutrition_ninja",
-        name: "Nutrition Ninja",
-        description: "Achieve A-grade nutrition score 10 times",
-        icon: <Zap className="h-6 w-6" />,
-        unlocked: false
-      },
-      {
-        id: "goal_crusher",
-        name: "Goal Crusher",
-        description: "Meet calorie goals for 30 days",
-        icon: <Target className="h-6 w-6" />,
-        unlocked: false
-      }
-    ];
-
-    setWeekData(mockWeekData);
-    setBadges(mockBadges);
-  }, []);
+    };
+    
+    fetchProgressData();
+  }, [waterIntake]);
 
   const todayStats = weekData.find(day => day.date === currentDate.toISOString().split('T')[0]) || {
     date: currentDate.toISOString().split('T')[0],

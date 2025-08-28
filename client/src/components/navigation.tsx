@@ -16,7 +16,7 @@ export default function Navigation() {
   return (
     <>
     <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Premium Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
@@ -103,25 +103,9 @@ export default function Navigation() {
 
           {/* Authentication & Mobile Menu */}
           <div className="flex items-center space-x-3">
-            {/* Desktop Auth */}
+            {/* Desktop - Only show Sign In if not authenticated */}
             <div className="hidden md:flex items-center space-x-2">
-              {isAuthenticated ? (
-                <>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span>Profile</span>
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => signOutMutation.mutate()}
-                    className="flex items-center space-x-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
-                  </Button>
-                </>
-              ) : (
+              {!isAuthenticated && (
                 <Link href="/auth">
                   <Button 
                     variant="default" 

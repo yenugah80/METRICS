@@ -307,6 +307,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Recipe generation route
+  app.post('/api/recipes/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { cuisine, dietType, preferences } = req.body;
+      const user = await storage.getUser(req.user.id);
+      
+      // Use OpenAI to generate personalized recipes
+      const { generateRecipes } = await import("./openai");
+      const recipes = await generateRecipes(cuisine, dietType, preferences, user?.isPremium || false);
+      
+      res.json(recipes);
+    } catch (error) {
+      console.error("Error generating recipes:", error);
+      res.status(500).json({ message: "Failed to generate recipes" });
+    }
+  });
+
   // AI Meal Analysis route - WORKING VERSION WITHOUT AUTH
   app.post("/api/meals/analyze-image", async (req, res) => {
     try {

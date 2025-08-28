@@ -6,7 +6,7 @@ import { Apple, Camera, Scan, Zap, Crown, Leaf, ChefHat, Target, Star, Users, Tr
 export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50">
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-8 max-w-7xl">
         {/* Hero Section - Completely Redesigned */}
         <div className="text-center mb-20 relative">
           {/* Background Elements */}
@@ -18,10 +18,10 @@ export default function Landing() {
           {/* Content */}
           <div className="relative z-10">
             <Badge className="mb-4 bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
-              🚀 New revolutionary nutrition tracking app
+              New revolutionary nutrition tracking app
             </Badge>
             
-            <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 mb-6 leading-tight">
               Stop Guessing.
               <br />
               <span className="bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
@@ -29,16 +29,16 @@ export default function Landing() {
               </span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed px-2">
               The only nutrition app that actually understands your food. Snap a photo, get instant macro breakdowns, 
               and finally take control of your health journey.
             </p>
             
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 px-2">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200"
+                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-200 w-full sm:w-auto"
                 onClick={() => window.location.href = '/dashboard'}
                 data-testid="button-hero-cta"
               >

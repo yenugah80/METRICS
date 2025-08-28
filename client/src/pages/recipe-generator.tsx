@@ -125,13 +125,38 @@ export default function RecipeGenerator() {
       }
     ];
 
-    setRecipes(mockRecipes);
+    try {
+      // Try real API call to generate recipes
+      const response = await fetch('/api/recipes/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cuisine, dietType, preferences: [] })
+      });
+      
+      if (response.ok) {
+        const newRecipes = await response.json();
+        setRecipes(prev => [...newRecipes, ...prev]);
+        setDailyCount(prev => prev + newRecipes.length);
+        
+        toast({
+          title: "Recipes generated!",
+          description: `Generated ${newRecipes.length} personalized recipes based on your preferences.`,
+        });
+        setIsGenerating(false);
+        return;
+      }
+    } catch (error) {
+      console.warn('Recipe API failed, using mock data:', error);
+    }
+    
+    // Fallback to mock recipe generation
+    setRecipes(prev => [...mockRecipes, ...prev]);
     setDailyCount(prev => prev + mockRecipes.length);
     setIsGenerating(false);
 
     toast({
       title: "Recipes generated!",
-      description: `Generated ${mockRecipes.length} personalized recipes for you.`,
+      description: `Generated ${mockRecipes.length} sample recipes. API integration coming soon!`,
     });
   };
 
