@@ -344,7 +344,7 @@ export function RecipeChatbot() {
 
               {message.role === 'user' && (
                 <Avatar className="h-8 w-8 mt-1">
-                  <AvatarImage src={user?.profileImageUrl} alt={user?.firstName || 'You'} />
+                  <AvatarImage src={user?.profileImageUrl || undefined} alt={user?.firstName || 'You'} />
                   <AvatarFallback>
                     {user?.firstName?.[0] || 'U'}
                   </AvatarFallback>
@@ -398,6 +398,13 @@ export function RecipeChatbot() {
           >
             <Send className="h-4 w-4" />
           </Button>
+        </div>
+        
+        {/* AI Disclaimer */}
+        <div className="mt-2 text-center">
+          <p className="text-xs text-muted-foreground">
+            AI can make mistakes. Please verify recipes and cooking instructions before use.
+          </p>
         </div>
       </div>
     </div>

@@ -67,7 +67,7 @@ router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (
 router.get('/api/chatbot/cuisine/:cuisine', async (req, res) => {
   try {
     const { cuisine } = req.params;
-    const userId = req.user?.claims?.sub;
+    const userId = req.user?.id;
 
     const recipeRequest: RecipeRequest = {
       userId: userId || 'anonymous',
@@ -82,7 +82,7 @@ router.get('/api/chatbot/cuisine/:cuisine', async (req, res) => {
       }
     };
 
-    const result = await recipeChatbot.generateResponse(dummyRequest, `Tell me about ${cuisine} cuisine`);
+    const result = await recipeChatbot.generateResponse(recipeRequest, `Tell me about ${cuisine} cuisine`);
 
     res.json({
       success: true,
@@ -103,7 +103,7 @@ router.get('/api/chatbot/cuisine/:cuisine', async (req, res) => {
 router.post('/api/chatbot/advice', freemiumMiddleware, requirePremium, async (req: FreemiumRequest, res) => {
   try {
     const { topic, context } = req.body;
-    const userId = req.user?.claims?.sub;
+    const userId = req.user?.id;
 
     if (!topic) {
       return res.status(400).json({
@@ -125,7 +125,7 @@ router.post('/api/chatbot/advice', freemiumMiddleware, requirePremium, async (re
       context: context || {}
     };
 
-    const result = await recipeChatbot.generateResponse(dummyRequest, `I need cooking advice about: ${topic}`);
+    const result = await recipeChatbot.generateResponse(recipeRequest, `I need cooking advice about: ${topic}`);
 
     res.json({
       success: true,
@@ -146,7 +146,7 @@ router.post('/api/chatbot/advice', freemiumMiddleware, requirePremium, async (re
 router.post('/api/chatbot/ingredients', freemiumMiddleware, requirePremium, async (req: FreemiumRequest, res) => {
   try {
     const { ingredients, question } = req.body;
-    const userId = req.user?.claims?.sub;
+    const userId = req.user?.id;
 
     if (!ingredients || !Array.isArray(ingredients)) {
       return res.status(400).json({

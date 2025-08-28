@@ -475,7 +475,7 @@ export default function MealCamera() {
                             <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
-<p>Nutrition scoring based on macro balance, micronutrients, fiber content, and processing level.</p>
+<p>AI-generated nutrition score - results may vary.</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -539,7 +539,7 @@ export default function MealCamera() {
                             <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
-<p>Diet analysis based on ingredients and nutritional composition.</p>
+<p>AI-analyzed diet compatibility - please verify independently.</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -586,7 +586,7 @@ export default function MealCamera() {
                             <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
-<p>Macro and micronutrient information for this meal.</p>
+<p>AI-estimated nutrition data - verify with healthcare professionals.</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -603,7 +603,7 @@ export default function MealCamera() {
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-<p>Total energy content of this meal</p>
+<p>Estimated calories</p>
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -616,7 +616,7 @@ export default function MealCamera() {
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Complete and incomplete proteins for muscle maintenance and growth</p>
+                            <p>Estimated protein content</p>
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -629,7 +629,7 @@ export default function MealCamera() {
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Total carbohydrates including fiber, starch, and sugars</p>
+                            <p>Estimated carbohydrates</p>
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -642,7 +642,7 @@ export default function MealCamera() {
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Total fats including saturated, monounsaturated, and polyunsaturated</p>
+                            <p>Estimated fat content</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -657,7 +657,7 @@ export default function MealCamera() {
                                 <Target className="w-3 h-3 ml-2 text-muted-foreground hover:text-primary cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Precise micronutrient analysis from scientific databases</p>
+                                <p>Estimated micronutrients</p>
                               </TooltipContent>
                             </Tooltip>
                           </div>
@@ -754,7 +754,7 @@ export default function MealCamera() {
                             <Info className="w-4 h-4 ml-2 text-muted-foreground hover:text-primary cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
-                            <p>Foods identified using AI image recognition, with nutrition data from verified databases for accuracy.</p>
+                            <p>AI-identified foods - results may vary.</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -781,17 +781,12 @@ export default function MealCamera() {
                                   >
                                     {Math.round(food.confidence * 100)}% confident
                                   </Badge>
-                                  {food.source && (
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      {food.source}
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent>
                               <div className="text-sm">
-                                <p><strong>Nutrition source:</strong> {food.source || 'USDA Database'}</p>
+                                <p><strong>AI-estimated nutrition</strong></p>
                                 {food.calories && <p><strong>Per serving:</strong> {Math.round(food.calories)} calories</p>}
                                 <p><strong>Confidence:</strong> {Math.round(food.confidence * 100)}% match</p>
                               </div>
@@ -877,11 +872,11 @@ export default function MealCamera() {
           </CardContent>
         </Card>
         
-        {/* Simple Disclaimer */}
+        {/* AI Disclaimer */}
         {analysis && (
           <div className="mt-6 text-center">
             <p className="text-xs text-muted-foreground">
-              Nutrition information is estimated and may not be perfectly accurate. Please consult healthcare professionals for dietary advice.
+              AI can make mistakes. Please verify nutrition information and consult healthcare professionals for dietary advice.
             </p>
           </div>
         )}
