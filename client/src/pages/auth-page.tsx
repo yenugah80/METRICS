@@ -78,8 +78,9 @@ export default function AuthPage() {
     window.location.href = "/api/auth/google";
   };
 
-  const handleReplitSSO = () => {
-    window.location.href = "/api/login";
+  const handleSSOLogin = () => {
+    // For now, show a message that SSO is coming soon
+    alert("Single Sign-On integration coming soon! Please use email/password or Google authentication.");
   };
 
   const handlePasskeyAuth = async () => {
@@ -320,28 +321,28 @@ export default function AuthPage() {
 
               {/* Social & Alternative Auth Methods */}
               <div className="space-y-3">
-                {/* Replit SSO - Primary Auth Method */}
+                {/* Google OAuth - Primary Method */}
                 <Button
-                  onClick={handleReplitSSO}
-                  className="w-full bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg border-0"
-                  data-testid="button-replit-sso"
-                >
-                  <ArrowRight className="mr-2 h-4 w-4" />
-                  Sign In with Replit
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Secure SSO authentication via Replit
-                </p>
-
-                {/* Google OAuth */}
-                <Button
-                  variant="outline"
                   onClick={handleGoogleAuth}
-                  className="w-full border-border/50 hover:bg-muted/50"
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg border-0"
                   data-testid="button-google-auth"
                 >
-                  <Chrome className="mr-2 h-4 w-4 text-blue-500" />
+                  <Chrome className="mr-2 h-4 w-4" />
                   Continue with Google
+                </Button>
+
+                {/* SSO Authentication */}
+                <Button
+                  variant="outline"
+                  onClick={handleSSOLogin}
+                  className="w-full border-border/50 hover:bg-muted/50"
+                  data-testid="button-sso-auth"
+                >
+                  <Shield className="mr-2 h-4 w-4 text-primary" />
+                  Single Sign-On
+                  <Badge variant="secondary" className="ml-auto text-xs bg-secondary-100 text-secondary-700">
+                    Soon
+                  </Badge>
                 </Button>
 
                 {/* Passkey Authentication */}
@@ -399,7 +400,7 @@ export default function AuthPage() {
           </div>
           <h2 className="text-4xl font-bold mb-6 text-white drop-shadow-lg">Secure Multi-Factor Authentication</h2>
           <p className="text-xl text-white/95 mb-8 leading-relaxed drop-shadow-sm">
-            Choose from multiple secure authentication methods including email/password, Google OAuth, Replit SSO, and cutting-edge passkey technology.
+            Choose from multiple secure authentication methods including email/password, Google OAuth, enterprise SSO, and cutting-edge passkey technology.
           </p>
           <div className="space-y-4">
             <div className="flex items-center space-x-3 text-white/95 bg-white/10 backdrop-blur-sm rounded-lg p-3">
@@ -416,7 +417,7 @@ export default function AuthPage() {
             </div>
             <div className="flex items-center space-x-3 text-white/95 bg-white/10 backdrop-blur-sm rounded-lg p-3">
               <div className="w-2 h-2 bg-white rounded-full"></div>
-              <span>Multi-provider OAuth integration</span>
+              <span>Multi-provider OAuth & SSO integration</span>
             </div>
           </div>
         </div>

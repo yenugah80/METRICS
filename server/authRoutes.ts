@@ -265,7 +265,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
 });
 
 // Sign out
-router.post('/signout', verifyJWT, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/signout', verifyJWT, async (req: any, res: Response) => {
   try {
     const refreshToken = req.cookies.refreshToken;
 
@@ -295,7 +295,7 @@ router.post('/signout', verifyJWT, async (req: AuthenticatedRequest, res: Respon
 });
 
 // Get current user
-router.get('/me', verifyJWT, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/me', verifyJWT, async (req: any, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -356,7 +356,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
 });
 
 // WebAuthn/Passkey registration initiation
-router.post('/passkey/register/begin', verifyJWT, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/passkey/register/begin', verifyJWT, async (req: any, res: Response) => {
   try {
     // This would generate WebAuthn registration options
     return res.status(501).json({

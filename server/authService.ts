@@ -21,7 +21,7 @@ export interface AuthenticatedRequest extends Request {
     firstName: string | null;
     lastName: string | null;
     profileImageUrl: string | null;
-    isPremium: boolean;
+    isPremium: boolean | null;
   };
 }
 
@@ -279,7 +279,7 @@ export async function verifyJWT(req: AuthenticatedRequest, res: Response, next: 
     firstName: user.firstName,
     lastName: user.lastName,
     profileImageUrl: user.profileImageUrl,
-    isPremium: user.isPremium || false,
+    isPremium: user.isPremium,
   };
 
   next();
@@ -303,7 +303,7 @@ export async function optionalJWT(req: AuthenticatedRequest, res: Response, next
           firstName: user.firstName,
           lastName: user.lastName,
           profileImageUrl: user.profileImageUrl,
-          isPremium: user.isPremium || false,
+          isPremium: user.isPremium,
         };
       }
     }

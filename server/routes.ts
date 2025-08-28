@@ -327,9 +327,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Nutrition analysis complete:", nutritionAnalysis);
       
       res.json(nutritionAnalysis);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Meal analysis error:", error);
-      res.status(500).json({ error: "Failed to analyze meal image: " + error.message });
+      res.status(500).json({ error: "Failed to analyze meal image: " + (error?.message || "Unknown error") });
     }
   });
 
@@ -351,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mealType: mealType || 'lunch',
         imageUrl,
         source: 'photo',
-        confidence: foods.reduce((sum: number, food: any) => sum + food.confidence, 0) / foods.length || 0.8
+        confidence: (foods.reduce((sum: number, food: any) => sum + food.confidence, 0) / foods.length || 0.8).toString()
       };
 
       const meal = await storage.createMeal(mealData);

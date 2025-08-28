@@ -66,7 +66,7 @@ async function apiRequest(method: string, endpoint: string, data?: any) {
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Request failed');
+    throw new Error(errorData.message || `Request failed with status ${response.status}`);
   }
 
   return response;

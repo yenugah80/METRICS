@@ -226,7 +226,7 @@ export default function Navigation() {
                         </Button>
                       </Link>
                       <p className="text-xs text-gray-500 mt-2 text-center">
-                        Secure SSO authentication via Replit
+                        Secure authentication with multiple options
                       </p>
                     </CardContent>
                   </Card>
