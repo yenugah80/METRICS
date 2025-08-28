@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import OpenAI from 'openai';
 import { calculateNutritionScore, type NutritionInput } from './nutrition-scoring';
 import { checkDietCompatibility, type DietCompatibilityInput } from './diet-compatibility';
+import { searchFoodInDatabase, type FoodNutritionData } from './comprehensive-food-database';
 
 // Initialize OpenAI for OCR and voice processing
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -178,42 +179,85 @@ async function lookupBarcode(barcode: string): Promise<any | null> {
   return null;
 }
 
-async function searchUSDADatabase(foodName: string): Promise<any | null> {
-  // In a real implementation, this would call USDA FoodData Central API
-  // Mock implementation with common foods
-  const mockUSDAData: Record<string, any> = {
-    'banana': {
-      description: 'Bananas, raw',
-      foodNutrients: [
-        { nutrientId: 1008, value: 89 }, // Calories
-        { nutrientId: 1003, value: 1.09 }, // Protein
-        { nutrientId: 1005, value: 22.84 }, // Carbs
-        { nutrientId: 1004, value: 0.33 }, // Fat
-        { nutrientId: 1079, value: 2.6 }, // Fiber
-        { nutrientId: 2000, value: 12.23 }, // Sugar
-        { nutrientId: 1093, value: 1 } // Sodium (mg)
-      ]
-    },
-    'chicken': {
-      description: 'Chicken, broilers or fryers, breast, meat only, cooked, roasted',
-      foodNutrients: [
-        { nutrientId: 1008, value: 165 }, // Calories
-        { nutrientId: 1003, value: 31.02 }, // Protein
-        { nutrientId: 1005, value: 0 }, // Carbs
-        { nutrientId: 1004, value: 3.57 }, // Fat
-        { nutrientId: 1079, value: 0 }, // Fiber
-        { nutrientId: 2000, value: 0 }, // Sugar
-        { nutrientId: 1093, value: 74 } // Sodium (mg)
-      ]
-    }
-  };
-
-  const normalizedName = foodName.toLowerCase().trim();
-  for (const [key, data] of Object.entries(mockUSDAData)) {
-    if (normalizedName.includes(key)) {
-      return data;
+// Enhanced food nutrition lookup using multiple data sources
+async function searchFoodNutrition(foodName: string): Promise<any | null> {
+  // Try USDA API first for most accurate data
+  if (process.env.USDA_API_KEY) {
+    try {
+      const usdaResult = await searchUSDADatabase(foodName);
+      if (usdaResult) {
+        return usdaResult;
+      }
+    } catch (error) {
+      console.warn('USDA API failed, trying fallback:', error);
     }
   }
+  
+  // Fallback to comprehensive nutrition database
+  return searchComprehensiveFoodDatabase(foodName);
+}
+
+// Real USDA API integration
+async function searchUSDADatabase(foodName: string): Promise<any | null> {
+  const searchUrl = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(foodName)}&pageSize=3&api_key=${process.env.USDA_API_KEY}`;
+  
+  const searchResponse = await fetch(searchUrl);
+  if (!searchResponse.ok) {
+    throw new Error(`USDA search failed: ${searchResponse.status}`);
+  }
+  
+  const searchData = await searchResponse.json();
+  
+  if (!searchData.foods || searchData.foods.length === 0) {
+    return null;
+  }
+  
+  // Find best match (prefer Foundation Foods or SR Legacy)
+  const food = searchData.foods.find(f => 
+    f.dataType === 'Foundation' || f.dataType === 'SR Legacy'
+  ) || searchData.foods[0];
+  
+  // Get detailed nutrition data
+  const detailUrl = `https://api.nal.usda.gov/fdc/v1/food/${food.fdcId}?api_key=${process.env.USDA_API_KEY}`;
+  
+  const detailResponse = await fetch(detailUrl);
+  if (!detailResponse.ok) {
+    throw new Error(`USDA detail lookup failed: ${detailResponse.status}`);
+  }
+  
+  const detailData = await detailResponse.json();
+  
+  return {
+    description: detailData.description,
+    foodNutrients: detailData.foodNutrients || [],
+    confidence: 0.95,
+    source: 'usda'
+  };
+}
+
+// Comprehensive food database lookup function  
+function searchComprehensiveFoodDatabase(foodName: string): any | null {
+  // Use comprehensive food database for all food lookups
+  const nutritionData = searchFoodInDatabase(foodName);
+  
+  if (nutritionData) {
+    // Convert to USDA format for compatibility
+    return {
+      description: nutritionData.description,
+      foodNutrients: [
+        { nutrientId: 1008, value: nutritionData.calories },
+        { nutrientId: 1003, value: nutritionData.protein },
+        { nutrientId: 1005, value: nutritionData.carbs },
+        { nutrientId: 1004, value: nutritionData.fat },
+        { nutrientId: 1079, value: nutritionData.fiber },
+        { nutrientId: 2000, value: nutritionData.sugar },
+        { nutrientId: 1093, value: nutritionData.sodium }
+      ],
+      confidence: nutritionData.confidence,
+      source: 'comprehensive_db'
+    };
+  }
+  
   return null;
 }
 
@@ -367,7 +411,7 @@ export async function analyzeFoodInput(input: FoodAnalysisInput): Promise<FoodAn
       };
     } else {
       // Text search - try USDA first
-      const usdaData = await searchUSDADatabase(input.data);
+      const usdaData = await searchFoodNutrition(input.data);
       if (usdaData) {
         source = 'usda';
         confidence = 0.9;
