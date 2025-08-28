@@ -10,6 +10,10 @@ import * as aiService from "./openai";
 import { nutritionService } from "./nutritionApi";
 import { etlSystem } from "./etl";
 import authRoutes from "./authRoutes";
+import { analyzeFoodInput, type FoodAnalysisInput } from "./food-analysis-pipeline";
+import { generateRecipe, type RecipeGenerationInput } from "./recipe-generation-v2";
+import { calculateNutritionScore, type NutritionInput } from "./nutrition-scoring";
+import { checkDietCompatibility, type DietCompatibilityInput } from "./diet-compatibility";
 
 // Stripe setup
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -119,6 +123,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error analyzing voice:", error);
       res.status(500).json({ message: "Failed to analyze voice input" });
+    }
+  });
+
+  // Enhanced food analysis endpoint with deterministic nutrition scoring and diet compatibility
+  app.post("/api/analyze-food", isAuthenticated, async (req: any, res) => {
+    try {
+      const { type, data, ingredients } = req.body;
+      const userId = req.user.id;
+      
+      if (!type || !data) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields: type and data"
+        });
+      }
+
+      // Get user profile for diet preferences
+      const userProfile = await storage.getUserProfile(userId);
+      
+      // Use new enhanced food analysis pipeline
+      const analysisInput: FoodAnalysisInput = {
+        type: type as 'image' | 'barcode' | 'text',
+        data,
+        userId,
+        userPreferences: {
+          diet_preferences: userProfile?.dietPreferences || [],
+          allergen_restrictions: userProfile?.allergens || []
+        }
+      };
+      
+      const result = await analyzeFoodInput(analysisInput);
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Food analysis error:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to analyze food",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Nutrition scoring endpoint for testing and demonstration
+  app.post("/api/nutrition/score", isAuthenticated, async (req: any, res) => {
+    try {
+      const nutritionData = req.body;
+      
+      // Validate required fields
+      if (typeof nutritionData.calories !== 'number') {
+        return res.status(400).json({
+          success: false,
+          message: "Calories is required and must be a number"
+        });
+      }
+
+      const score = calculateNutritionScore(nutritionData);
+
+      res.json({
+        success: true,
+        score,
+        input: nutritionData
+      });
+    } catch (error) {
+      console.error('Nutrition scoring error:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to calculate nutrition score",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Diet compatibility check endpoint
+  app.post("/api/nutrition/diet-check", isAuthenticated, async (req: any, res) => {
+    try {
+      const { foods, dietPreferences } = req.body;
+      
+      if (!foods || !Array.isArray(foods)) {
+        return res.status(400).json({
+          success: false,
+          message: "Foods array is required"
+        });
+      }
+
+      const compatibility = await checkDietCompatibility({ foods, dietPreferences });
+
+      res.json({
+        success: true,
+        compatibility
+      });
+    } catch (error) {
+      console.error('Diet compatibility error:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to check diet compatibility",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

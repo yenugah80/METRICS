@@ -173,6 +173,38 @@ export const dailyAggregates = pgTable("daily_aggregates", {
   index("daily_aggregates_user_date_idx").on(table.userId, table.date),
 ]);
 
+// Nutrition profile for each meal with deterministic scoring
+export const nutritionProfile = pgTable("nutrition_profile", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  mealId: varchar("meal_id").references(() => meals.id, { onDelete: "cascade" }).notNull(),
+  
+  // Raw nutrition data (per 100g normalized)
+  sugarG: decimal("sugar_g", { precision: 8, scale: 3 }),
+  sodiumMg: decimal("sodium_mg", { precision: 8, scale: 3 }),
+  saturatedFatG: decimal("saturated_fat_g", { precision: 8, scale: 3 }),
+  fiberG: decimal("fiber_g", { precision: 8, scale: 3 }),
+  proteinG: decimal("protein_g", { precision: 8, scale: 3 }),
+  micronutrientsDV: jsonb("micronutrients_dv"), // Array of %DV values
+  
+  // Deterministic scoring results
+  nutritionScore: integer("nutrition_score").notNull(), // 0-100
+  nutritionGrade: varchar("nutrition_grade", { length: 1 }).notNull(), // A-D
+  scoreBreakdown: jsonb("score_breakdown"), // Penalty/bonus details
+  
+  // Diet compatibility results
+  dietMatchPercentage: integer("diet_match_percentage"),
+  dietViolations: jsonb("diet_violations"),
+  allergenSafety: varchar("allergen_safety", { length: 10 }),
+  allergenDetails: jsonb("allergen_details"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("nutrition_profile_meal_idx").on(table.mealId),
+  index("nutrition_profile_score_idx").on(table.nutritionScore),
+  index("nutrition_profile_grade_idx").on(table.nutritionGrade),
+]);
+
 // Recipes table
 export const recipes = pgTable("recipes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -239,6 +271,7 @@ export const mealsRelations = relations(meals, ({ one, many }) => ({
   items: many(mealItems),
   nutrition: one(mealNutrition),
   scores: one(mealScores),
+  nutritionProfile: one(nutritionProfile),
 }));
 
 export const mealItemsRelations = relations(mealItems, ({ one }) => ({
@@ -266,6 +299,13 @@ export const dailyAggregatesRelations = relations(dailyAggregates, ({ one }) => 
   user: one(users, {
     fields: [dailyAggregates.userId],
     references: [users.id],
+  }),
+}));
+
+export const nutritionProfileRelations = relations(nutritionProfile, ({ one }) => ({
+  meal: one(meals, {
+    fields: [nutritionProfile.mealId],
+    references: [meals.id],
   }),
 }));
 
@@ -349,6 +389,10 @@ export type InsertMealScore = z.infer<typeof insertMealScoreSchema>;
 export type DailyAggregate = typeof dailyAggregates.$inferSelect;
 export type Recipe = typeof recipes.$inferSelect;
 export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
+
+// New types for enhanced nutrition system - types can be done earlier
+
+// Moved to bottom after all table definitions
 
 // ==== COMPREHENSIVE NUTRITION DATA ENGINEERING SYSTEM ====
 
@@ -520,6 +564,47 @@ export const discoveryQueue = pgTable("discovery_queue", {
   index("discovery_name_idx").on(table.ingredientName),
 ]);
 
+// Fast food analysis cache for OCR/barcode/API responses
+export const analysisCache = pgTable("analysis_cache", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cacheKey: varchar("cache_key", { length: 64 }).unique().notNull(), // SHA256 hash
+  inputType: varchar("input_type", { length: 50 }).notNull(), // 'image', 'barcode', 'text'
+  inputHash: varchar("input_hash", { length: 64 }).notNull(), // SHA256 of normalized input
+  analysisResult: jsonb("analysis_result").notNull(),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }),
+  source: varchar("source", { length: 100 }), // 'usda', 'off', 'openai', 'hybrid'
+  hitCount: integer("hit_count").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastAccessed: timestamp("last_accessed").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(), // TTL 7 days
+}, (table) => [
+  index("analysis_cache_key_idx").on(table.cacheKey),
+  index("analysis_cache_type_idx").on(table.inputType),
+  index("analysis_cache_expires_idx").on(table.expiresAt),
+]);
+
+// Recipe generation cache and deduplication
+export const recipeCache = pgTable("recipe_cache", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cacheKey: varchar("cache_key", { length: 128 }).unique().notNull(),
+  cuisine: varchar("cuisine", { length: 50 }),
+  dietType: varchar("diet_type", { length: 50 }),
+  calorieTarget: integer("calorie_target"),
+  proteinTarget: integer("protein_target"),
+  randomSeed: varchar("random_seed", { length: 32 }),
+  simHash: varchar("sim_hash", { length: 16 }), // For deduplication
+  recipeData: jsonb("recipe_data").notNull(),
+  createdBy: varchar("created_by", { length: 50 }).default("openai"), // 'openai' or 'fallback'
+  hitCount: integer("hit_count").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastAccessed: timestamp("last_accessed").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(), // TTL 24h
+}, (table) => [
+  index("recipe_cache_key_idx").on(table.cacheKey),
+  index("recipe_cache_sim_hash_idx").on(table.simHash),
+  index("recipe_cache_expires_idx").on(table.expiresAt),
+]);
+
 // ==== RELATIONS FOR NUTRITION DATA ENGINEERING ====
 
 export const ingredientsRelations = relations(ingredients, ({ many, one }) => ({
@@ -640,3 +725,30 @@ export type InsertDataQualityMetric = z.infer<typeof insertDataQualityMetricSche
 
 export type DiscoveryQueueItem = typeof discoveryQueue.$inferSelect;
 export type InsertDiscoveryQueueItem = z.infer<typeof insertDiscoveryQueueItemSchema>;
+
+// ==== ENHANCED NUTRITION SYSTEM SCHEMAS ====
+// These are defined here at the very end after ALL table definitions to avoid hoisting issues
+
+export const insertNutritionProfileSchema = createInsertSchema(nutritionProfile).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAnalysisCacheSchema = createInsertSchema(analysisCache).omit({
+  id: true,
+  createdAt: true,
+  lastAccessed: true,
+});
+
+export const insertRecipeCacheSchema = createInsertSchema(recipeCache).omit({
+  id: true,
+  createdAt: true,
+  lastAccessed: true,
+});
+
+// Enhanced nutrition system types  
+export type AnalysisCache = typeof analysisCache.$inferSelect;
+export type RecipeCache = typeof recipeCache.$inferSelect;
+export type NutritionProfile = typeof nutritionProfile.$inferSelect;
+export type InsertNutritionProfile = z.infer<typeof insertNutritionProfileSchema>;
