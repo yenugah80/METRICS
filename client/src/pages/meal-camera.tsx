@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils, Type, Mic, Crown, Sparkles, Info, Database, Target } from "lucide-react";
+import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils, Type, Mic, Crown, Sparkles, Info, Database, Target, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import VoiceLogger from "@/components/VoiceLogger";
 
@@ -71,7 +71,11 @@ export default function MealCamera() {
   const [analysis, setAnalysis] = useState<NutritionAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [textInput, setTextInput] = useState("");
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
@@ -218,6 +222,82 @@ export default function MealCamera() {
     fileInputRef.current?.click();
   };
 
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' }, 
+        audio: false 
+      });
+      setStream(mediaStream);
+      setIsCameraActive(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (error) {
+      toast({
+        title: "Camera access denied",
+        description: "Please allow camera access to take photos of your meals.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setIsCameraActive(false);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) return;
+    
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw video frame to canvas
+    ctx.drawImage(video, 0, 0);
+    
+    // Convert to base64
+    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    setSelectedImage(imageDataUrl);
+    
+    // Stop camera
+    stopCamera();
+    
+    // Check authentication and analyze
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to analyze your meal photos and get accurate nutrition data.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+    
+    // Extract base64 part and analyze
+    const base64 = imageDataUrl.split(",")[1];
+    analyzeMutation.mutate(base64);
+  };
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [stream]);
+
   const handleSaveMeal = async () => {
     if (!analysis) return;
     
@@ -319,28 +399,80 @@ export default function MealCamera() {
                   </TabsList>
 
                   <TabsContent value="photo" className="mt-6">
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Button
-                        onClick={handleCameraClick}
-                        size="lg"
-                        className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:-translate-y-1 active:scale-95"
-                        data-testid="button-upload-image"
-                      >
-                        <Upload className="h-6 w-6" />
-                        <span>Upload Photo</span>
-                      </Button>
-                    </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      data-testid="input-file-upload"
-                    />
-                    <p className="text-xs text-muted-foreground mt-4">
-                      Supports JPG, PNG, WebP up to 5MB
-                    </p>
+                    {!isCameraActive ? (
+                      <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                          <Button
+                            onClick={startCamera}
+                            size="lg"
+                            className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:-translate-y-1 active:scale-95 bg-gradient-to-r from-primary to-primary-600"
+                            data-testid="button-camera-capture"
+                          >
+                            <Camera className="h-6 w-6" />
+                            <span>Snap Instantly</span>
+                          </Button>
+                          <Button
+                            onClick={handleCameraClick}
+                            size="lg"
+                            variant="outline"
+                            className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:-translate-y-1 active:scale-95"
+                            data-testid="button-upload-image"
+                          >
+                            <Upload className="h-6 w-6" />
+                            <span>Upload Photo</span>
+                          </Button>
+                        </div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          data-testid="input-file-upload"
+                        />
+                        <p className="text-xs text-muted-foreground text-center">
+                          Supports JPG, PNG, WebP up to 5MB
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="relative bg-black rounded-lg overflow-hidden">
+                          <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            className="w-full h-64 object-cover"
+                            data-testid="camera-preview"
+                          />
+                          <canvas ref={canvasRef} className="hidden" />
+                        </div>
+                        <div className="flex gap-4 justify-center">
+                          <Button
+                            onClick={capturePhoto}
+                            size="lg"
+                            className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                            data-testid="button-capture-photo"
+                          >
+                            <Camera className="h-6 w-6" />
+                            <span>Capture Photo</span>
+                          </Button>
+                          <Button
+                            onClick={stopCamera}
+                            size="lg"
+                            variant="outline"
+                            className="flex items-center space-x-3 px-8 py-4 text-lg font-semibold"
+                            data-testid="button-cancel-camera"
+                          >
+                            <X className="h-6 w-6" />
+                            <span>Cancel</span>
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center">
+                          Position your meal in the camera view and tap capture
+                        </p>
+                      </div>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="text" className="mt-6">
