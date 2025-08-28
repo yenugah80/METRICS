@@ -2,10 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import * as aiService from "./openai";
+import { nutritionService } from "./nutritionApi";
 
 // Stripe setup
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -19,21 +20,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Auth routes are now handled in the auth module automatically
 
   // Object storage routes for meal images
   app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
-    const userId = req.user?.claims?.sub;
+    const userId = req.user?.id;
     const objectStorageService = new ObjectStorageService();
     try {
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
@@ -64,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User profile routes
   app.get('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const profile = await storage.getUserProfile(userId);
       res.json(profile);
     } catch (error) {
@@ -75,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const profileData = { ...req.body, userId };
       const profile = await storage.upsertUserProfile(profileData);
       res.json(profile);
@@ -118,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/meals', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { name, mealType, imageUrl, rawText, source, foods, confidence } = req.body;
 
       // Create meal
@@ -216,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ error: "imageUrl is required" });
     }
 
-    const userId = req.user?.claims?.sub;
+    const userId = req.user?.id;
 
     try {
       const objectStorageService = new ObjectStorageService();
@@ -238,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get meals routes
   app.get('/api/meals', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const meals = await storage.getMealsByUserId(userId, 20);
       res.json(meals);
     } catch (error) {
@@ -249,7 +240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/meals/today', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const today = new Date();
       const meals = await storage.getMealsForDate(userId, today);
       
@@ -279,7 +270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Daily stats route
   app.get('/api/stats/today', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const today = new Date();
       const aggregate = await storage.getDailyAggregate(userId, today);
       res.json(aggregate);
@@ -292,7 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Recipe routes
   app.get('/api/recipes', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.id);
       const recipes = await storage.getRecipes(user?.isPremium || false, 10);
       res.json(recipes);
     } catch (error) {
@@ -301,7 +292,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OpenFoodFacts barcode lookup
+  // Enhanced nutrition search endpoints using multiple APIs
+  
+  // Barcode lookup using comprehensive nutrition APIs
+  app.get('/api/nutrition/barcode/:barcode', isAuthenticated, async (req, res) => {
+    try {
+      const { barcode } = req.params;
+      const result = await nutritionService.searchByBarcode(barcode);
+      
+      if (result) {
+        res.json(result);
+      } else {
+        res.status(404).json({ message: "Product not found" });
+      }
+    } catch (error) {
+      console.error("Error looking up barcode:", error);
+      res.status(500).json({ message: "Failed to lookup barcode" });
+    }
+  });
+
+  // Text-based food search using multiple nutrition APIs
+  app.get('/api/nutrition/search', isAuthenticated, async (req, res) => {
+    try {
+      const { q: query } = req.query;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ message: "Query parameter 'q' is required" });
+      }
+
+      const results = await nutritionService.searchByText(query);
+      res.json(results);
+    } catch (error) {
+      console.error("Error searching nutrition data:", error);
+      res.status(500).json({ message: "Failed to search nutrition data" });
+    }
+  });
+
+  // Nutrition estimation for foods with quantity and unit
+  app.post('/api/nutrition/estimate', isAuthenticated, async (req, res) => {
+    try {
+      const { foodName, quantity, unit } = req.body;
+      
+      if (!foodName || !quantity || !unit) {
+        return res.status(400).json({ 
+          message: "foodName, quantity, and unit are required" 
+        });
+      }
+
+      const result = await nutritionService.estimateNutrition(foodName, quantity, unit);
+      
+      if (result) {
+        res.json(result);
+      } else {
+        res.status(404).json({ message: "Could not estimate nutrition for this food" });
+      }
+    } catch (error) {
+      console.error("Error estimating nutrition:", error);
+      res.status(500).json({ message: "Failed to estimate nutrition" });
+    }
+  });
+
+  // Batch nutrition lookup for multiple foods
+  app.post('/api/nutrition/batch', isAuthenticated, async (req, res) => {
+    try {
+      const { foods } = req.body;
+      
+      if (!Array.isArray(foods)) {
+        return res.status(400).json({ message: "foods array is required" });
+      }
+
+      const results = await Promise.allSettled(
+        foods.map(async (food) => {
+          if (food.barcode) {
+            return await nutritionService.searchByBarcode(food.barcode);
+          } else if (food.name) {
+            const searchResults = await nutritionService.searchByText(food.name);
+            return searchResults[0] || null;
+          }
+          return null;
+        })
+      );
+
+      const processedResults = results.map((result, index) => ({
+        index,
+        success: result.status === 'fulfilled',
+        data: result.status === 'fulfilled' ? result.value : null,
+        error: result.status === 'rejected' ? result.reason.message : null
+      }));
+
+      res.json(processedResults);
+    } catch (error) {
+      console.error("Error in batch nutrition lookup:", error);
+      res.status(500).json({ message: "Failed to process batch nutrition lookup" });
+    }
+  });
+
+  // Legacy barcode endpoint for backward compatibility
   app.get('/api/barcode/:barcode', async (req, res) => {
     try {
       const { barcode } = req.params;

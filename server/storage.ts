@@ -9,6 +9,7 @@ import {
   recipes,
   type User,
   type UpsertUser,
+  type InsertUser,
   type UserProfile,
   type InsertUserProfile,
   type Meal,
@@ -26,8 +27,10 @@ import { db } from "./db";
 import { eq, desc, and, gte, lt } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (mandatory for Replit Auth)
+  // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
   
@@ -66,6 +69,16 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
@@ -229,13 +242,20 @@ export class DatabaseStorage implements IStorage {
 
   // Recipe operations
   async getRecipes(isPremium: boolean, limit = 10): Promise<Recipe[]> {
-    let query = db.select().from(recipes);
-    
     if (!isPremium) {
-      query = query.where(eq(recipes.isPremium, false));
+      return await db
+        .select()
+        .from(recipes)
+        .where(eq(recipes.isPremium, false))
+        .orderBy(desc(recipes.createdAt))
+        .limit(limit);
     }
     
-    return await query.orderBy(desc(recipes.createdAt)).limit(limit);
+    return await db
+      .select()
+      .from(recipes)
+      .orderBy(desc(recipes.createdAt))
+      .limit(limit);
   }
 
   async getRecipeById(id: string): Promise<Recipe | undefined> {
