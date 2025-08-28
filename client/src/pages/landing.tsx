@@ -18,7 +18,7 @@ export default function Landing() {
           {/* Content */}
           <div className="relative z-10">
             <Badge className="mb-4 bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
-              🚀 Join 50,000+ users transforming their nutrition
+              🚀 New revolutionary nutrition tracking app
             </Badge>
             
             <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-6 leading-tight">
@@ -57,19 +57,19 @@ export default function Landing() {
               </Button>
             </div>
             
-            {/* Social Proof */}
+            {/* Trust Indicators */}
             <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600 mb-12">
               <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                <span className="font-semibold">4.8/5 rating</span>
+                <Shield className="w-4 h-4 text-emerald-500" />
+                <span className="font-semibold">Privacy focused</span>
               </div>
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-emerald-500" />
-                <span className="font-semibold">50,000+ active users</span>
+                <Zap className="w-4 h-4 text-blue-500" />
+                <span className="font-semibold">Lightning fast AI</span>
               </div>
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-blue-500" />
-                <span className="font-semibold">2M+ meals tracked</span>
+                <Target className="w-4 h-4 text-purple-500" />
+                <span className="font-semibold">Science-backed data</span>
               </div>
             </div>
           </div>
@@ -187,8 +187,8 @@ export default function Landing() {
               Become a Nutrition Master
             </h3>
             <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Join thousands who've transformed their health with advanced AI coaching, unlimited recipes, 
-              voice logging, and sustainability tracking.
+              Transform your health with advanced AI coaching, unlimited recipes, 
+              voice logging, and sustainability tracking. Be among the first to experience the future of nutrition.
             </p>
             
             {/* Feature Pills */}
