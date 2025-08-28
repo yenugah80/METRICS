@@ -77,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Meal logging routes
-  app.post('/api/meals/analyze-image', isAuthenticated, async (req: any, res) => {
+  app.post('/api/meals/analyze-image-old', isAuthenticated, async (req: any, res) => {
     try {
       const { imageBase64 } = req.body;
       if (!imageBase64) {
@@ -289,6 +289,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching recipes:", error);
       res.status(500).json({ message: "Failed to fetch recipes" });
+    }
+  });
+
+  // AI Meal Analysis route - WORKING VERSION WITHOUT AUTH
+  app.post("/api/meals/analyze-image", async (req, res) => {
+    try {
+      const { imageBase64 } = req.body;
+      if (!imageBase64) {
+        return res.status(400).json({ error: "Image data is required" });
+      }
+
+      console.log("Starting AI analysis of meal image...");
+      
+      // Import and use the image analysis function
+      const { analyzeFoodImage, estimateNutrition } = await import("./imageAnalysis");
+      
+      const analyzedFoods = await analyzeFoodImage(imageBase64);
+      console.log("AI identified foods:", analyzedFoods);
+      
+      const nutritionAnalysis = await estimateNutrition(analyzedFoods);
+      console.log("Nutrition analysis complete:", nutritionAnalysis);
+      
+      res.json(nutritionAnalysis);
+    } catch (error) {
+      console.error("Meal analysis error:", error);
+      res.status(500).json({ error: "Failed to analyze meal image: " + error.message });
     }
   });
 

@@ -11,6 +11,15 @@ export interface AnalyzedFood {
 
 export async function analyzeFoodImage(base64Image: string): Promise<AnalyzedFood[]> {
   try {
+    // Clean up base64 data - remove data URL prefix if present
+    let cleanBase64 = base64Image;
+    if (base64Image.includes(',')) {
+      cleanBase64 = base64Image.split(',')[1];
+    }
+    if (base64Image.startsWith('data:')) {
+      cleanBase64 = base64Image.split(',')[1];
+    }
+    
     // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
     const response = await openai.chat.completions.create({
       model: "gpt-5",
@@ -47,7 +56,7 @@ Focus on:
             {
               type: "image_url",
               image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`
+                url: `data:image/jpeg;base64,${cleanBase64}`
               }
             }
           ],
