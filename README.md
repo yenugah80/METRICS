@@ -47,27 +47,18 @@ Roadmap features (post‑MVP): barcode scanner, sustainability scoring, recipe g
 
 ## 🧱 Architecture (lean & auditable)
 
-```mermaid
 flowchart LR
-  A[Web (Next.js)] -->|HTTPS| B(API – Node/NestJS)
-  M[Mobile (Expo)] -->|HTTPS| B
-  B -->|Auth| C[Cognito]
-  B -->|SQL| D[(PostgreSQL – AWS RDS)]
-  B -->|Files| E[S3]
-  B -->|Jobs| F[SQS / BullMQ]
-  F --> G[AI Workers]
-  G --> H[OpenAI Vision/Whisper]
-  G --> I[Tesseract (OCR) / Textract]
-  B --> J[PostHog (Product Analytics)]
-```
+  A["Web (Next.js)"] -->|HTTPS| B["API (Node / NestJS)"]
+  M["Mobile (Expo)"] -->|HTTPS| B
+  B -->|Auth| C["Cognito"]
+  B -->|SQL| D["PostgreSQL (AWS RDS)"]
+  B -->|Files| E["S3"]
+  B -->|Jobs| F["SQS / BullMQ"]
+  F --> G["AI Workers"]
+  G --> H["OpenAI Vision / Whisper"]
+  G --> I["OCR (Tesseract / Textract)"]
+  B --> J["Analytics (PostHog)"]
 
-**Why this now**
-
-* Small EC2 (t3.small) + RDS (db.t3.micro) keeps costs low.
-* Queue isolates heavier AI calls; requests remain snappy.
-* Clear PII map: Auth ⟷ Profile ⟷ Meal Data (minimized & encrypted).
-
----
 
 ## 🗂️ Monorepo Layout
 
