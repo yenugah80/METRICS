@@ -56,30 +56,6 @@ export default function Landing() {
               </button>
             </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-3 mb-16">
-              <button
-                className="rounded-full border border-neutral-200 bg-white/70 px-6 py-3 text-[14px] font-medium backdrop-blur hover:bg-white hover:shadow-md transition-all duration-200"
-                onClick={() => window.location.href = '/features'}
-                data-testid="button-features"
-              >
-                Features
-              </button>
-              <button
-                className="rounded-full border border-neutral-200 bg-white/70 px-6 py-3 text-[14px] font-medium backdrop-blur hover:bg-white hover:shadow-md transition-all duration-200"
-                onClick={() => window.location.href = '/pricing'}
-                data-testid="button-pricing"
-              >
-                Pricing
-              </button>
-              <button
-                className="rounded-full border border-neutral-200 bg-white/70 px-6 py-3 text-[14px] font-medium backdrop-blur hover:bg-white hover:shadow-md transition-all duration-200"
-                onClick={() => window.location.href = '/auth'}
-                data-testid="button-get-started"
-              >
-                Get Started
-              </button>
-            </div>
           </div>
         </section>
 
