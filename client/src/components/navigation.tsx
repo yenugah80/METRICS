@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Navigation() {
-  const { user, logoutMutation } = useAuth();
+  const { user, signOutMutation } = useAuth();
   const [location] = useLocation();
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    signOutMutation.mutate();
   };
 
   const navLinks = [
@@ -20,15 +20,15 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className="border-b border-purple-200/30 bg-gradient-to-r from-white/80 via-purple-50/60 to-pink-50/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Professional Logo */}
           <Link href="/" className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">M</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-lg">M</span>
             </div>
-            <span className="professional-heading text-xl font-bold text-foreground tracking-tight">
+            <span className="professional-heading text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent tracking-tight">
               MyFoodMatrics
             </span>
           </Link>
@@ -42,10 +42,10 @@ export default function Navigation() {
                     variant={location === link.href ? "default" : "ghost"}
                     size="sm"
                     className={`
-                      text-sm font-medium transition-colors h-9 px-4
+                      text-sm font-medium transition-all duration-300 h-9 px-4 rounded-xl
                       ${location === link.href 
-                        ? "bg-primary text-primary-foreground" 
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        ? "btn-gradient text-white shadow-lg" 
+                        : "text-purple-600/70 hover:text-purple-700 hover:bg-purple-50/50"
                       }
                     `}
                     data-testid={`nav-${link.label.toLowerCase().replace(' ', '-')}`}
@@ -68,11 +68,11 @@ export default function Navigation() {
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  disabled={logoutMutation.isPending}
-                  className="h-9 px-4 text-sm font-medium"
+                  disabled={signOutMutation.isPending}
+                  className="h-9 px-4 text-sm font-medium btn-outline-glow rounded-xl"
                   data-testid="button-logout"
                 >
-                  {logoutMutation.isPending ? "Signing out..." : "Sign Out"}
+                  {signOutMutation.isPending ? "Signing out..." : "Sign Out"}
                 </Button>
               </div>
             ) : (
@@ -81,7 +81,7 @@ export default function Navigation() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-9 px-4 text-sm font-medium text-muted-foreground hover:text-foreground"
+                    className="h-9 px-4 text-sm font-medium text-purple-600/70 hover:text-purple-700 rounded-xl"
                     data-testid="button-signin"
                   >
                     Sign In
@@ -90,7 +90,7 @@ export default function Navigation() {
                 <Link href="/auth">
                   <Button
                     size="sm"
-                    className="h-9 px-4 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="h-9 px-4 text-sm font-medium btn-gradient rounded-xl"
                     data-testid="button-signup"
                   >
                     Get Started
