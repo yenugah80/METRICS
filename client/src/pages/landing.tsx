@@ -237,66 +237,19 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Premium Section with Gradient Magic */}
-        <Card className="glow-card-hero border-0 rounded-3xl overflow-hidden bg-gradient-to-br from-purple-50/50 via-pink-50/30 to-indigo-50/50">
-          <CardContent className="p-16 text-center">
-            <Badge className="mb-8 bg-gradient-to-r from-yellow-400/30 to-orange-400/30 text-yellow-700 border-yellow-300/40 px-8 py-4 text-sm rounded-full">
-              Professional Subscription
-            </Badge>
-            
-            <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 bg-clip-text text-transparent">
-              Advanced Nutrition Mastery
-            </h3>
-            
-            <p className="body-text text-xl text-blue-600/80 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Unlock the complete suite of professional-grade nutrition tools, including voice logging, 
-              sustainability tracking, unlimited recipe generation, and advanced health analytics.
-            </p>
-            
-            {/* Feature Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-              <div className="space-y-3">
-                <div className="text-sm font-medium text-blue-700">Voice Logging</div>
-                <div className="text-xs text-blue-600/60">Hands-free tracking</div>
-              </div>
-              <div className="space-y-3">
-                <div className="text-sm font-medium text-blue-700">Sustainability Metrics</div>
-                <div className="text-xs text-blue-600/60">Environmental impact</div>
-              </div>
-              <div className="space-y-3">
-                <div className="text-sm font-medium text-blue-700">Unlimited Recipes</div>
-                <div className="text-xs text-blue-600/60">AI-generated meals</div>
-              </div>
-              <div className="space-y-3">
-                <div className="text-sm font-medium text-blue-700">Advanced Analytics</div>
-                <div className="text-xs text-blue-600/60">Health insights</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button 
-                size="lg" 
-                className="btn-premium px-16 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105 transition-all duration-300"
-                onClick={() => window.location.href = '/dashboard'}
-                data-testid="button-premium-cta"
-              >
-                Start Professional Trial
-              </Button>
-              <Button 
-                size="lg"
-                className="btn-outline-glow px-12 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105 transition-all duration-300"
-                onClick={() => window.location.href = '/dashboard'}
-                data-testid="button-free-trial"
-              >
-                Continue with Basic
-              </Button>
-            </div>
-            
-            <p className="text-sm text-blue-600/60 mt-8">
-              Seven-day complimentary trial • No payment required • $6.99 monthly thereafter
-            </p>
-          </CardContent>
-        </Card>
+        {/* Simple Premium Upsell */}
+        <div className="text-center mt-16 mb-8">
+          <p className="text-neutral-600 text-lg mb-4">
+            Unlimited analyses, priority speed, and advanced insights.
+          </p>
+          <a 
+            href="/auth" 
+            className="text-neutral-900 underline underline-offset-4 hover:opacity-70 transition-opacity"
+            data-testid="link-upgrade-premium"
+          >
+            Upgrade to Premium — $6.99/mo
+          </a>
+        </div>
       </main>
 
       {/* Dreamy Footer */}
