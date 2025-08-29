@@ -578,11 +578,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Audio text required" });
       }
 
-      // Check if user has premium access for voice features
-      const user = await storage.getUser(req.user.id);
-      if (!user?.isPremium) {
-        return res.status(403).json({ 
-          message: "Voice logging is available for Premium users only. Upgrade to unlock this feature." 
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Check voice analysis tokens for non-premium users
+      if (!user.isPremium) {
+        // Reset tokens if it's a new month
+        const now = new Date();
+        const lastReset = user.lastTokenReset ? new Date(user.lastTokenReset) : new Date();
+        
+        if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
+          await storage.updateUser(userId, {
+            voiceAnalysisTokens: 5,
+            lastTokenReset: now,
+          });
+          user.voiceAnalysisTokens = 5;
+        }
+
+        if ((user.voiceAnalysisTokens || 0) <= 0) {
+          return res.status(402).json({ 
+            error: "No voice analysis tokens remaining",
+            message: "You've used all your free voice analyses this month. Voice logging helps you log meals hands-free while cooking!",
+            tokensRemaining: user.voiceAnalysisTokens || 0,
+            upgradeUrl: "/upgrade",
+            premiumFeature: "voice_logging"
+          });
+        }
+
+        // Consume one voice token
+        await storage.updateUser(userId, {
+          voiceAnalysisTokens: (user.voiceAnalysisTokens || 0) - 1
         });
       }
 
@@ -1393,7 +1421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Meal Analysis route - NOW WITH PROPER USER DIET PREFERENCES
+  // AI Meal Analysis route with token-based freemium system
   app.post("/api/meals/analyze-image", verifyJWT, async (req: any, res) => {
     try {
       const { imageBase64 } = req.body;
@@ -1401,10 +1429,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Image data is required" });
       }
 
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Check token availability for non-premium users
+      if (!user.isPremium) {
+        // Reset tokens if it's a new month
+        const now = new Date();
+        const lastReset = user.lastTokenReset ? new Date(user.lastTokenReset) : new Date();
+        
+        if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
+          // Reset tokens for new month
+          await storage.updateUser(userId, {
+            aiAnalysisTokens: 20,
+            voiceAnalysisTokens: 5,
+            recipeGenerationTokens: 3,
+            lastTokenReset: now,
+          });
+          user.aiAnalysisTokens = 20;
+        }
+
+        if ((user.aiAnalysisTokens || 0) <= 0) {
+          return res.status(402).json({ 
+            error: "No analysis tokens remaining",
+            message: "You've used all your free AI analyses this month. Upgrade to Premium for unlimited analyses or buy more tokens.",
+            tokensRemaining: user.aiAnalysisTokens || 0,
+            upgradeUrl: "/upgrade",
+            tokenPackages: [
+              { name: "Starter Pack", tokens: 50, price: "$2.99" },
+              { name: "Power Pack", tokens: 200, price: "$9.99" },
+              { name: "Unlimited Monthly", tokens: "unlimited", price: "$6.99/month" }
+            ]
+          });
+        }
+
+        // Consume one token
+        await storage.updateUser(userId, {
+          aiAnalysisTokens: (user.aiAnalysisTokens || 0) - 1
+        });
+      }
+
       console.log("Starting food analysis of meal image...");
       
       // Get user profile to check diet preferences
-      const userId = req.user.id;
       const userProfile = await storage.getUserProfile(userId);
       const dietPreferences = userProfile?.dietPreferences || [];
       
@@ -1414,6 +1484,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { analyzeFoodImageWithNutrition } = await import("./imageAnalysis");
       
       const nutritionAnalysis = await analyzeFoodImageWithNutrition(imageBase64, dietPreferences);
+      
+      // Add token information to response for UI feedback
+      nutritionAnalysis.tokenInfo = {
+        tokensRemaining: user.isPremium ? "unlimited" : ((user.aiAnalysisTokens || 0) - 1),
+        isPremium: user.isPremium,
+        resetDate: user.lastTokenReset
+      };
+      
       console.log("Food analysis complete:", nutritionAnalysis);
       
       // Add helpful message if no diet preferences are set

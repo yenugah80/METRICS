@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import VoiceLogger from "@/components/VoiceLogger";
 import { SustainabilityCard } from "@/components/SustainabilityCard";
 import { AllergenAlert } from "@/components/AllergenAlert";
+import { TokenDisplay } from "@/components/TokenDisplay";
 
 interface AnalyzedFood {
   name: string;
@@ -787,31 +788,43 @@ export default function MealCamera() {
                         <h4 className="font-bold text-lg">Nutrition Summary</h4>
                       </div>
                       
-                      {/* Main Macros - Responsive Large Display */}
+                      {/* Main Macros - Enhanced Display with Better Formatting */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
                         <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
-                          <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                            {Math.round(analysis.total_calories || 0)}
+                          <div className="text-2xl md:text-3xl font-bold text-primary mb-1" data-testid="nutrition-calories-total">
+                            {(analysis.total_calories || 0).toLocaleString()}
                           </div>
                           <div className="text-xs md:text-sm font-medium text-muted-foreground">Calories</div>
+                          <div className="text-xs text-muted-foreground/80 mt-1">
+                            Total meal
+                          </div>
                         </div>
                         <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
-                          <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
-                            {Math.round((analysis.total_protein || 0) * 10) / 10}g
+                          <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1" data-testid="nutrition-protein-total">
+                            {(analysis.total_protein || 0).toFixed(1)}g
                           </div>
                           <div className="text-xs md:text-sm font-medium text-muted-foreground">Protein</div>
+                          <div className="text-xs text-muted-foreground/80 mt-1">
+                            Total meal
+                          </div>
                         </div>
                         <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
-                          <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">
-                            {Math.round((analysis.total_carbs || 0) * 10) / 10}g
+                          <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1" data-testid="nutrition-carbs-total">
+                            {(analysis.total_carbs || 0).toFixed(1)}g
                           </div>
                           <div className="text-xs md:text-sm font-medium text-muted-foreground">Carbs</div>
+                          <div className="text-xs text-muted-foreground/80 mt-1">
+                            Total meal
+                          </div>
                         </div>
                         <div className="text-center p-3 md:p-4 bg-background/60 backdrop-blur rounded-lg border shadow-sm">
-                          <div className="text-2xl md:text-3xl font-bold text-orange-600 mb-1">
-                            {Math.round((analysis.total_fat || 0) * 10) / 10}g
+                          <div className="text-2xl md:text-3xl font-bold text-orange-600 mb-1" data-testid="nutrition-fat-total">
+                            {(analysis.total_fat || 0).toFixed(1)}g
                           </div>
                           <div className="text-xs md:text-sm font-medium text-muted-foreground">Fat</div>
+                          <div className="text-xs text-muted-foreground/80 mt-1">
+                            Total meal
+                          </div>
                         </div>
                       </div>
 

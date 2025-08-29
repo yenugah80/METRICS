@@ -28,6 +28,11 @@ export const users = pgTable("users", {
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   recipesGeneratedThisMonth: integer("recipes_generated_this_month").default(0),
   lastRecipeResetDate: timestamp("last_recipe_reset_date").defaultNow(),
+  // Token-based freemium system
+  aiAnalysisTokens: integer("ai_analysis_tokens").default(20), // Free users get 20 monthly analyses
+  voiceAnalysisTokens: integer("voice_analysis_tokens").default(5), // Free users get 5 voice analyses
+  recipeGenerationTokens: integer("recipe_generation_tokens").default(3), // Free users get 3 AI recipes
+  lastTokenReset: timestamp("last_token_reset").defaultNow(),
   isEmailVerified: boolean("is_email_verified").default(false),
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),

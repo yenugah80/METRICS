@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 // Icons removed for cleaner interface
 import { apiRequest } from "@/lib/queryClient";
+import { TokenDisplay } from "@/components/TokenDisplay";
 
 // Dashboard interfaces
 interface KPIMetric {
