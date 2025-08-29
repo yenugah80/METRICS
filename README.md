@@ -111,14 +111,90 @@ myfoodmatrics/
 
 ---
 
-## MVP Scope (truthful & measurable)
+## 🎯 MVP Scope
 
-* p95 time: **≤5s** photo→meal; **≤8s** worst‑case first run.
-* First session success: **≥70%** (user logs 1 meal without help).
-* Weekly retention target (seed): **≥35%** for the first 50 users.
-* Accuracy is reported as: **top‑k recognition** + **portion error bands**.
+<details>
+<summary><b>Click to expand full MVP Scope</b></summary>
 
-**Out of scope (for now):** offline mode, complex recipes, mood correlations, full sustainability LCA.
+### Why Users Should Use MyFoodMatrics
+Most nutrition apps fail because they ask users to type everything they eat. Our MVP fixes that problem:
+
+- 📸 **Photo-first logging**: A meal can be captured and analyzed in under 5 seconds.  
+- 🎤 **Voice logging**: Speaking a meal works as naturally as texting a friend.  
+- 🧾 **Barcode scanning**: Packaged foods can be scanned for instant details.  
+- ⚠️ **Allergen detection**: FDA’s big-8 plus custom sensitivities are flagged.  
+- 🍽️ **Diet compatibility**: 20+ diets scored automatically (keto, vegan, etc.).  
+- 🌍 **Sustainability scoring**: Carbon, water, and sourcing impact visible per meal.  
+- 🔄 **Swap suggestions**: Safer or healthier alternatives when meals don’t fit.  
+
+**Why this matters:** Users save time, avoid errors, and get practical health and sustainability guidance in one place — competitors can’t offer all three.
+
+---
+
+### Company Benefits
+- **Data advantage**: Every logged meal strengthens our dataset across nutrition, allergens, and sustainability.  
+- **Market differentiation**: We compete on more than calories — our scope is broader and harder to copy.  
+- **Partnership options**: ESG-minded companies, wellness programs, and insurers all benefit from this data.  
+- **Premium conversion**: Voice and deeper impact insights provide a clear upgrade path.  
+
+---
+
+### Competitive Context
+
+| Feature                 | MyFoodMatrics | MyFitnessPal | Noom | LoseIt |
+|--------------------------|---------------|--------------|------|--------|
+| **Photo Logging**        | ✅Instant  | ❌ Manual entry | ❌ Manual entry | ❌ Manual entry |
+| **Voice Logging**        | ✅ Real-time | ❌ | ❌ | ❌ |
+| **Allergen Detection**   | ✅ Custom + FDA 8 | ❌ | ❌ | ❌ |
+| **Diet Compatibility**   | ✅ 20+ diets | ❌ | ❌ | ❌ |
+| **Sustainability Score** | ✅ Carbon + Water + Ethics | ❌ | ❌ | ❌ |
+| **Insights**             | ✅ Swaps + diet goals | Basic macros | Coaching-heavy | Basic macros |
+
+---
+
+### MVP KPIs
+
+**Performance**  
+- Meal recognition: ≤5s p95 latency  
+- Food match accuracy: ≥85% (top-1), ≤15% portion error  
+- Allergen detection: ≥90% accuracy  
+- Sustainability coverage: ≥80% of meals  
+
+**Engagement**  
+- Activation: ≥65% log a meal in first 24h  
+- Retention: ≥35% Day-7 retention  
+- Feature use: ≥50% engage with allergen or sustainability flags weekly  
+
+**Business**  
+- Cost per analysis: <$0.07 average  
+- Premium conversion (seed users): ≥10%  
+- Dataset growth: ≥15K meals in first 6 months  
+
+---
+
+### Deliverables in Scope
+- Photo-to-meal recognition  
+- Allergen detection  
+- Diet compatibility  
+- Sustainability scoring  
+- Health grade (A–D)  
+
+**Premium hooks**  
+- 🔄 Voice logging (multi-language)  
+- 🔄 Recipe swaps with eco filters  
+
+**Not in MVP**  
+- ❌ Mood/energy correlations  
+- ❌ Clinical trial integrations  
+- ❌ Advanced recipe generation  
+
+---
+
+### Takeaway
+The MVP is designed to prove three things:  
+1. **Users log meals faster and with less friction than any competitor**  
+2. **The dataset we collect (nutrition + allergen + sustainability) is unique and defensible**  
+3. **There is a clear path to premium adoption and B2B partnerships**  
 
 ---
 
