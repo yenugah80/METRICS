@@ -15,7 +15,6 @@ interface KPIMetric {
   value: string | number;
   change: string;
   trend: 'up' | 'down' | 'neutral';
-  icon: any;
   color: string;
 }
 
@@ -23,7 +22,6 @@ interface IntegrationModule {
   name: string;
   status: 'active' | 'inactive' | 'warning';
   description: string;
-  icon: any;
   metrics?: { label: string; value: string }[];
 }
 
@@ -39,7 +37,6 @@ interface RecentActivity {
   title: string;
   description: string;
   timestamp: string;
-  icon: any;
 }
 
 export default function Dashboard() {
@@ -79,7 +76,6 @@ export default function Dashboard() {
       value: dashboardData?.todayStats?.calories ?? 0,
       change: `${dashboardData?.todayStats?.caloriesTrend ?? 0}% vs yesterday`,
       trend: (dashboardData?.todayStats?.caloriesTrend ?? 0) >= 0 ? 'up' : 'down',
-      icon: Flame,
       color: "from-orange-500 to-red-500"
     },
     {
@@ -87,7 +83,6 @@ export default function Dashboard() {
       value: dashboardData?.todayStats?.mealsLogged ?? 0,
       change: `${dashboardData?.weeklyStats?.avgMealsPerDay ?? 0}/day avg`,
       trend: 'up',
-      icon: Apple,
       color: "from-green-500 to-emerald-600"
     },
     {
@@ -95,7 +90,6 @@ export default function Dashboard() {
       value: `${dashboardData?.goalsProgress?.achieved ?? 0}/${dashboardData?.goalsProgress?.total ?? 0}`,
       change: `${Math.round(((dashboardData?.goalsProgress?.achieved ?? 0) / (dashboardData?.goalsProgress?.total ?? 1) * 100))}% completion`,
       trend: 'up',
-      icon: Target,
       color: "from-blue-500 to-cyan-500"
     },
     {
@@ -103,7 +97,6 @@ export default function Dashboard() {
       value: `${dashboardData?.streak?.current ?? 0} days`,
       change: `Best: ${dashboardData?.streak?.longest ?? 0} days`,
       trend: 'up',
-      icon: Award,
       color: "from-purple-500 to-pink-500"
     }
   ];
@@ -114,7 +107,6 @@ export default function Dashboard() {
       name: "AI Food Analysis",
       status: (systemHealthData as any)?.services?.aiAnalysis?.status ?? 'active',
       description: "Computer vision, nutrition calculation",
-      icon: Brain,
       metrics: [
         { label: "Analyses Today", value: String((dashboardData as any)?.aiStats?.analysesToday ?? 0) },
         { label: "Accuracy", value: `${(systemHealthData as any)?.services?.aiAnalysis?.accuracy ?? 95}%` },
@@ -125,7 +117,6 @@ export default function Dashboard() {
       name: "Voice Logging",
       status: (systemHealthData as any)?.services?.voiceProcessing?.status ?? 'active',
       description: "Speech-to-text, natural language processing",
-      icon: Mic,
       metrics: [
         { label: "Voice Logs", value: String((dashboardData as any)?.voiceStats?.logsToday ?? 0) },
         { label: "Recognition", value: `${(systemHealthData as any)?.services?.voiceProcessing?.accuracy ?? 92}%` },
@@ -136,7 +127,6 @@ export default function Dashboard() {
       name: "Recipe Generation",
       status: (systemHealthData as any)?.services?.recipeGeneration?.status ?? 'active',
       description: "AI-powered personalized recipes",
-      icon: Sparkles,
       metrics: [
         { label: "Recipes Created", value: String((dashboardData as any)?.recipeStats?.generated ?? 0) },
         { label: "Success Rate", value: `${(systemHealthData as any)?.services?.recipeGeneration?.successRate ?? 98}%` },
@@ -147,7 +137,6 @@ export default function Dashboard() {
       name: "Barcode Scanner",
       status: (systemHealthData as any)?.services?.barcodeScanner?.status ?? 'active',
       description: "Product database, nutrition lookup",
-      icon: ScanLine,
       metrics: [
         { label: "Scans Today", value: String((dashboardData as any)?.scanStats?.scansToday ?? 0) },
         { label: "Success Rate", value: `${(systemHealthData as any)?.services?.barcodeScanner?.successRate ?? 87}%` },
@@ -158,7 +147,6 @@ export default function Dashboard() {
       name: "Sustainability Scoring",
       status: (systemHealthData as any)?.services?.sustainabilityScoring?.status ?? 'active',
       description: "CO2 footprint, environmental impact",
-      icon: Shield,
       metrics: [
         { label: "Foods Scored", value: String((dashboardData as any)?.sustainabilityStats?.foodsScored ?? 0) },
         { label: "Avg CO2 Score", value: `${(dashboardData as any)?.sustainabilityStats?.avgCO2Score ?? 0}/10` },
@@ -169,7 +157,6 @@ export default function Dashboard() {
       name: "Nutrition Database",
       status: (systemHealthData as any)?.services?.nutritionDatabase?.status ?? 'active',
       description: "USDA data, nutrient calculations",
-      icon: Database,
       metrics: [
         { label: "Foods Available", value: `${(systemHealthData as any)?.services?.nutritionDatabase?.foodCount ?? '8.5K'}` },
         { label: "Data Freshness", value: "Updated daily" },
