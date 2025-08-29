@@ -6,33 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import {
-  Apple,
-  TrendingUp,
-  Target,
-  Zap,
-  BarChart3,
-  Calendar,
-  Search,
-  ScanLine,
-  Mic,
-  Sparkles,
-  Brain,
-  CheckCircle,
-  AlertTriangle,
-  Loader2,
-  Star,
-  Activity,
-  Flame,
-  Users,
-  Shield,
-  Database,
-  Wifi,
-  Clock,
-  Award,
-  Bell,
-  Camera
-} from "lucide-react";
+// Icons removed for cleaner interface
 import { apiRequest } from "@/lib/queryClient";
 
 // Dashboard interfaces
@@ -251,7 +225,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-slate-400" />
+          <div className="w-12 h-12 rounded-full border-4 border-slate-200 border-t-slate-600 animate-spin"></div>
           <p className="text-slate-600 font-medium">Loading your nutrition dashboard...</p>
         </div>
       </div>
@@ -272,12 +246,10 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center space-x-4 text-sm text-slate-500">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4" />
+            <div>
               <span>{currentTime.toLocaleDateString()}</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <Wifi className="h-4 w-4 text-green-500" />
+            <div>
               <span>Live Data</span>
             </div>
           </div>
@@ -288,22 +260,16 @@ export default function Dashboard() {
           {kpiMetrics.map((metric, index) => (
             <Card key={index} className="card-elegant hover:shadow-lg transition-all duration-300">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-slate-600">{metric.title}</p>
                     <p className="text-3xl font-bold text-slate-900">{metric.value}</p>
-                    <p className={`text-xs flex items-center space-x-1 ${
+                    <p className={`text-xs ${
                       metric.trend === 'up' ? 'text-green-600' : 
                       metric.trend === 'down' ? 'text-red-600' : 'text-slate-500'
                     }`}>
-                      <TrendingUp className={`h-3 w-3 ${
-                        metric.trend === 'down' ? 'rotate-180' : ''
-                      }`} />
                       <span>{metric.change}</span>
                     </p>
-                  </div>
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${metric.color} flex items-center justify-center shadow-lg`}>
-                    <metric.icon className="h-6 w-6 text-white" />
                   </div>
                 </div>
               </CardContent>
@@ -317,7 +283,6 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-900">Integration Modules</h2>
               <Button variant="outline" size="sm" className="btn-outline-glow">
-                <Activity className="h-4 w-4 mr-2" />
                 Manage Integrations
               </Button>
             </div>
@@ -327,22 +292,17 @@ export default function Dashboard() {
                 <Card key={index} className="card-elegant hover:shadow-lg transition-all duration-300">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                          <module.icon className="h-5 w-5 text-slate-700" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg font-bold text-slate-900">{module.name}</CardTitle>
-                          <CardDescription className="text-sm text-slate-600">{module.description}</CardDescription>
-                        </div>
+                      <div>
+                        <CardTitle className="text-lg font-bold text-slate-900">{module.name}</CardTitle>
+                        <CardDescription className="text-sm text-slate-600">{module.description}</CardDescription>
                       </div>
                       <Badge className={`${getStatusColor(module.status)} border font-medium`}>
                         {module.status === 'active' ? (
-                          <><CheckCircle className="h-3 w-3 mr-1" /> Active</>
+                          <>Active</>
                         ) : module.status === 'warning' ? (
-                          <><AlertTriangle className="h-3 w-3 mr-1" /> Warning</>
+                          <>Warning</>
                         ) : (
-                          <><Activity className="h-3 w-3 mr-1" /> Inactive</>
+                          <>Inactive</>
                         )}
                       </Badge>
                     </div>
@@ -369,11 +329,8 @@ export default function Dashboard() {
             {/* System Health */}
             <Card className="card-elegant">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center space-x-3 text-lg font-bold text-slate-900">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                    <Activity className="h-4 w-4 text-white" />
-                  </div>
-                  <span>System Health</span>
+                <CardTitle className="text-lg font-bold text-slate-900">
+                  System Health
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -400,28 +357,18 @@ export default function Dashboard() {
             {/* Recent Activities */}
             <Card className="card-elegant">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center space-x-3 text-lg font-bold text-slate-900">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                    <Bell className="h-4 w-4 text-white" />
-                  </div>
-                  <span>Recent Activity</span>
+                <CardTitle className="text-lg font-bold text-slate-900">
+                  Recent Activity
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {activitiesLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <div className="w-6 h-6 rounded-full border-2 border-slate-200 border-t-slate-400 animate-spin"></div>
                   </div>
                 ) : (recentActivities as any)?.slice(0, 5).map((activity: RecentActivity, index: number) => {
-                  const ActivityIcon = activity.icon === 'Apple' ? Apple : 
-                                     activity.icon === 'Target' ? Target :
-                                     activity.icon === 'Shield' ? Shield :
-                                     activity.icon === 'Sparkles' ? Sparkles : Bell;
                   return (
                     <div key={activity.id || index} className="flex items-center space-x-3 py-2">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                        <ActivityIcon className="h-4 w-4 text-slate-600" />
-                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-slate-900 truncate">
                           {activity.title}
@@ -438,7 +385,6 @@ export default function Dashboard() {
                 })}
                 {(!(recentActivities as any) || (recentActivities as any)?.length === 0) && !activitiesLoading && (
                   <div className="text-center py-8 text-slate-500">
-                    <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No recent activity</p>
                   </div>
                 )}
@@ -453,19 +399,16 @@ export default function Dashboard() {
               <CardContent className="space-y-3">
                 <Link href="/meal-camera">
                   <Button className="w-full btn-gradient justify-start" size="sm">
-                    <Camera className="h-4 w-4 mr-3" />
                     Log Meal with Photo
                   </Button>
                 </Link>
                 <Link href="/search">
                   <Button className="w-full btn-outline-glow justify-start" size="sm">
-                    <Search className="h-4 w-4 mr-3" />
                     Search Food Database
                   </Button>
                 </Link>
                 <Link href="/recipes">
                   <Button className="w-full btn-outline-glow justify-start" size="sm">
-                    <Sparkles className="h-4 w-4 mr-3" />
                     Generate AI Recipe
                   </Button>
                 </Link>
