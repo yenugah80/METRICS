@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import {
   Apple,
@@ -15,7 +18,16 @@ import {
   Calendar,
   Search,
   ScanLine,
+  Mic,
+  Camera,
+  Sparkles,
+  Brain,
+  CheckCircle,
+  AlertTriangle,
+  Loader2,
+  Star
 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface DailyStats {
   calories: number;
@@ -42,6 +54,11 @@ interface RecentMeal {
 }
 
 export default function Dashboard() {
+  const { toast } = useToast();
+  const [demoText, setDemoText] = useState("");
+  const [demoBarcode, setDemoBarcode] = useState("");
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  
   // Fetch real data from APIs
   const { data: dailyStatsData, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/stats/today"],
@@ -49,6 +66,58 @@ export default function Dashboard() {
 
   const { data: recentMealsData, isLoading: mealsLoading } = useQuery({
     queryKey: ["/api/meals/recent"],
+  });
+  
+  const { data: userProfile } = useQuery({
+    queryKey: ["/api/profile"],
+  });
+  
+  const { data: usageStats } = useQuery({
+    queryKey: ["/api/usage-stats"],
+  });
+  
+  // Food analysis mutation
+  const analyzeFoodMutation = useMutation({
+    mutationFn: async ({ type, data }: { type: string, data: string }) => {
+      const res = await apiRequest("POST", "/api/analyze-food", { type, data });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      setAnalysisResult(data.data);
+      toast({
+        title: "Analysis Complete!",
+        description: "Food nutrition analysis completed successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to analyze food. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Barcode lookup mutation
+  const barcodeMutation = useMutation({
+    mutationFn: async (barcode: string) => {
+      const res = await apiRequest("GET", `/api/nutrition/barcode/${barcode}`);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      setAnalysisResult(data);
+      toast({
+        title: "Product Found!",
+        description: `Successfully found product: ${data.product_name || 'Unknown Product'}`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Product Not Found",
+        description: "Try a different barcode or use text analysis.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Transform API data to match component interface
@@ -104,130 +173,275 @@ export default function Dashboard() {
           <p className="body-text text-lg font-medium">Track your daily nutrition goals and discover new foods</p>
         </div>
 
-        {/* Enhanced Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link href="/search">
-            <Card className="feature-card-primary border-0 rounded-2xl overflow-hidden">
-              <CardContent className="flex items-center p-8">
-                <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mr-6">
-                  <Search className="h-8 w-8 text-indigo-600" />
+        {/* Live AI Food Analysis Demo */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Text Analysis Widget */}
+          <Card className="feature-card-hero border-0 rounded-2xl">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
+                <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
+                  <Brain className="h-5 w-5 text-purple-600" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-black text-lg mb-1">Search Foods</h3>
-                  <p className="text-sm font-medium text-gray-600">Find nutrition data instantly</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Card className="feature-card-primary border-0 rounded-2xl overflow-hidden cursor-pointer">
-            <CardContent className="flex items-center p-8">
-              <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mr-6">
-                <ScanLine className="h-8 w-8 text-purple-600" />
+                <span>Live AI Food Analysis</span>
+              </CardTitle>
+              <CardDescription className="font-medium text-gray-600 ml-13">
+                Test our powerful AI nutrition analysis system
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-black">Describe your meal:</label>
+                <Textarea 
+                  placeholder="e.g., grilled chicken breast with quinoa and broccoli"
+                  value={demoText}
+                  onChange={(e) => setDemoText(e.target.value)}
+                  className="min-h-[80px]"
+                  data-testid="input-food-description"
+                />
               </div>
-              <div>
-                <h3 className="font-bold text-black text-lg mb-1">Scan Barcode</h3>
-                <p className="text-sm font-medium text-gray-600">Quick product lookup</p>
-              </div>
+              <Button 
+                onClick={() => analyzeFoodMutation.mutate({ type: 'text', data: demoText })}
+                disabled={!demoText.trim() || analyzeFoodMutation.isPending}
+                className="w-full btn-gradient"
+                data-testid="button-analyze-food"
+              >
+                {analyzeFoodMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyzing...</>
+                ) : (
+                  <><Sparkles className="h-4 w-4 mr-2" /> Analyze with AI</>
+                )}
+              </Button>
             </CardContent>
           </Card>
 
-          <Link href="/camera">
-            <Card className="feature-card-primary border-0 rounded-2xl overflow-hidden">
-              <CardContent className="flex items-center p-8">
-                <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mr-6">
-                  <Plus className="h-8 w-8 text-teal-600" />
+          {/* Barcode Scanner Widget */}
+          <Card className="feature-card-primary border-0 rounded-2xl">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
+                <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
+                  <ScanLine className="h-5 w-5 text-blue-600" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-black text-lg mb-1">AI Camera</h3>
-                  <p className="text-sm font-medium text-gray-600">Photo meal analysis</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+                <span>Barcode Product Lookup</span>
+              </CardTitle>
+              <CardDescription className="font-medium text-gray-600 ml-13">
+                Real database with 2M+ products
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-black">Enter barcode number:</label>
+                <Input 
+                  placeholder="Try: 3017620422003 (Nutella)"
+                  value={demoBarcode}
+                  onChange={(e) => setDemoBarcode(e.target.value)}
+                  data-testid="input-barcode"
+                />
+              </div>
+              <Button 
+                onClick={() => barcodeMutation.mutate(demoBarcode)}
+                disabled={!demoBarcode.trim() || barcodeMutation.isPending}
+                className="w-full btn-gradient"
+                data-testid="button-scan-barcode"
+              >
+                {barcodeMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Looking up...</>
+                ) : (
+                  <><Search className="h-4 w-4 mr-2" /> Lookup Product</>
+                )}
+              </Button>
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Try these barcodes:</strong><br/>
+                  • 3017620422003 (Nutella)<br/>
+                  • 0012000161155 (Coca-Cola)<br/>
+                  • 4901085617267 (Kit Kat)
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Daily Progress */}
+          {/* Analysis Results */}
           <div className="lg:col-span-2">
-            <Card className="feature-card-hero border-0 rounded-2xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
-                  <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
-                    <Target className="h-5 w-5 text-indigo-600" />
+            {analysisResult ? (
+              <Card className="feature-card-hero border-0 rounded-2xl">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
+                    <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </div>
+                    <span>AI Analysis Results</span>
+                  </CardTitle>
+                  <CardDescription className="font-medium text-gray-600 ml-13">
+                    Real-time nutrition analysis powered by USDA and OpenFoodFacts
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Nutrition Summary */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                        {analysisResult.nutrition?.calories || analysisResult.total_calories || 0}
+                      </div>
+                      <div className="text-sm text-blue-600 dark:text-blue-400">Calories</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                        {Math.round(analysisResult.nutrition?.protein || analysisResult.total_protein || 0)}g
+                      </div>
+                      <div className="text-sm text-green-600 dark:text-green-400">Protein</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+                        {Math.round(analysisResult.nutrition?.carbs || analysisResult.total_carbs || 0)}g
+                      </div>
+                      <div className="text-sm text-yellow-600 dark:text-yellow-400">Carbs</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                        {Math.round(analysisResult.nutrition?.fat || analysisResult.total_fat || 0)}g
+                      </div>
+                      <div className="text-sm text-orange-600 dark:text-orange-400">Fat</div>
+                    </div>
                   </div>
-                  <span>Today's Progress</span>
-                </CardTitle>
-                <CardDescription className="font-medium text-gray-600 ml-13">Your nutrition goals for today</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Calories */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-bold text-black">Calories</span>
-                    <span className="text-sm font-medium">
-                      {dailyStats.calories} / {dailyStats.goal_calories}
-                    </span>
+                  
+                  {/* Nutrition Score */}
+                  {analysisResult.nutrition_score && (
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-black">Nutrition Score</span>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={analysisResult.nutrition_score.grade === 'A' ? 'default' : 'secondary'}>
+                            Grade {analysisResult.nutrition_score.grade}
+                          </Badge>
+                          <div className="text-2xl font-bold text-primary">
+                            {analysisResult.nutrition_score.score}/100
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {analysisResult.nutrition_score.explanation}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Diet Compatibility */}
+                  {analysisResult.diet_compatibility && (
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <div className="font-bold text-black mb-2">Diet Compatibility</div>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(analysisResult.diet_compatibility).map(([diet, score]: [string, any]) => (
+                          <Badge 
+                            key={diet} 
+                            variant={score > 80 ? "default" : score > 50 ? "secondary" : "destructive"}
+                            className="capitalize"
+                          >
+                            {diet}: {score}%
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Foods Detected */}
+                  {analysisResult.foods && (
+                    <div>
+                      <div className="font-bold text-black mb-2">Foods Detected:</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {analysisResult.foods.map((food: any, index: number) => (
+                          <div key={index} className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">{food.name}</div>
+                            <div className="text-muted-foreground">
+                              {food.quantity} {food.unit} • {food.calories || 0} cal
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="feature-card-hero border-0 rounded-2xl">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
+                    <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
+                      <Target className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <span>Today's Progress</span>
+                  </CardTitle>
+                  <CardDescription className="font-medium text-gray-600 ml-13">Your nutrition goals for today</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Calories */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-bold text-black">Calories</span>
+                      <span className="text-sm font-medium">
+                        {dailyStats.calories} / {dailyStats.goal_calories}
+                      </span>
+                    </div>
+                    <Progress
+                      value={getProgressPercentage(dailyStats.calories, dailyStats.goal_calories)}
+                      className="h-3"
+                    />
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {dailyStats.goal_calories - dailyStats.calories} calories remaining
+                    </div>
                   </div>
-                  <Progress
-                    value={getProgressPercentage(dailyStats.calories, dailyStats.goal_calories)}
-                    className="h-3"
-                  />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {dailyStats.goal_calories - dailyStats.calories} calories remaining
-                  </div>
-                </div>
 
-                {/* Macros */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-bold text-black">Protein</span>
-                      <span className="text-xs font-medium">{dailyStats.protein}g / {dailyStats.goal_protein}g</span>
+                  {/* Macros */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-bold text-black">Protein</span>
+                        <span className="text-xs font-medium">{dailyStats.protein}g / {dailyStats.goal_protein}g</span>
+                      </div>
+                      <Progress
+                        value={getProgressPercentage(dailyStats.protein, dailyStats.goal_protein)}
+                        className="h-2"
+                      />
                     </div>
-                    <Progress
-                      value={getProgressPercentage(dailyStats.protein, dailyStats.goal_protein)}
-                      className="h-2"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-bold text-black">Carbs</span>
-                      <span className="text-xs font-medium">{dailyStats.carbs}g / {dailyStats.goal_carbs}g</span>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-bold text-black">Carbs</span>
+                        <span className="text-xs font-medium">{dailyStats.carbs}g / {dailyStats.goal_carbs}g</span>
+                      </div>
+                      <Progress
+                        value={getProgressPercentage(dailyStats.carbs, dailyStats.goal_carbs)}
+                        className="h-2"
+                      />
                     </div>
-                    <Progress
-                      value={getProgressPercentage(dailyStats.carbs, dailyStats.goal_carbs)}
-                      className="h-2"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-bold text-black">Fat</span>
-                      <span className="text-xs font-medium">{dailyStats.fat}g / {dailyStats.goal_fat}g</span>
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-bold text-black">Fat</span>
+                        <span className="text-xs font-medium">{dailyStats.fat}g / {dailyStats.goal_fat}g</span>
+                      </div>
+                      <Progress
+                        value={getProgressPercentage(dailyStats.fat, dailyStats.goal_fat)}
+                        className="h-2"
+                      />
                     </div>
-                    <Progress
-                      value={getProgressPercentage(dailyStats.fat, dailyStats.goal_fat)}
-                      className="h-2"
-                    />
                   </div>
-                </div>
 
-                {/* Today's Summary */}
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4" />
-                      <span className="font-medium">Today</span>
+                  {/* Today's Summary */}
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4" />
+                        <span className="font-medium">Today</span>
+                      </div>
+                      <Badge variant="secondary">{dailyStats.meals_logged} meals logged</Badge>
                     </div>
-                    <Badge variant="secondary">{dailyStats.meals_logged} meals logged</Badge>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          {/* Recent Meals */}
-          <div>
+          {/* Recent Meals & Features */}
+          <div className="space-y-6">
             <Card className="feature-card-primary border-0 rounded-2xl">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
@@ -238,7 +452,7 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {recentMeals.map((meal) => (
+                {recentMeals.length > 0 ? recentMeals.map((meal) => (
                   <div key={meal.id} className="border rounded-lg p-3">
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -259,13 +473,76 @@ export default function Dashboard() {
                       </span>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <Apple className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No meals logged yet.</p>
+                    <p className="text-sm">Try the AI analysis above!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            {/* Premium Features Showcase */}
+            <Card className="feature-card-premium border-0 rounded-2xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
+                  <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
+                    <Star className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <span>Premium Features</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Mic className="h-5 w-5 text-purple-600" />
+                    <div>
+                      <div className="font-bold text-sm">Voice Logging</div>
+                      <div className="text-xs text-muted-foreground">"I had a chicken salad"</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <div className="font-bold text-sm">Sustainability Scores</div>
+                      <div className="text-xs text-muted-foreground">CO2 & water impact</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Sparkles className="h-5 w-5 text-green-600" />
+                    <div>
+                      <div className="font-bold text-sm">Unlimited AI Recipes</div>
+                      <div className="text-xs text-muted-foreground">Personalized to your diet</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {usageStats && (
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <div className="text-xs text-center">
+                      {(usageStats as any)?.usageStats?.isPremium ? (
+                        <span className="text-yellow-600 font-bold">✨ Premium Active</span>
+                      ) : (
+                        <span>
+                          Free: {(usageStats as any)?.usageStats?.remainingFree || 5} recipes left
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                <Link href="/recipes">
+                  <Button className="w-full btn-gradient" data-testid="button-try-premium">
+                    Try Premium Features
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Live API Demo */}
+        {/* Real Features Navigation */}
         <div className="mt-8">
           <Card className="feature-card-hero border-0 rounded-2xl">
             <CardHeader className="pb-6">
@@ -273,48 +550,58 @@ export default function Dashboard() {
                 <div className="w-12 h-12 feature-icon-enhanced rounded-xl flex items-center justify-center">
                   <Zap className="h-6 w-6 text-yellow-600" />
                 </div>
-                <span>Live Nutrition API Demo</span>
+                <span>Explore All Features</span>
               </CardTitle>
               <CardDescription className="font-medium text-gray-600 ml-15">
-                Test our powerful nutrition database powered by USDA FoodData Central and Open Food Facts
+                Access the full power of MyFoodMatrics - comprehensive nutrition tracking and AI analysis
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Link href="/search">
                   <Button className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-gradient">
                     <Search className="h-6 w-6" />
                     <div className="text-center">
-                      <div className="font-bold">Search Foods</div>
-                      <div className="text-xs opacity-90">Try "banana" or "chicken"</div>
+                      <div className="font-bold">Food Search</div>
+                      <div className="text-xs opacity-90">2M+ products</div>
+                    </div>
+                  </Button>
+                </Link>
+
+                <Link href="/camera">
+                  <Button className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-gradient">
+                    <Camera className="h-6 w-6" />
+                    <div className="text-center">
+                      <div className="font-bold">AI Camera</div>
+                      <div className="text-xs opacity-90">Photo analysis</div>
+                    </div>
+                  </Button>
+                </Link>
+                
+                <Link href="/recipes">
+                  <Button className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-gradient">
+                    <Sparkles className="h-6 w-6" />
+                    <div className="text-center">
+                      <div className="font-bold">AI Recipes</div>
+                      <div className="text-xs opacity-90">Personalized</div>
                     </div>
                   </Button>
                 </Link>
 
                 <Button 
-                  className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-gradient"
                   onClick={() => {
-                    window.location.href = "/search";
-                    setTimeout(() => {
-                      const barcodeTab = document.querySelector('[data-tab="barcode"]') as HTMLElement;
-                      if (barcodeTab) barcodeTab.click();
-                    }, 100);
+                    toast({
+                      title: "Analytics Coming Soon!",
+                      description: "Advanced nutrition analytics and trends are being developed.",
+                    });
                   }}
-                >
-                  <ScanLine className="h-6 w-6" />
-                  <div className="text-center">
-                    <div className="font-bold">Scan Barcode</div>
-                    <div className="text-xs opacity-90">Try Nutella: 3017620422003</div>
-                  </div>
-                </Button>
-
-                <Button 
                   variant="outline"
                   className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-outline-glow"
+                  data-testid="button-analytics"
                 >
                   <BarChart3 className="h-6 w-6" />
                   <div className="text-center">
-                    <div className="font-bold">View Analytics</div>
+                    <div className="font-bold">Analytics</div>
                     <div className="text-xs opacity-75">Coming soon</div>
                   </div>
                 </Button>
