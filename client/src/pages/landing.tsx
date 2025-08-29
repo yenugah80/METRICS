@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLocation } from "wouter";
 
 export default function Landing() {
+  const [, navigate] = useLocation();
   return (
     <div className="min-h-screen relative z-10">
       <main className="container mx-auto px-6 py-16 max-w-7xl">
@@ -36,7 +38,7 @@ export default function Landing() {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4 mb-16">
               <button
                 className="relative rounded-full px-8 py-4 text-[15px] font-semibold text-white overflow-hidden group transform hover:scale-105 transition-all duration-300"
-                onClick={() => window.location.href = '/auth'}
+                onClick={() => navigate('/auth')}
                 data-testid="button-journey-cta"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 opacity-90 group-hover:opacity-100 transition-opacity"></div>
@@ -46,7 +48,7 @@ export default function Landing() {
               </button>
               <button
                 className="relative rounded-full px-8 py-4 text-[15px] font-semibold text-white overflow-hidden group transform hover:scale-105 transition-all duration-300"
-                onClick={() => window.location.href = '/demo'}
+                onClick={() => navigate('/demo')}
                 data-testid="button-demo"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 opacity-90 group-hover:opacity-100 transition-opacity"></div>
@@ -192,7 +194,7 @@ export default function Landing() {
                   <div className="text-sm text-gray-600 font-medium mb-6">
                     Natural language processing • Contextual understanding • Instant transcription
                   </div>
-                  <button className="w-full relative overflow-hidden rounded-xl py-3 px-6 text-white font-semibold transform hover:scale-105 transition-all duration-300 group/btn" onClick={() => window.location.href = '/auth'}>
+                  <button className="w-full relative overflow-hidden rounded-xl py-3 px-6 text-white font-semibold transform hover:scale-105 transition-all duration-300 group/btn" onClick={() => navigate('/auth')} data-testid="button-voice-logging">
                     <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 opacity-90 group-hover/btn:opacity-100 transition-opacity"></div>
                     <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/30 via-orange-300/30 to-red-300/30 blur-lg group-hover/btn:blur-xl transition-all duration-300"></div>
                     <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.3)_0%,transparent_50%,rgba(255,255,255,0.3)_100%)] opacity-50"></div>
@@ -220,7 +222,7 @@ export default function Landing() {
                   <div className="text-sm text-gray-600 font-medium mb-6">
                     Carbon tracking • Water footprint • Ethical sourcing scores
                   </div>
-                  <button className="w-full relative overflow-hidden rounded-xl py-3 px-6 text-white font-semibold transform hover:scale-105 transition-all duration-300 group/btn" onClick={() => window.location.href = '/auth'}>
+                  <button className="w-full relative overflow-hidden rounded-xl py-3 px-6 text-white font-semibold transform hover:scale-105 transition-all duration-300 group/btn" onClick={() => navigate('/auth')} data-testid="button-track-impact">
                     <div className="absolute inset-0 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 opacity-90 group-hover/btn:opacity-100 transition-opacity"></div>
                     <div className="absolute inset-0 bg-gradient-to-r from-green-300/30 via-emerald-300/30 to-teal-300/30 blur-lg group-hover/btn:blur-xl transition-all duration-300"></div>
                     <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.3)_0%,transparent_50%,rgba(255,255,255,0.3)_100%)] opacity-50"></div>
@@ -248,7 +250,7 @@ export default function Landing() {
                   <div className="text-sm text-gray-600 font-medium mb-6">
                     Trend identification • Pattern analysis • Predictive modeling
                   </div>
-                  <button className="w-full relative overflow-hidden rounded-xl py-3 px-6 text-white font-semibold transform hover:scale-105 transition-all duration-300 group/btn" onClick={() => window.location.href = '/auth'}>
+                  <button className="w-full relative overflow-hidden rounded-xl py-3 px-6 text-white font-semibold transform hover:scale-105 transition-all duration-300 group/btn" onClick={() => navigate('/auth')} data-testid="button-view-analytics">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-90 group-hover/btn:opacity-100 transition-opacity"></div>
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-300/30 via-indigo-300/30 to-purple-300/30 blur-lg group-hover/btn:blur-xl transition-all duration-300"></div>
                     <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.3)_0%,transparent_50%,rgba(255,255,255,0.3)_100%)] opacity-50"></div>
@@ -305,7 +307,7 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <button 
                   className="relative overflow-hidden rounded-2xl py-4 px-12 text-purple-700 font-bold text-lg bg-white hover:bg-gray-50 transform hover:scale-105 transition-all duration-300 shadow-xl group"
-                  onClick={() => window.location.href = '/auth'}
+                  onClick={() => navigate('/auth')}
                   data-testid="button-start-premium"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white to-gray-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>

@@ -32,13 +32,13 @@ export default function Navigation() {
               <span className="text-[17px] font-semibold tracking-[-0.01em] text-neutral-900">MyFoodMatrics</span>
             </Link>
             <nav className="hidden sm:flex items-center gap-2">
-              <Link href="#features">
-                <button className="rounded-full px-4 py-2 text-[14px] font-medium hover:bg-black/5 transition-colors">
+              <Link href="/features">
+                <button className="rounded-full px-4 py-2 text-[14px] font-medium hover:bg-black/5 transition-colors" data-testid="nav-features">
                   Features
                 </button>
               </Link>
-              <Link href="#pricing">
-                <button className="rounded-full px-4 py-2 text-[14px] font-medium hover:bg-black/5 transition-colors">
+              <Link href="/pricing">
+                <button className="rounded-full px-4 py-2 text-[14px] font-medium hover:bg-black/5 transition-colors" data-testid="nav-pricing">
                   Pricing
                 </button>
               </Link>
