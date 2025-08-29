@@ -24,7 +24,7 @@ export default function VoiceLogger({ onVoiceResult, disabled = false }: VoiceLo
   // Initialize speech recognition
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       
       if (SpeechRecognition) {
         const recognitionInstance = new SpeechRecognition();

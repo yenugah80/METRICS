@@ -199,34 +199,58 @@
   }
   
   .btn-premium {
-    background: linear-gradient(135deg, var(--premium) 0%, hsl(38, 70%, 30%) 100%);
+    background: linear-gradient(135deg, 
+      hsl(262, 90%, 58%) 0%, 
+      hsl(224, 85%, 60%) 30%,
+      hsl(192, 95%, 55%) 100%);
     color: white;
     font-weight: 600;
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
   }
   
   .btn-premium:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, hsl(38, 70%, 30%) 0%, hsl(38, 70%, 25%) 100%);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+      0 16px 48px rgba(139, 92, 246, 0.4),
+      0 8px 24px rgba(59, 130, 246, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, 
+      hsl(262, 90%, 62%) 0%, 
+      hsl(224, 85%, 64%) 30%,
+      hsl(192, 95%, 59%) 100%);
+  }
+  
+  .btn-premium:active {
+    transform: translateY(-2px) scale(0.98);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
   }
   
   .btn-outline-glow {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.85);
     border: 2px solid hsl(210, 20%, 80%);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
     color: var(--foreground);
     font-weight: 600;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   }
   
   .btn-outline-glow:hover {
     background: rgba(255, 255, 255, 0.95);
-    border-color: var(--primary);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    border-color: hsl(195, 64%, 70%);
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px) scale(1.01);
+  }
+  
+  .btn-outline-glow:active {
+    transform: translateY(-1px) scale(0.99);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
 
   /* Sophisticated Card System */

@@ -871,23 +871,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user profile for personalized analysis
       const userProfile = await storage.getUserProfile(userId);
 
-      // Estimate nutrition
-      const nutrition = await aiService.estimateNutrition(foods || []);
+      // Get accurate nutrition using deterministic service instead of AI estimation
+      const nutritionResult = await nutritionService.calculateNutrition(foods || []);
+      const totalNutrition = nutritionResult.total_nutrition;
+      
       await storage.createMealNutrition({
         mealId: meal.id,
-        calories: nutrition.calories,
-        protein: nutrition.protein.toString(),
-        carbs: nutrition.carbs.toString(),
-        fat: nutrition.fat.toString(),
-        fiber: nutrition.fiber?.toString() || "0",
-        iron: nutrition.iron?.toString(),
-        vitaminC: nutrition.vitaminC?.toString(),
-        magnesium: nutrition.magnesium?.toString(),
-        vitaminB12: nutrition.vitaminB12?.toString(),
+        calories: totalNutrition.calories_per_100g || 0,
+        protein: (totalNutrition.protein_g_per_100g || 0).toString(),
+        carbs: (totalNutrition.carbs_g_per_100g || 0).toString(),
+        fat: (totalNutrition.fat_g_per_100g || 0).toString(),
+        fiber: (totalNutrition.fiber_g_per_100g || 0).toString(),
+        iron: (totalNutrition.iron_mg_per_100g || 0).toString(),
+        vitaminC: (totalNutrition.vitamin_c_mg_per_100g || 0).toString(),
+        magnesium: (totalNutrition.magnesium_mg_per_100g || 0).toString(),
+        vitaminB12: (totalNutrition.vitamin_b12_mcg_per_100g || 0).toString(),
       });
 
-      // Calculate scores
-      const nutritionScore = await aiService.calculateNutritionScore(nutrition, foods || []);
+      // Calculate nutrition score using real nutrition data
+      const nutritionScore = nutritionService.calculateNutritionScore(totalNutrition, foods.map(f => f.name));
       
       const dietCompatibility = userProfile?.dietPreferences 
         ? await aiService.checkDietCompatibility(foods || [], userProfile.dietPreferences)
@@ -913,22 +915,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sustainabilityDetails: sustainabilityScore as any,
       });
 
-      // Update daily aggregate
+      // Update daily aggregate with real nutrition data
       const today = new Date();
       const currentAggregate = await storage.getDailyAggregate(userId, today);
       
       await storage.upsertDailyAggregate(userId, today, {
-        totalCalories: (currentAggregate?.totalCalories || 0) + nutrition.calories,
-        totalProtein: ((parseFloat(currentAggregate?.totalProtein || "0")) + nutrition.protein).toString(),
-        totalCarbs: ((parseFloat(currentAggregate?.totalCarbs || "0")) + nutrition.carbs).toString(),
-        totalFat: ((parseFloat(currentAggregate?.totalFat || "0")) + nutrition.fat).toString(),
-        totalFiber: ((parseFloat(currentAggregate?.totalFiber || "0")) + (nutrition.fiber || 0)).toString(),
+        totalCalories: (currentAggregate?.totalCalories || 0) + (totalNutrition.calories_per_100g || 0),
+        totalProtein: ((parseFloat(currentAggregate?.totalProtein || "0")) + (totalNutrition.protein_g_per_100g || 0)).toString(),
+        totalCarbs: ((parseFloat(currentAggregate?.totalCarbs || "0")) + (totalNutrition.carbs_g_per_100g || 0)).toString(),
+        totalFat: ((parseFloat(currentAggregate?.totalFat || "0")) + (totalNutrition.fat_g_per_100g || 0)).toString(),
+        totalFiber: ((parseFloat(currentAggregate?.totalFiber || "0")) + (totalNutrition.fiber_g_per_100g || 0)).toString(),
         mealCount: (currentAggregate?.mealCount || 0) + 1,
         averageNutritionScore: nutritionScore.score,
         averageNutritionGrade: nutritionScore.grade,
       });
 
-      res.json({ meal, nutrition, scores: nutritionScore });
+      res.json({ meal, nutrition: totalNutrition, nutritionResult, scores: nutritionScore });
     } catch (error) {
       logger.error('Error creating meal', error, req);
       res.status(500).json({ message: "Failed to create meal" });
