@@ -20,18 +20,23 @@ app.use(helmet({
   } : false,
 }));
 
-// Rate limiting
+// Rate limiting - more permissive for development
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Much higher limit for development
   message: { error: "Too many requests, please try again later" },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for static assets in development
+    return process.env.NODE_ENV === 'development' && !req.path.startsWith('/api');
+  },
 });
+// Only apply rate limiting to API routes
 app.use('/api', limiter);
 
-app.use(express.json({ limit: '10mb' })); // Reduced from 50mb for security
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' })); // Allow large image uploads for food analysis
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 app.use(cookieParser()); // Parse cookies for JWT authentication
 
 app.use((req, res, next) => {
