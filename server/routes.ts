@@ -970,19 +970,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.createMealNutrition({
         mealId: meal.id,
-        calories: totalNutrition.calories_per_100g || 0,
-        protein: (totalNutrition.protein_g_per_100g || 0).toString(),
-        carbs: (totalNutrition.carbs_g_per_100g || 0).toString(),
-        fat: (totalNutrition.fat_g_per_100g || 0).toString(),
-        fiber: (totalNutrition.fiber_g_per_100g || 0).toString(),
-        iron: (totalNutrition.iron_mg_per_100g || 0).toString(),
-        vitaminC: (totalNutrition.vitamin_c_mg_per_100g || 0).toString(),
-        magnesium: (totalNutrition.magnesium_mg_per_100g || 0).toString(),
-        vitaminB12: (totalNutrition.vitamin_b12_mcg_per_100g || 0).toString(),
+        calories: totalNutrition.calories || 0,
+        protein: (totalNutrition.protein || 0).toString(),
+        carbs: (totalNutrition.carbs || 0).toString(),
+        fat: (totalNutrition.fat || 0).toString(),
+        fiber: (totalNutrition.fiber || 0).toString(),
+        iron: (totalNutrition.iron || 0).toString(),
+        vitaminC: (totalNutrition.vitaminC || 0).toString(),
+        magnesium: (totalNutrition.magnesium || 0).toString(),
+        vitaminB12: (totalNutrition.vitaminB12 || 0).toString(),
       });
 
       // Calculate nutrition score using real nutrition data
-      const nutritionScore = nutritionService.calculateNutritionScore(totalNutrition, foods.map(f => f.name));
+      const nutritionScore = nutritionService.calculateNutritionScore(totalNutrition, (foods || []).map(f => f.name));
       
       const dietCompatibility = userProfile?.dietPreferences 
         ? await aiService.checkDietCompatibility(foods || [], userProfile.dietPreferences)
@@ -1004,7 +1004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dietCompatibility: dietCompatibility as any,
         allergenSafety: allergenAnalysis.isAllergenFree ? 'safe' : 'unsafe',
         allergenDetails: allergenAnalysis as any,
-        sustainabilityScore: sustainabilityScore?.score?.toString(),
+        sustainabilityScore: sustainabilityScore?.score?.toString() || null,
         sustainabilityDetails: sustainabilityScore as any,
       });
 
@@ -1013,11 +1013,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentAggregate = await storage.getDailyAggregate(userId, today);
       
       await storage.upsertDailyAggregate(userId, today, {
-        totalCalories: (currentAggregate?.totalCalories || 0) + (totalNutrition.calories_per_100g || 0),
-        totalProtein: ((parseFloat(currentAggregate?.totalProtein || "0")) + (totalNutrition.protein_g_per_100g || 0)).toString(),
-        totalCarbs: ((parseFloat(currentAggregate?.totalCarbs || "0")) + (totalNutrition.carbs_g_per_100g || 0)).toString(),
-        totalFat: ((parseFloat(currentAggregate?.totalFat || "0")) + (totalNutrition.fat_g_per_100g || 0)).toString(),
-        totalFiber: ((parseFloat(currentAggregate?.totalFiber || "0")) + (totalNutrition.fiber_g_per_100g || 0)).toString(),
+        totalCalories: (currentAggregate?.totalCalories || 0) + (totalNutrition.calories || 0),
+        totalProtein: ((parseFloat(currentAggregate?.totalProtein || "0")) + (totalNutrition.protein || 0)).toString(),
+        totalCarbs: ((parseFloat(currentAggregate?.totalCarbs || "0")) + (totalNutrition.carbs || 0)).toString(),
+        totalFat: ((parseFloat(currentAggregate?.totalFat || "0")) + (totalNutrition.fat || 0)).toString(),
+        totalFiber: ((parseFloat(currentAggregate?.totalFiber || "0")) + (totalNutrition.fiber || 0)).toString(),
         mealCount: (currentAggregate?.mealCount || 0) + 1,
         averageNutritionScore: nutritionScore.score,
         averageNutritionGrade: nutritionScore.grade,
@@ -1225,10 +1225,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     for (const meal of dayMeals) {
       const nutrition = await storage.getMealNutrition(meal.id);
       if (nutrition) {
-        totalProtein += nutrition.protein || 0;
-        totalCarbs += nutrition.carbs || 0;
-        totalFat += nutrition.fat || 0;
-        totalFiber += nutrition.fiber || 0;
+        totalProtein += parseFloat(nutrition.protein || "0");
+        totalCarbs += parseFloat(nutrition.carbs || "0");
+        totalFat += parseFloat(nutrition.fat || "0");
+        totalFiber += parseFloat(nutrition.fiber || "0");
       }
     }
     

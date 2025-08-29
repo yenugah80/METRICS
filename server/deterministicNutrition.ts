@@ -66,6 +66,46 @@ export class DeterministicNutritionService {
   }
 
   /**
+   * Search for food by barcode
+   */
+  async searchByBarcode(barcode: string): Promise<FoodItem | null> {
+    try {
+      const result = await this.openFoodFactsAPI.searchByBarcode(barcode);
+      return result || null;
+    } catch (error) {
+      console.error('Barcode search failed:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Search for food by text query
+   */
+  async searchByText(query: string): Promise<FoodItem[]> {
+    try {
+      // Try USDA first
+      const usdaResults = await this.usdaAPI.searchByText(query);
+      if (usdaResults.length > 0) {
+        return usdaResults;
+      }
+
+      // Fallback to OpenFoodFacts
+      const offResults = await this.openFoodFactsAPI.searchByText(query);
+      return offResults;
+    } catch (error) {
+      console.error('Text search failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Estimate nutrition for a given food description
+   */
+  async estimateNutrition(foods: Array<{ name: string; quantity: number; unit: string }>): Promise<DeterministicNutritionResult> {
+    return this.calculateNutrition(foods);
+  }
+
+  /**
    * Get accurate nutrition data for foods using real databases
    * This replaces AI estimation with scientific data for consistency
    */
