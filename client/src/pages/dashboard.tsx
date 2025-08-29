@@ -165,121 +165,91 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6 bg-background min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="professional-heading text-3xl font-bold mb-2">Nutrition Dashboard</h1>
-          <p className="body-text text-lg font-medium">Track your daily nutrition goals and discover new foods</p>
+    <div className="p-4 bg-background min-h-screen">
+      <div className="max-w-md mx-auto">
+        {/* Mobile Header */}
+        <div className="mb-6">
+          <h1 className="text-mobile-2xl font-bold mb-2 text-black">Today's Progress</h1>
+          <p className="text-mobile-sm text-gray-600 font-medium">Track your nutrition and discover new foods</p>
         </div>
 
-        {/* Live AI Food Analysis Demo */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Text Analysis Widget */}
-          <Card className="feature-card-hero border-0 rounded-2xl">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
-                <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
-                  <Brain className="h-5 w-5 text-purple-600" />
-                </div>
-                <span>Live AI Food Analysis</span>
-              </CardTitle>
-              <CardDescription className="font-medium text-gray-600 ml-13">
-                Test our powerful AI nutrition analysis system
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-black">Describe your meal:</label>
-                <Textarea 
-                  placeholder="e.g., grilled chicken breast with quinoa and broccoli"
-                  value={demoText}
-                  onChange={(e) => setDemoText(e.target.value)}
-                  className="min-h-[80px]"
-                  data-testid="input-food-description"
-                />
+        {/* Mobile-Optimized Quick Actions */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <Card className="mobile-card-compact">
+            <CardContent className="p-4 text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Camera className="h-6 w-6 text-blue-600" />
               </div>
-              <Button 
-                onClick={() => analyzeFoodMutation.mutate({ type: 'text', data: demoText })}
-                disabled={!demoText.trim() || analyzeFoodMutation.isPending}
-                className="w-full btn-gradient"
-                data-testid="button-analyze-food"
-              >
-                {analyzeFoodMutation.isPending ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyzing...</>
-                ) : (
-                  <><Sparkles className="h-4 w-4 mr-2" /> Analyze with AI</>
-                )}
-              </Button>
+              <Link href="/camera">
+                <Button className="w-full mobile-btn bg-blue-600 hover:bg-blue-700 text-white text-sm">
+                  Scan Food
+                </Button>
+              </Link>
             </CardContent>
           </Card>
-
-          {/* Barcode Scanner Widget */}
-          <Card className="feature-card-primary border-0 rounded-2xl">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
-                <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
-                  <ScanLine className="h-5 w-5 text-blue-600" />
-                </div>
-                <span>Barcode Product Lookup</span>
-              </CardTitle>
-              <CardDescription className="font-medium text-gray-600 ml-13">
-                Real database with 2M+ products
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-black">Enter barcode number:</label>
-                <Input 
-                  placeholder="Try: 3017620422003 (Nutella)"
-                  value={demoBarcode}
-                  onChange={(e) => setDemoBarcode(e.target.value)}
-                  data-testid="input-barcode"
-                />
+          
+          <Card className="mobile-card-compact">
+            <CardContent className="p-4 text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Mic className="h-6 w-6 text-green-600" />
               </div>
-              <Button 
-                onClick={() => barcodeMutation.mutate(demoBarcode)}
-                disabled={!demoBarcode.trim() || barcodeMutation.isPending}
-                className="w-full btn-gradient"
-                data-testid="button-scan-barcode"
-              >
-                {barcodeMutation.isPending ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Looking up...</>
-                ) : (
-                  <><Search className="h-4 w-4 mr-2" /> Lookup Product</>
-                )}
-              </Button>
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">
-                  <strong>Try these barcodes:</strong><br/>
-                  • 3017620422003 (Nutella)<br/>
-                  • 0012000161155 (Coca-Cola)<br/>
-                  • 4901085617267 (Kit Kat)
-                </p>
-              </div>
+              <Link href="/voice">
+                <Button className="w-full mobile-btn bg-green-600 hover:bg-green-700 text-white text-sm">
+                  Voice Log
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
+        
+        {/* Mobile AI Analysis Card */}
+        <Card className="mobile-card-featured mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center space-x-2 text-mobile-lg font-bold text-black">
+              <Brain className="h-5 w-5 text-purple-600" />
+              <span>AI Food Analysis</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <label className="text-mobile-sm font-semibold text-black">Describe your meal:</label>
+              <Textarea 
+                placeholder="e.g., chicken salad with avocado"
+                value={demoText}
+                onChange={(e) => setDemoText(e.target.value)}
+                className="min-h-[60px] text-mobile-sm"
+                data-testid="input-food-description"
+              />
+            </div>
+            <Button 
+              onClick={() => analyzeFoodMutation.mutate({ type: 'text', data: demoText })}
+              disabled={!demoText.trim() || analyzeFoodMutation.isPending}
+              className="w-full mobile-btn btn-gradient"
+              data-testid="button-analyze-food"
+            >
+              {analyzeFoodMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyzing...</>
+              ) : (
+                <><Sparkles className="h-4 w-4 mr-2" /> Analyze with AI</>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-6">
           {/* Analysis Results */}
-          <div className="lg:col-span-2">
+          <div>
             {analysisResult ? (
-              <Card className="feature-card-hero border-0 rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
-                    <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
-                    <span>AI Analysis Results</span>
+              <Card className="mobile-card-featured">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center space-x-2 text-mobile-lg font-bold text-black">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span>Analysis Results</span>
                   </CardTitle>
-                  <CardDescription className="font-medium text-gray-600 ml-13">
-                    Real-time nutrition analysis powered by USDA and OpenFoodFacts
-                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Nutrition Summary */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Mobile Nutrition Summary */}
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg">
                       <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
                         {analysisResult.nutrition?.calories || analysisResult.total_calories || 0}
@@ -363,15 +333,12 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="feature-card-hero border-0 rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
-                    <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
-                      <Target className="h-5 w-5 text-indigo-600" />
-                    </div>
-                    <span>Today's Progress</span>
+              <Card className="mobile-card-featured">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center space-x-2 text-mobile-lg font-bold text-black">
+                    <Target className="h-5 w-5 text-indigo-600" />
+                    <span>Daily Goals</span>
                   </CardTitle>
-                  <CardDescription className="font-medium text-gray-600 ml-13">Your nutrition goals for today</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Calories */}

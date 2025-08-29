@@ -10,123 +10,94 @@ export default function Navigation() {
     signOutMutation.mutate();
   };
 
-  const navLinks = [
-    { href: "/dashboard", label: "Dashboard", requiresAuth: true },
-    { href: "/camera", label: "Food Analysis", requiresAuth: true },
-    { href: "/recipes", label: "Recipes", requiresAuth: true },
-    { href: "/progress", label: "Progress", requiresAuth: true },
-    { href: "/sustainability", label: "Sustainability", requiresAuth: true },
-    { href: "/profile", label: "Profile", requiresAuth: true },
+  const mobileNavLinks = [
+    { href: "/dashboard", label: "Home", icon: "🏠", requiresAuth: true },
+    { href: "/camera", label: "Scan", icon: "📷", requiresAuth: true },
+    { href: "/recipes", label: "Recipes", icon: "🍽️", requiresAuth: true },
+    { href: "/progress", label: "Stats", icon: "📊", requiresAuth: true },
+    { href: "/profile", label: "Profile", icon: "👤", requiresAuth: true },
   ];
 
-  return (
-    <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Professional Logo */}
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">M</span>
-            </div>
-            <span className="professional-heading text-xl font-bold text-black tracking-tight">
-              MyFoodMatrics
-            </span>
-          </Link>
-
-          {/* Navigation Links */}
-          {user && (
-            <div className="hidden md:flex items-center space-x-1">
-              {navLinks.map((link) => (
-                <Link key={link.href} href={link.href}>
-                  <Button
-                    variant={location === link.href ? "default" : "ghost"}
-                    size="sm"
-                    className={`
-                      text-sm font-medium transition-all duration-300 h-9 px-4 rounded-xl
-                      ${location === link.href 
-                        ? "btn-gradient text-white shadow-lg" 
-                        : "text-gray-700 hover:text-black hover:bg-gray-50"
-                      }
-                    `}
-                    data-testid={`nav-${link.label.toLowerCase().replace(' ', '-')}`}
-                  >
-                    {link.label}
-                  </Button>
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {/* Authentication Actions */}
-          <div className="flex items-center space-x-3">
-            {user ? (
-              <div className="flex items-center space-x-3">
-                <span className="hidden sm:block text-sm text-muted-foreground">
-                  Welcome back
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLogout}
-                  disabled={signOutMutation.isPending}
-                  className="h-9 px-4 text-sm font-medium btn-outline-glow rounded-xl"
-                  data-testid="button-logout"
-                >
-                  {signOutMutation.isPending ? "Signing out..." : "Sign Out"}
+  if (!user) {
+    // Simplified mobile navigation for unauthenticated users
+    return (
+      <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-xl sticky top-0 z-50">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">M</span>
+              </div>
+              <span className="font-bold text-lg text-black">MyFoodMatrics</span>
+            </Link>
+            <div className="flex items-center space-x-2">
+              <Link href="/auth">
+                <Button size="sm" className="btn-gradient text-white px-4 py-2 rounded-lg text-sm font-medium">
+                  Get Started
                 </Button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Link href="/auth">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-9 px-4 text-sm font-medium text-gray-700 hover:text-black rounded-xl"
-                    data-testid="button-signin"
-                  >
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/auth">
-                  <Button
-                    size="sm"
-                    className="h-9 px-4 text-sm font-medium btn-gradient rounded-xl"
-                    data-testid="button-signup"
-                  >
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
-            )}
+              </Link>
+            </div>
           </div>
         </div>
+      </nav>
+    );
+  }
 
-        {/* Mobile Navigation */}
-        {user && (
-          <div className="md:hidden mt-4 pt-4 border-t border-border">
-            <div className="grid grid-cols-2 gap-2">
-              {navLinks.map((link) => (
-                <Link key={link.href} href={link.href}>
-                  <Button
-                    variant={location === link.href ? "default" : "ghost"}
-                    size="sm"
-                    className={`
-                      w-full text-xs font-medium transition-colors h-8
-                      ${location === link.href 
-                        ? "bg-primary text-primary-foreground" 
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                      }
-                    `}
-                    data-testid={`mobile-nav-${link.label.toLowerCase().replace(' ', '-')}`}
-                  >
-                    {link.label}
-                  </Button>
-                </Link>
-              ))}
-            </div>
+  return (
+    <>
+      {/* Top Bar - Mobile Only */}
+      <div className="border-b border-gray-200 bg-white/95 backdrop-blur-xl sticky top-0 z-50">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Link href="/dashboard" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">M</span>
+              </div>
+              <span className="font-bold text-lg text-black">MyFoodMatrics</span>
+            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              disabled={signOutMutation.isPending}
+              className="text-gray-600 hover:text-black px-3 py-1 rounded-lg text-sm"
+              data-testid="button-logout"
+            >
+              {signOutMutation.isPending ? "..." : "Sign Out"}
+            </Button>
           </div>
-        )}
+        </div>
       </div>
-    </nav>
+
+      {/* Bottom Navigation - Mobile First */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200 safe-area-bottom">
+        <div className="grid grid-cols-5 gap-1 px-2 py-2">
+          {mobileNavLinks.map((link) => (
+            <Link key={link.href} href={link.href}>
+              <button
+                className={`
+                  w-full flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-200 touch-manipulation
+                  ${location === link.href 
+                    ? "bg-primary/10 text-primary" 
+                    : "text-gray-600 hover:text-primary hover:bg-gray-50 active:bg-gray-100"
+                  }
+                `}
+                data-testid={`mobile-nav-${link.label.toLowerCase()}`}
+              >
+                <span className="text-xl mb-1">{link.icon}</span>
+                <span className={`text-xs font-medium ${location === link.href ? 'font-semibold' : ''}`}>
+                  {link.label}
+                </span>
+                {location === link.href && (
+                  <div className="w-4 h-1 bg-primary rounded-full mt-1" />
+                )}
+              </button>
+            </Link>
+          ))}
+        </div>
+        {/* Safe area padding for devices with home indicator */}
+        <div className="h-safe-area-inset-bottom" />
+      </div>
+    </>
   );
 }

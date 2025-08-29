@@ -38,73 +38,76 @@ function App() {
           <div className="min-h-screen bg-background">
             <Navigation />
             <Toaster />
-            <Switch>
-              <Route path="/" component={Landing} />
-              <Route path="/auth" component={AuthPage} />
-              <Route path="/dashboard">
-                <ProtectedRoute>
-                  <SafeLazyWrapper message="Loading dashboard...">
-                    <LazyDashboard />
-                  </SafeLazyWrapper>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/search">
-                <ProtectedRoute><SearchPage /></ProtectedRoute>
-              </Route>
-              <Route path="/camera">
-                <SafeLazyWrapper message="Loading camera...">
-                  <LazyMealCamera />
-                </SafeLazyWrapper>
-              </Route>
-              <Route path="/demo">
-                <SafeLazyWrapper message="Loading demo...">
-                  <LazyMealCamera />
-                </SafeLazyWrapper>
-              </Route>
-              <Route path="/recipes">
-                <ProtectedRoute>
-                  <SafeLazyWrapper message="Loading recipes...">
-                    <LazyRecipesPage />
-                  </SafeLazyWrapper>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/progress">
-                <ProtectedRoute>
-                  <SafeLazyWrapper message="Loading progress...">
-                    <LazyDailyProgress />
-                  </SafeLazyWrapper>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/voice">
-                <ProtectedRoute>
-                  <SafeLazyWrapper message="Loading voice logger...">
+            {/* Mobile-optimized main content with bottom navigation spacing */}
+            <main className="pb-20 mobile-scroll">
+              <Switch>
+                <Route path="/" component={Landing} />
+                <Route path="/auth" component={AuthPage} />
+                <Route path="/dashboard">
+                  <ProtectedRoute>
+                    <SafeLazyWrapper message="Loading dashboard...">
+                      <LazyDashboard />
+                    </SafeLazyWrapper>
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/search">
+                  <ProtectedRoute><SearchPage /></ProtectedRoute>
+                </Route>
+                <Route path="/camera">
+                  <SafeLazyWrapper message="Loading camera...">
                     <LazyMealCamera />
                   </SafeLazyWrapper>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/sustainability">
-                <ProtectedRoute>
-                  <SafeLazyWrapper message="Loading sustainability...">
-                    <LazySustainability />
+                </Route>
+                <Route path="/demo">
+                  <SafeLazyWrapper message="Loading demo...">
+                    <LazyMealCamera />
                   </SafeLazyWrapper>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/recommendations">
-                <ProtectedRoute>
-                  <SafeLazyWrapper message="Loading recommendations...">
-                    <LazyRecommendations />
-                  </SafeLazyWrapper>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/profile">
-                <ProtectedRoute>
-                  <SafeLazyWrapper message="Loading profile...">
-                    <LazyProfile />
-                  </SafeLazyWrapper>
-                </ProtectedRoute>
-              </Route>
-              <Route component={NotFound} />
-            </Switch>
+                </Route>
+                <Route path="/recipes">
+                  <ProtectedRoute>
+                    <SafeLazyWrapper message="Loading recipes...">
+                      <LazyRecipesPage />
+                    </SafeLazyWrapper>
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/progress">
+                  <ProtectedRoute>
+                    <SafeLazyWrapper message="Loading progress...">
+                      <LazyDailyProgress />
+                    </SafeLazyWrapper>
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/voice">
+                  <ProtectedRoute>
+                    <SafeLazyWrapper message="Loading voice logger...">
+                      <LazyMealCamera />
+                    </SafeLazyWrapper>
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/sustainability">
+                  <ProtectedRoute>
+                    <SafeLazyWrapper message="Loading sustainability...">
+                      <LazySustainability />
+                    </SafeLazyWrapper>
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/recommendations">
+                  <ProtectedRoute>
+                    <SafeLazyWrapper message="Loading recommendations...">
+                      <LazyRecommendations />
+                    </SafeLazyWrapper>
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/profile">
+                  <ProtectedRoute>
+                    <SafeLazyWrapper message="Loading profile...">
+                      <LazyProfile />
+                    </SafeLazyWrapper>
+                  </ProtectedRoute>
+                </Route>
+                <Route component={NotFound} />
+              </Switch>
+            </main>
           </div>
         </TooltipProvider>
       </AuthProvider>
