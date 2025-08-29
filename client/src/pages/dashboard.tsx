@@ -39,6 +39,46 @@ interface RecentActivity {
   timestamp: string;
 }
 
+interface DashboardStats {
+  todayStats?: {
+    calories: number;
+    caloriesTrend: number;
+    mealsLogged: number;
+  };
+  weeklyStats?: {
+    avgMealsPerDay: number;
+  };
+  goalsProgress?: {
+    achieved: number;
+    total: number;
+  };
+  streak?: {
+    current: number;
+    longest: number;
+  };
+  aiStats?: {
+    analysesToday: number;
+  };
+  voiceStats?: {
+    logsToday: number;
+  };
+}
+
+interface SystemHealthData {
+  services?: {
+    aiAnalysis?: {
+      status: string;
+      accuracy: number;
+      responseTime: number;
+    };
+    voiceProcessing?: {
+      status: string;
+      accuracy: number;
+      responseTime: number;
+    };
+  };
+}
+
 export default function Dashboard() {
   const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -50,12 +90,12 @@ export default function Dashboard() {
   }, []);
 
   // Fetch comprehensive dashboard data
-  const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
+  const { data: dashboardData, isLoading: dashboardLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/overview"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const { data: systemHealthData, isLoading: healthLoading } = useQuery({
+  const { data: systemHealthData, isLoading: healthLoading } = useQuery<SystemHealthData>({
     queryKey: ["/api/system/health"],
     refetchInterval: 60000, // Refresh every minute
   });

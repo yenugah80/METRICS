@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { Home, Camera, ChefHat, TrendingUp, User } from "lucide-react";
 
 export default function Navigation() {
   const { user, signOutMutation } = useAuth();
@@ -11,11 +12,11 @@ export default function Navigation() {
   };
 
   const mobileNavLinks = [
-    { href: "/dashboard", label: "Home", icon: "🏠", requiresAuth: true },
-    { href: "/camera", label: "Scan", icon: "📷", requiresAuth: true },
-    { href: "/recipes", label: "Recipes", icon: "🍽️", requiresAuth: true },
-    { href: "/progress", label: "Stats", icon: "📊", requiresAuth: true },
-    { href: "/profile", label: "Profile", icon: "👤", requiresAuth: true },
+    { href: "/dashboard", label: "Home", icon: Home, requiresAuth: true },
+    { href: "/camera", label: "Scan", icon: Camera, requiresAuth: true },
+    { href: "/recipes", label: "Recipes", icon: ChefHat, requiresAuth: true },
+    { href: "/progress", label: "Stats", icon: TrendingUp, requiresAuth: true },
+    { href: "/profile", label: "Profile", icon: User, requiresAuth: true },
   ];
 
   if (!user) {
@@ -87,7 +88,7 @@ export default function Navigation() {
                 {location === link.href && (
                   <div className="absolute inset-0 bg-gradient-to-br from-slate-100/50 via-slate-50/30 to-white/50 rounded-2xl" />
                 )}
-                <span className={`text-2xl mb-2 transition-transform duration-300 ${location === link.href ? 'scale-110' : 'group-hover:scale-110'}`}>{link.icon}</span>
+                <link.icon className={`w-6 h-6 mb-2 transition-transform duration-300 ${location === link.href ? 'scale-110' : 'group-hover:scale-110'}`} />
                 <span className={`text-xs font-medium transition-all duration-300 ${location === link.href ? 'font-bold text-slate-800' : 'group-hover:font-semibold'}`}>
                   {link.label}
                 </span>
