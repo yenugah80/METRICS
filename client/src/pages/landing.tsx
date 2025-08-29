@@ -7,89 +7,81 @@ export default function Landing() {
   return (
     <div className="min-h-screen relative z-10">
       <main className="container mx-auto px-6 py-16 max-w-7xl">
-        {/* Dreamy Hero Section */}
-        <div className="text-center mb-32">
-          <div className="max-w-4xl mx-auto">
-            <Badge className="mb-8 glow-card border-0 text-gray-700 font-semibold px-8 py-3 text-sm tracking-wider uppercase">
-              Revolutionary Nutrition Intelligence
-            </Badge>
-            
-            <h1 className="professional-heading text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-none">
-              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
-                Stop Guessing,
-              </span>
-              <br />
-              <span className="text-gradient-primary font-extrabold">
-                Start Knowing
-              </span>
-            </h1>
-            
-            <p className="text-lg lg:text-xl mb-4 max-w-2xl mx-auto text-slate-600 font-medium">
+        {/* iOS-Inspired Hero Section */}
+        <section className="relative">
+          {/* Calm brand background with radial gradients */}
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_80%_at_50%_-10%,rgba(99,102,241,.12),transparent_60%),radial-gradient(40%_60%_at_-10%_40%,rgba(16,185,129,.10),transparent_60%)]" />
+          
+          <div className="mx-auto w-[min(1100px,92%)] pt-24 pb-16 text-center">
+            <p className="text-[13px] font-medium tracking-wide text-emerald-700/80 mb-4">
               Master your nutrition with AI-powered precision
             </p>
             
-            <p className="body-text text-xl lg:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed">
-              The only nutrition tracking application that understands your food through advanced artificial intelligence, 
-              providing precise macro-nutrient analysis and personalized health insights.
-            </p>
+            <h1 className="mt-4 text-[44px] md:text-[56px] font-semibold leading-[1.05] tracking-[-0.02em] text-neutral-900 mb-6">
+              Stop Guessing, <span className="text-emerald-700">Start Knowing</span>
+            </h1>
             
-            {/* Creative CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-16">
-              <Button 
-                size="xl"
-                className="btn-gradient px-10 py-6 text-lg font-semibold rounded-2xl transform hover:scale-105 transition-all duration-300"
+            <p className="mx-auto mt-4 max-w-[720px] text-[16px] leading-7 text-neutral-600 mb-8">
+              Photo, barcode, or voice—get instant macro & micro insights with a clean, iOS-grade experience.
+            </p>
+
+            {/* Distinct iOS-style CTAs */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 mb-16">
+              <button
+                className="rounded-full bg-neutral-900 text-white px-5 py-[10px] text-[15px] font-medium hover:opacity-90 transition-opacity ios-interactive"
                 onClick={() => window.location.href = '/auth'}
                 data-testid="button-signup-cta"
               >
-                <Sparkles className="w-5 h-5 mr-2" />
                 Begin Your Journey
-              </Button>
-              <Button 
-                size="xl"
-                className="btn-success px-10 py-6 text-lg font-semibold rounded-2xl transform hover:scale-105 transition-all duration-300"
+              </button>
+              <button
+                className="rounded-full border border-black/10 bg-white/70 px-5 py-[10px] text-[15px] font-medium backdrop-blur hover:bg-white transition-colors ios-interactive"
                 onClick={() => window.location.href = '/demo'}
                 data-testid="button-demo"
               >
-                <BarChart3 className="w-5 h-5 mr-2" />
                 View Demonstration
-              </Button>
-            </div>
-            
-            {/* Interactive Trust Indicators */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <Card className="group hover:scale-105 transition-all duration-500 cursor-pointer">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-6 mx-auto bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all duration-500">
-                    <CheckCircle className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="text-5xl font-black bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300">99.7%</div>
-                  <div className="text-sm text-slate-600 uppercase tracking-wide font-bold">Accuracy Rate</div>
-                  <div className="mt-4 text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Industry-leading precision</div>
-                </CardContent>
-              </Card>
-              <Card className="group hover:scale-105 transition-all duration-500 cursor-pointer" style={{animationDelay: '0.2s'}}>
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-6 mx-auto bg-gradient-to-br from-blue-400 to-indigo-500 shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all duration-500">
-                    <Brain className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="text-5xl font-black bg-gradient-to-br from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300">2M+</div>
-                  <div className="text-sm text-slate-600 uppercase tracking-wide font-bold">Food Database</div>
-                  <div className="mt-4 text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Comprehensive food library</div>
-                </CardContent>
-              </Card>
-              <Card className="group hover:scale-105 transition-all duration-500 cursor-pointer" style={{animationDelay: '0.4s'}}>
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-6 mx-auto bg-gradient-to-br from-purple-400 to-pink-500 shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all duration-500">
-                    <Zap className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="text-5xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300">&lt; 2s</div>
-                  <div className="text-sm text-slate-600 uppercase tracking-wide font-bold">Analysis Time</div>
-                  <div className="mt-4 text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Lightning-fast results</div>
-                </CardContent>
-              </Card>
+              </button>
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* iOS-style Trust Metrics */}
+        <section className="mb-24">
+          <div className="mx-auto w-[min(1100px,92%)]">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div className="ios-card p-8 cursor-pointer group">
+                <div className="text-center">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
+                    <CheckCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-[36px] font-semibold text-neutral-900 mb-2">99.7%</div>
+                  <div className="text-[14px] font-medium text-neutral-600">Accuracy Rate</div>
+                  <div className="mt-2 text-[12px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Industry-leading precision</div>
+                </div>
+              </div>
+              <div className="ios-card p-8 cursor-pointer group">
+                <div className="text-center">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
+                    <Brain className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-[36px] font-semibold text-neutral-900 mb-2">2M+</div>
+                  <div className="text-[14px] font-medium text-neutral-600">Food Database</div>
+                  <div className="mt-2 text-[12px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Comprehensive food library</div>
+                </div>
+              </div>
+              <div className="ios-card p-8 cursor-pointer group">
+                <div className="text-center">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-indigo-500 to-emerald-500 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-[36px] font-semibold text-neutral-900 mb-2">&lt; 2s</div>
+                  <div className="text-[14px] font-medium text-neutral-600">Analysis Time</div>
+                  <div className="mt-2 text-[12px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Lightning-fast results</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Glowing Features Section */}
         <div className="mb-32">

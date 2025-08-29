@@ -1,74 +1,67 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Production-Ready Color System - Sophisticated & Refined */
-  --primary: hsl(195, 64%, 20%); /* Deep Ocean Navy */
+  /* iOS-Inspired Design System - Calm & Sophisticated */
+  --ios-radius: 1.25rem;
+  
+  /* Primary Colors - Indigo & Emerald */
+  --primary: hsl(231, 48%, 48%); /* indigo-500 */
   --primary-foreground: hsl(0, 0%, 100%);
-  --primary-50: hsl(195, 64%, 95%);
-  --primary-100: hsl(195, 64%, 90%);
-  --primary-600: hsl(195, 64%, 25%);
-  --primary-700: hsl(195, 64%, 18%);
+  --primary-50: hsl(238, 100%, 98%);
+  --primary-100: hsl(237, 100%, 96%);
+  --primary-600: hsl(230, 49%, 38%);
+  --primary-700: hsl(229, 50%, 29%);
   
-  /* Sophisticated Secondary - Rich Slate */
-  --secondary: hsl(210, 15%, 16%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --secondary-50: hsl(210, 15%, 98%);
-  --secondary-100: hsl(210, 15%, 95%);
-  --secondary-600: hsl(210, 15%, 20%);
-  --secondary-700: hsl(210, 15%, 12%);
-  
-  /* Elegant Accent - Warm Forest Green */
-  --accent: hsl(158, 40%, 25%);
+  /* Accent Colors - Emerald */
+  --accent: hsl(158, 64%, 52%); /* emerald-500 */
   --accent-foreground: hsl(0, 0%, 100%);
-  --accent-50: hsl(158, 40%, 97%);
-  --accent-100: hsl(158, 40%, 94%);
-  --accent-600: hsl(158, 40%, 20%);
-  --accent-700: hsl(158, 40%, 15%);
+  --accent-50: hsl(166, 76%, 97%);
+  --accent-100: hsl(167, 85%, 89%);
+  --accent-600: hsl(158, 64%, 42%);
+  --accent-700: hsl(158, 64%, 32%);
   
-  /* Premium Gold - Sophisticated Amber */
-  --premium: hsl(38, 70%, 35%);
-  --premium-foreground: hsl(0, 0%, 100%);
-  --premium-50: hsl(38, 70%, 97%);
-  --premium-100: hsl(38, 70%, 94%);
-  --premium-600: hsl(38, 70%, 30%);
-  --premium-700: hsl(38, 70%, 25%);
+  /* Neutral Colors - Calm Typography */
+  --neutral-900: hsl(0, 0%, 9%); /* titles */
+  --neutral-600: hsl(0, 0%, 52%); /* body text */
+  --neutral-50: hsl(0, 0%, 98%);
+  --neutral-100: hsl(0, 0%, 96%);
   
-  /* Status Colors - Refined & Professional */
-  --success: hsl(158, 55%, 30%);
+  /* System Colors */
+  --background: hsl(0, 0%, 100%); /* pure white */
+  --foreground: var(--neutral-900);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: var(--neutral-900);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: var(--neutral-900);
+  --muted: var(--neutral-100);
+  --muted-foreground: var(--neutral-600);
+  --border: hsl(0, 0%, 90%);
+  --input: var(--neutral-100);
+  --ring: var(--primary);
+  
+  /* Success & Status */
+  --success: var(--accent);
   --success-foreground: hsl(0, 0%, 100%);
-  --warning: hsl(38, 75%, 40%);
+  --warning: hsl(38, 92%, 50%);
   --warning-foreground: hsl(0, 0%, 100%);
-  --danger: hsl(0, 55%, 45%);
+  --danger: hsl(0, 84%, 60%);
   --danger-foreground: hsl(0, 0%, 100%);
-  --info: hsl(195, 75%, 35%);
+  --info: var(--primary);
   --info-foreground: hsl(0, 0%, 100%);
   
-  /* Neutral System - Clean & Minimal */
-  --background: hsl(210, 20%, 98%);
-  --foreground: hsl(210, 15%, 8%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(210, 15%, 8%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(210, 15%, 8%);
-  --muted: hsl(210, 20%, 96%);
-  --muted-foreground: hsl(210, 10%, 40%);
-  --border: hsl(210, 20%, 88%);
-  --input: hsl(210, 20%, 94%);
-  --ring: hsl(195, 64%, 20%);
+  /* iOS-style Shadows - Softer */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.12);
   
-  /* Professional Shadows */
-  --shadow-sm: 0 2px 4px hsla(210, 15%, 8%, 0.06);
-  --shadow-md: 0 4px 12px hsla(210, 15%, 8%, 0.08);
-  --shadow-lg: 0 8px 24px hsla(210, 15%, 8%, 0.12);
-  --shadow-xl: 0 16px 48px hsla(210, 15%, 8%, 0.15);
-  
-  --radius: 0.75rem;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --radius: var(--ios-radius);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif;
 }
 
 .dark {
@@ -91,11 +84,10 @@
 
   body {
     @apply antialiased text-foreground;
-    background: linear-gradient(135deg, 
-      hsl(210, 25%, 99%) 0%, 
-      hsl(195, 20%, 98%) 30%,
-      hsl(158, 15%, 98%) 70%,
-      hsl(210, 20%, 99%) 100%);
+    background: 
+      radial-gradient(60% 80% at 50% -10%, rgba(99, 102, 241, 0.08), transparent 60%),
+      radial-gradient(40% 60% at -10% 40%, rgba(16, 185, 129, 0.06), transparent 60%),
+      hsl(0, 0%, 100%);
     background-attachment: fixed;
     min-height: 100vh;
     font-family: var(--font-sans);
@@ -116,19 +108,22 @@
   }
   
   h1 {
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-size: clamp(2.75rem, 4vw, 3.5rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--neutral-900);
   }
   
   h2 {
-    font-size: clamp(1.5rem, 4vw, 2rem);
-    font-weight: 700;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 600;
+    color: var(--neutral-900);
   }
   
   h3 {
-    font-size: clamp(1.25rem, 3vw, 1.5rem);
-    font-weight: 600;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-weight: 500;
+    color: var(--neutral-900);
   }
   
   .professional-heading {
@@ -142,130 +137,91 @@
     font-family: var(--font-body);
     line-height: 1.6;
     letter-spacing: -0.005em;
-    color: hsl(210, 10%, 35%);
+    color: var(--neutral-600);
   }
 
-  /* Production-Ready Button System */
-  .btn-gradient {
-    background: linear-gradient(135deg, 
-      var(--primary) 0%, 
-      hsl(195, 64%, 25%) 50%,
-      var(--accent) 100%);
+  /* iOS-Style Button System */
+  .btn-primary {
+    background: var(--neutral-900);
     border: none;
     color: white;
-    font-weight: 600;
+    font-weight: 500;
+    border-radius: var(--ios-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.15s ease-out;
+    font-size: 15px;
+    padding: 10px 20px;
+  }
+  
+  .btn-primary:hover {
+    transform: scale(1.02);
     box-shadow: var(--shadow-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+    opacity: 0.9;
   }
   
-  .btn-gradient::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s;
-  }
-  
-  .btn-gradient:hover::before {
-    left: 100%;
-  }
-  
-  .btn-gradient:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, 
-      hsl(195, 64%, 25%) 0%, 
-      hsl(195, 64%, 30%) 50%,
-      hsl(158, 40%, 20%) 100%);
-  }
-  
-  .btn-success {
-    background: linear-gradient(135deg, var(--success) 0%, hsl(158, 55%, 25%) 100%);
-    color: white;
-    font-weight: 600;
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .btn-success:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, hsl(158, 55%, 25%) 0%, hsl(158, 55%, 20%) 100%);
+  .btn-primary:active {
+    transform: scale(0.98);
   }
   
   .btn-premium {
-    background: linear-gradient(135deg, 
-      hsl(262, 90%, 58%) 0%, 
-      hsl(224, 85%, 60%) 30%,
-      hsl(192, 95%, 55%) 100%);
+    background: linear-gradient(135deg, var(--primary), var(--accent));
     color: white;
-    font-weight: 600;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    font-weight: 500;
+    border-radius: var(--ios-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.15s ease-out;
     backdrop-filter: blur(12px);
-    position: relative;
-    overflow: hidden;
+    font-size: 15px;
+    padding: 10px 20px;
   }
   
   .btn-premium:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 
-      0 16px 48px rgba(139, 92, 246, 0.4),
-      0 8px 24px rgba(59, 130, 246, 0.25),
-      0 0 0 1px rgba(255, 255, 255, 0.15);
-    background: linear-gradient(135deg, 
-      hsl(262, 90%, 62%) 0%, 
-      hsl(224, 85%, 64%) 30%,
-      hsl(192, 95%, 59%) 100%);
+    transform: scale(1.02);
+    box-shadow: var(--shadow-md);
+    opacity: 0.9;
   }
   
   .btn-premium:active {
-    transform: translateY(-2px) scale(0.98);
-    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+    transform: scale(0.98);
   }
   
-  .btn-outline-glow {
-    background: rgba(255, 255, 255, 0.85);
-    border: 2px solid hsl(210, 20%, 80%);
-    backdrop-filter: blur(15px);
-    color: var(--foreground);
-    font-weight: 600;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  .btn-outline {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    color: var(--neutral-900);
+    font-weight: 500;
+    border-radius: var(--ios-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.15s ease-out;
+    font-size: 15px;
+    padding: 10px 20px;
   }
   
-  .btn-outline-glow:hover {
+  .btn-outline:hover {
     background: rgba(255, 255, 255, 0.95);
-    border-color: hsl(195, 64%, 70%);
-    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.2);
-    transform: translateY(-3px) scale(1.01);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    transform: scale(1.02);
   }
   
-  .btn-outline-glow:active {
-    transform: translateY(-1px) scale(0.99);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  .btn-outline:active {
+    transform: scale(0.98);
   }
 
-  /* Sophisticated Card System */
-  .glow-card {
-    background: rgba(255, 255, 255, 0.9);
+  /* iOS-Style Card System */
+  .ios-card {
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(20px);
-    border: 1px solid hsl(210, 20%, 90%);
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--border);
+    border-radius: var(--ios-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.15s ease-out;
   }
   
-  .glow-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-4px);
-    border-color: hsl(210, 20%, 85%);
+  .ios-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
   }
   
   .glow-card-hero {
