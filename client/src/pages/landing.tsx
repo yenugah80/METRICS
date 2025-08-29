@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, BarChart3, CheckCircle, Brain, Zap } from "lucide-react";
 
 export default function Landing() {
   return (
     <div className="min-h-screen relative z-10">
       <main className="container mx-auto px-6 py-16 max-w-7xl">
-        {/* iOS-Inspired Hero Section */}
+        {/* Hero Section */}
         <section className="relative">
           {/* Calm brand background with radial gradients */}
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_80%_at_50%_-10%,rgba(99,102,241,.12),transparent_60%),radial-gradient(40%_60%_at_-10%_40%,rgba(16,185,129,.10),transparent_60%)]" />
@@ -18,41 +17,79 @@ export default function Landing() {
             </p>
             
             <h1 className="mt-4 text-[44px] md:text-[56px] font-semibold leading-[1.05] tracking-[-0.02em] text-neutral-900 mb-6">
-              Stop Guessing, <span className="text-emerald-700">Start Knowing</span>
+              Stop relying on guesswork
             </h1>
             
-            <p className="mx-auto mt-4 max-w-[720px] text-[16px] leading-7 text-neutral-600 mb-8">
-              Photo, barcode, or voice—get instant macro & micro insights with a clean, iOS-grade experience.
+            <p className="mx-auto mt-4 max-w-[720px] text-[18px] leading-7 text-neutral-600 mb-6">
+              MyFoodMatrics delivers <strong>99.7% accurate</strong> food analysis backed by a database of <strong>2M+ items</strong>
             </p>
 
-            {/* Distinct iOS-style CTAs */}
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 mb-16">
+            <p className="mx-auto mt-4 max-w-[720px] text-[16px] leading-7 text-neutral-600 mb-6">
+              Understand how your meals impact your health, energy, and goals with AI that works in real time.
+            </p>
+
+            <p className="mx-auto mt-4 max-w-[720px] text-[16px] leading-7 text-neutral-600 mb-8">
+              Every meal matters. Get nutrition breakdowns and environmental impact scores to make smarter choices.
+            </p>
+
+            {/* Glowing Gradient Action Buttons */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4 mb-16">
               <button
-                className="rounded-full bg-neutral-900 text-white px-5 py-[10px] text-[15px] font-medium hover:opacity-90 transition-opacity ios-interactive"
+                className="relative rounded-full px-8 py-4 text-[15px] font-semibold text-white overflow-hidden group transform hover:scale-105 transition-all duration-300"
                 onClick={() => window.location.href = '/auth'}
-                data-testid="button-signup-cta"
+                data-testid="button-journey-cta"
               >
-                Begin Your Journey
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 opacity-90 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute inset-0 opacity-30 bg-gradient-to-r from-white/10 via-transparent to-white/10"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-indigo-400/20 blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                <span className="relative z-10">Begin Your Journey</span>
               </button>
               <button
-                className="rounded-full border border-black/10 bg-white/70 px-5 py-[10px] text-[15px] font-medium backdrop-blur hover:bg-white transition-colors ios-interactive"
+                className="relative rounded-full px-8 py-4 text-[15px] font-semibold text-white overflow-hidden group transform hover:scale-105 transition-all duration-300"
                 onClick={() => window.location.href = '/demo'}
                 data-testid="button-demo"
               >
-                View Demonstration
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 opacity-90 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute inset-0 opacity-30 bg-gradient-to-r from-white/10 via-transparent to-white/10"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-400/20 blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                <span className="relative z-10">View Demonstration</span>
+              </button>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-16">
+              <button
+                className="rounded-full border border-neutral-200 bg-white/70 px-6 py-3 text-[14px] font-medium backdrop-blur hover:bg-white hover:shadow-md transition-all duration-200"
+                onClick={() => window.location.href = '/features'}
+                data-testid="button-features"
+              >
+                Features
+              </button>
+              <button
+                className="rounded-full border border-neutral-200 bg-white/70 px-6 py-3 text-[14px] font-medium backdrop-blur hover:bg-white hover:shadow-md transition-all duration-200"
+                onClick={() => window.location.href = '/pricing'}
+                data-testid="button-pricing"
+              >
+                Pricing
+              </button>
+              <button
+                className="rounded-full border border-neutral-200 bg-white/70 px-6 py-3 text-[14px] font-medium backdrop-blur hover:bg-white hover:shadow-md transition-all duration-200"
+                onClick={() => window.location.href = '/auth'}
+                data-testid="button-get-started"
+              >
+                Get Started
               </button>
             </div>
           </div>
         </section>
 
-        {/* iOS-style Trust Metrics */}
+        {/* Trust Metrics - Clean Design */}
         <section className="mb-24">
           <div className="mx-auto w-[min(1100px,92%)]">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div className="ios-card p-8 cursor-pointer group">
                 <div className="text-center">
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
-                    <CheckCircle className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-[36px] font-semibold text-neutral-900 mb-2">99.7%</div>
                   <div className="text-[14px] font-medium text-neutral-600">Accuracy Rate</div>
@@ -62,7 +99,6 @@ export default function Landing() {
               <div className="ios-card p-8 cursor-pointer group">
                 <div className="text-center">
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
-                    <Brain className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-[36px] font-semibold text-neutral-900 mb-2">2M+</div>
                   <div className="text-[14px] font-medium text-neutral-600">Food Database</div>
@@ -72,7 +108,6 @@ export default function Landing() {
               <div className="ios-card p-8 cursor-pointer group">
                 <div className="text-center">
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-indigo-500 to-emerald-500 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
-                    <Zap className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-[36px] font-semibold text-neutral-900 mb-2">&lt; 2s</div>
                   <div className="text-[14px] font-medium text-neutral-600">Analysis Time</div>
@@ -83,24 +118,24 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Glowing Features Section */}
+        {/* Features Section - Clean Design */}
         <div className="mb-32">
           <div className="text-center mb-20">
-            <h2 className="professional-heading text-4xl lg:text-5xl font-bold mb-6">
+            <h2 className="professional-heading text-4xl lg:text-5xl font-bold mb-6 text-neutral-900">
               Comprehensive Nutrition Intelligence
             </h2>
-            <p className="body-text text-xl max-w-3xl mx-auto">
+            <p className="body-text text-xl max-w-3xl mx-auto text-neutral-600">
               Advanced technologies working in harmony to provide unprecedented insight into your nutritional intake and health trajectory.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
-            {/* AI-Powered Food Recognition - Hero Feature */}
+            {/* AI-Powered Food Recognition */}
             <Card className="feature-card-hero border-0 rounded-3xl overflow-hidden">
               <CardContent className="p-12">
                 <div className="mb-8">
                   <Badge className="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-indigo-200 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide">
-                    🚀 PRIMARY TECHNOLOGY
+                    PRIMARY TECHNOLOGY
                   </Badge>
                   <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                     Artificial Intelligence
@@ -136,7 +171,7 @@ export default function Landing() {
               <CardContent className="p-12">
                 <div className="mb-8">
                   <Badge className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border-purple-200 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide">
-                    🧠 MACHINE LEARNING
+                    MACHINE LEARNING
                   </Badge>
                   <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                     Personalized Meal
@@ -167,16 +202,15 @@ export default function Landing() {
             </Card>
           </div>
 
-          {/* Secondary Features Grid */}
+          {/* Secondary Features Grid - Clean Design */}
           <div className="grid md:grid-cols-3 gap-8">
             {/* Voice Logging */}
             <Card className="feature-card-premium border-0 rounded-3xl overflow-hidden">
               <CardContent className="p-10">
                 <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-yellow-50 to-orange-50">
-                  <span className="text-2xl">🎤</span>
                 </div>
                 <Badge className="mb-6 bg-gradient-to-r from-yellow-400/30 to-orange-400/30 text-yellow-800 border-yellow-300/50 px-5 py-2 text-xs rounded-full font-bold tracking-wide">
-                  ⭐ PREMIUM FEATURE
+                  PREMIUM FEATURE
                 </Badge>
                 <h3 className="professional-heading text-2xl font-bold mb-6 bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
                   Voice-Powered Logging
@@ -195,10 +229,9 @@ export default function Landing() {
             <Card className="feature-card-primary border-0 rounded-3xl overflow-hidden">
               <CardContent className="p-10">
                 <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-green-50 to-teal-50">
-                  <span className="text-2xl">🌱</span>
                 </div>
                 <Badge className="mb-6 bg-gradient-to-r from-green-400/30 to-emerald-400/30 text-green-800 border-green-300/50 px-5 py-2 text-xs rounded-full font-bold tracking-wide">
-                  🌿 ECO TRACKING
+                  ECO TRACKING
                 </Badge>
                 <h3 className="professional-heading text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                   Environmental Impact
@@ -217,10 +250,9 @@ export default function Landing() {
             <Card className="feature-card-primary border-0 rounded-3xl overflow-hidden">
               <CardContent className="p-10">
                 <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <span className="text-2xl">📊</span>
                 </div>
                 <Badge className="mb-6 bg-gradient-to-r from-blue-400/30 to-indigo-400/30 text-blue-800 border-blue-300/50 px-5 py-2 text-xs rounded-full font-bold tracking-wide">
-                  📈 ANALYTICS PLATFORM
+                  ANALYTICS PLATFORM
                 </Badge>
                 <h3 className="professional-heading text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Health Trend Analysis
@@ -252,7 +284,7 @@ export default function Landing() {
         </div>
       </main>
 
-      {/* Dreamy Footer */}
+      {/* Footer */}
       <footer className="border-t border-blue-200/30 bg-gradient-to-r from-purple-50/30 to-pink-50/30 mt-32 relative z-10">
         <div className="container mx-auto px-6 py-16">
           <div className="text-center">

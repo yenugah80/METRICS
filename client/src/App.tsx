@@ -11,6 +11,8 @@ import Landing from "@/pages/landing";
 import AuthPage from "@/pages/auth-page";
 import SearchPage from "@/pages/search";
 import VoiceAssistantPage from "@/pages/voice-assistant";
+import FeaturesPage from "@/pages/features";
+import PricingPage from "@/pages/pricing";
 import NotFound from "@/pages/not-found";
 import { initPerformanceOptimizations } from "@/lib/performance";
 
@@ -44,6 +46,8 @@ function App() {
               <Switch>
                 <Route path="/" component={Landing} />
                 <Route path="/auth" component={AuthPage} />
+                <Route path="/features" component={FeaturesPage} />
+                <Route path="/pricing" component={PricingPage} />
                 <Route path="/dashboard">
                   <ProtectedRoute>
                     <SafeLazyWrapper message="Loading dashboard...">
