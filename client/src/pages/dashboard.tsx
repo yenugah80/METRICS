@@ -485,7 +485,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
-                {usageStats && (
+                {usageStats && typeof usageStats === 'object' && (
                   <div className="bg-muted/50 rounded-lg p-3">
                     <div className="text-xs text-center">
                       {(usageStats as any)?.usageStats?.isPremium ? (

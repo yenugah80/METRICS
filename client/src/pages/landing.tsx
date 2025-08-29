@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Sparkles, BarChart3, CheckCircle, Brain, Zap } from "lucide-react";
 
 export default function Landing() {
   return (
@@ -27,49 +28,59 @@ export default function Landing() {
             </p>
             
             {/* Creative CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-16">
               <Button 
-                size="lg"
-                className="btn-gradient px-12 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105"
+                variant="premium"
+                size="xl"
                 onClick={() => window.location.href = '/auth'}
                 data-testid="button-signup-cta"
               >
+                <Sparkles className="w-5 h-5 mr-2" />
                 Begin Your Journey
               </Button>
               <Button 
-                variant="outline"
-                size="lg"
-                className="btn-outline-glow px-10 py-6 text-lg font-medium h-auto rounded-2xl"
+                variant="glass"
+                size="xl"
                 onClick={() => window.location.href = '/demo'}
                 data-testid="button-demo"
               >
+                <BarChart3 className="w-5 h-5 mr-2" />
                 View Demonstration
               </Button>
             </div>
             
-            {/* Enhanced Trust Indicators */}
+            {/* Interactive Trust Indicators */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div className="feature-card-primary p-8 rounded-3xl float-animation">
-                <div className="w-12 h-12 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-green-50 to-emerald-50">
-                  <span className="text-xl">✓</span>
-                </div>
-                <div className="text-4xl font-bold text-black mb-2">99.7%</div>
-                <div className="text-sm text-gray-600 uppercase tracking-wide font-bold">Accuracy Rate</div>
-              </div>
-              <div className="feature-card-primary p-8 rounded-3xl float-animation" style={{animationDelay: '2s'}}>
-                <div className="w-12 h-12 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <span className="text-xl">🗃️</span>
-                </div>
-                <div className="text-4xl font-bold text-black mb-2">2M+</div>
-                <div className="text-sm text-gray-600 uppercase tracking-wide font-bold">Food Database</div>
-              </div>
-              <div className="feature-card-primary p-8 rounded-3xl float-animation" style={{animationDelay: '4s'}}>
-                <div className="w-12 h-12 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-purple-50 to-pink-50">
-                  <span className="text-xl">⚡</span>
-                </div>
-                <div className="text-4xl font-bold text-black mb-2">&lt; 2s</div>
-                <div className="text-sm text-gray-600 uppercase tracking-wide font-bold">Analysis Time</div>
-              </div>
+              <Card className="group hover:scale-105 transition-all duration-500 cursor-pointer">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-6 mx-auto bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all duration-500">
+                    <CheckCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-5xl font-black bg-gradient-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300">99.7%</div>
+                  <div className="text-sm text-slate-600 uppercase tracking-wide font-bold">Accuracy Rate</div>
+                  <div className="mt-4 text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Industry-leading precision</div>
+                </CardContent>
+              </Card>
+              <Card className="group hover:scale-105 transition-all duration-500 cursor-pointer" style={{animationDelay: '0.2s'}}>
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-6 mx-auto bg-gradient-to-br from-blue-400 to-indigo-500 shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all duration-500">
+                    <Brain className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-5xl font-black bg-gradient-to-br from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300">2M+</div>
+                  <div className="text-sm text-slate-600 uppercase tracking-wide font-bold">Food Database</div>
+                  <div className="mt-4 text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Comprehensive food library</div>
+                </CardContent>
+              </Card>
+              <Card className="group hover:scale-105 transition-all duration-500 cursor-pointer" style={{animationDelay: '0.4s'}}>
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-6 mx-auto bg-gradient-to-br from-purple-400 to-pink-500 shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all duration-500">
+                    <Zap className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-5xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300">&lt; 2s</div>
+                  <div className="text-sm text-slate-600 uppercase tracking-wide font-bold">Analysis Time</div>
+                  <div className="mt-4 text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">Lightning-fast results</div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

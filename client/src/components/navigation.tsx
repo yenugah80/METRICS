@@ -21,18 +21,18 @@ export default function Navigation() {
   if (!user) {
     // Simplified mobile navigation for unauthenticated users
     return (
-      <nav className="border-b border-gray-200 bg-white/95 backdrop-blur-xl sticky top-0 z-50">
-        <div className="px-4 py-3">
+      <nav className="border-b border-white/20 bg-white/90 backdrop-blur-xl sticky top-0 z-50 shadow-xl">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">M</span>
+            <Link href="/" className="group flex items-center space-x-3 transition-all duration-300 hover:scale-105">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:rotate-6 transition-all duration-500">
+                <span className="text-white font-bold text-base">M</span>
               </div>
-              <span className="font-bold text-lg text-black">MyFoodMatrics</span>
+              <span className="font-bold text-xl bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">MyFoodMatrics</span>
             </Link>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Link href="/auth">
-                <Button size="sm" className="btn-gradient text-white px-4 py-2 rounded-lg text-sm font-medium">
+                <Button variant="premium" size="sm" className="shadow-lg hover:shadow-xl">
                   Get Started
                 </Button>
               </Link>
@@ -46,21 +46,21 @@ export default function Navigation() {
   return (
     <>
       {/* Top Bar - Mobile Only */}
-      <div className="border-b border-gray-200 bg-white/95 backdrop-blur-xl sticky top-0 z-50">
-        <div className="px-4 py-3">
+      <div className="border-b border-white/20 bg-white/90 backdrop-blur-xl sticky top-0 z-50 shadow-xl">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">M</span>
+            <Link href="/dashboard" className="group flex items-center space-x-3 transition-all duration-300 hover:scale-105">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:rotate-6 transition-all duration-500">
+                <span className="text-white font-bold text-base">M</span>
               </div>
-              <span className="font-bold text-lg text-black">MyFoodMatrics</span>
+              <span className="font-bold text-xl bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">MyFoodMatrics</span>
             </Link>
             <Button
-              variant="ghost"
+              variant="glass"
               size="sm"
               onClick={handleLogout}
               disabled={signOutMutation.isPending}
-              className="text-gray-600 hover:text-black px-3 py-1 rounded-lg text-sm"
+              className="text-slate-700 hover:text-white shadow-lg"
               data-testid="button-logout"
             >
               {signOutMutation.isPending ? "..." : "Sign Out"}
@@ -70,26 +70,30 @@ export default function Navigation() {
       </div>
 
       {/* Bottom Navigation - Mobile First */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200 safe-area-bottom">
-        <div className="grid grid-cols-5 gap-1 px-2 py-2">
-          {mobileNavLinks.map((link) => (
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-white/20 shadow-2xl safe-area-bottom">
+        <div className="grid grid-cols-5 gap-2 px-3 py-3">
+          {mobileNavLinks.map((link, index) => (
             <Link key={link.href} href={link.href}>
               <button
                 className={`
-                  w-full flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-200 touch-manipulation
+                  w-full flex flex-col items-center justify-center py-3 px-2 rounded-2xl transition-all duration-300 touch-manipulation transform hover:scale-105 active:scale-95 relative overflow-hidden group
                   ${location === link.href 
-                    ? "bg-primary/10 text-primary" 
-                    : "text-gray-600 hover:text-primary hover:bg-gray-50 active:bg-gray-100"
+                    ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-blue-600 shadow-lg" 
+                    : "text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 active:bg-blue-100/50"
                   }
                 `}
                 data-testid={`mobile-nav-${link.label.toLowerCase()}`}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <span className="text-xl mb-1">{link.icon}</span>
-                <span className={`text-xs font-medium ${location === link.href ? 'font-semibold' : ''}`}>
+                {location === link.href && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl" />
+                )}
+                <span className={`text-2xl mb-2 transition-transform duration-300 ${location === link.href ? 'scale-110' : 'group-hover:scale-110'}`}>{link.icon}</span>
+                <span className={`text-xs font-medium transition-all duration-300 ${location === link.href ? 'font-bold text-blue-700' : 'group-hover:font-semibold'}`}>
                   {link.label}
                 </span>
                 {location === link.href && (
-                  <div className="w-4 h-1 bg-primary rounded-full mt-1" />
+                  <div className="w-6 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2 shadow-lg animate-pulse" />
                 )}
               </button>
             </Link>
