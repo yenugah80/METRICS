@@ -20,15 +20,15 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="border-b border-purple-200/30 bg-gradient-to-r from-white/80 via-purple-50/60 to-pink-50/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className="border-b border-blue-200/30 bg-gradient-to-r from-white/80 via-blue-50/60 to-teal-50/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Professional Logo */}
           <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-lg">M</span>
             </div>
-            <span className="professional-heading text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent tracking-tight">
+            <span className="professional-heading text-xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent tracking-tight">
               MyFoodMatrics
             </span>
           </Link>
@@ -45,7 +45,7 @@ export default function Navigation() {
                       text-sm font-medium transition-all duration-300 h-9 px-4 rounded-xl
                       ${location === link.href 
                         ? "btn-gradient text-white shadow-lg" 
-                        : "text-purple-600/70 hover:text-purple-700 hover:bg-purple-50/50"
+                        : "text-blue-600/70 hover:text-blue-700 hover:bg-blue-50/50"
                       }
                     `}
                     data-testid={`nav-${link.label.toLowerCase().replace(' ', '-')}`}
@@ -81,7 +81,7 @@ export default function Navigation() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-9 px-4 text-sm font-medium text-purple-600/70 hover:text-purple-700 rounded-xl"
+                    className="h-9 px-4 text-sm font-medium text-blue-600/70 hover:text-blue-700 rounded-xl"
                     data-testid="button-signin"
                   >
                     Sign In
