@@ -524,33 +524,33 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Link href="/search">
-                  <Button className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-gradient">
-                    <Search className="h-6 w-6" />
+                  <Button className="w-full h-28 flex flex-col items-center justify-center space-y-3 btn-gradient transform hover:scale-105 transition-all duration-300">
+                    <Search className="h-7 w-7" />
                     <div className="text-center">
-                      <div className="font-bold">Food Search</div>
-                      <div className="text-xs opacity-90">2M+ products</div>
+                      <div className="font-bold text-base">Food Search</div>
+                      <div className="text-xs opacity-90 mt-1">2M+ products</div>
                     </div>
                   </Button>
                 </Link>
 
                 <Link href="/camera">
-                  <Button className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-gradient">
-                    <Camera className="h-6 w-6" />
+                  <Button className="w-full h-28 flex flex-col items-center justify-center space-y-3 btn-gradient transform hover:scale-105 transition-all duration-300">
+                    <Camera className="h-7 w-7" />
                     <div className="text-center">
-                      <div className="font-bold">AI Camera</div>
-                      <div className="text-xs opacity-90">Photo analysis</div>
+                      <div className="font-bold text-base">AI Camera</div>
+                      <div className="text-xs opacity-90 mt-1">Photo analysis</div>
                     </div>
                   </Button>
                 </Link>
                 
                 <Link href="/recipes">
-                  <Button className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-gradient">
-                    <Sparkles className="h-6 w-6" />
+                  <Button className="w-full h-28 flex flex-col items-center justify-center space-y-3 btn-gradient transform hover:scale-105 transition-all duration-300">
+                    <Sparkles className="h-7 w-7" />
                     <div className="text-center">
-                      <div className="font-bold">AI Recipes</div>
-                      <div className="text-xs opacity-90">Personalized</div>
+                      <div className="font-bold text-base">AI Recipes</div>
+                      <div className="text-xs opacity-90 mt-1">Personalized</div>
                     </div>
                   </Button>
                 </Link>
@@ -562,14 +562,13 @@ export default function Dashboard() {
                       description: "Advanced nutrition analytics and trends are being developed.",
                     });
                   }}
-                  variant="outline"
-                  className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-outline-glow"
+                  className="w-full h-28 flex flex-col items-center justify-center space-y-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 border-2 border-slate-300 hover:border-slate-400 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
                   data-testid="button-analytics"
                 >
-                  <BarChart3 className="h-6 w-6" />
+                  <BarChart3 className="h-7 w-7" />
                   <div className="text-center">
-                    <div className="font-bold">Analytics</div>
-                    <div className="text-xs opacity-75">Coming soon</div>
+                    <div className="font-bold text-base">Analytics</div>
+                    <div className="text-xs opacity-75 mt-1">Coming soon</div>
                   </div>
                 </Button>
               </div>
