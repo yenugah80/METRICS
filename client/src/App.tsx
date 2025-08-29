@@ -10,6 +10,7 @@ import Navigation from "@/components/navigation";
 import Landing from "@/pages/landing";
 import AuthPage from "@/pages/auth-page";
 import SearchPage from "@/pages/search";
+import VoiceAssistantPage from "@/pages/voice-assistant";
 import NotFound from "@/pages/not-found";
 import { initPerformanceOptimizations } from "@/lib/performance";
 
@@ -77,11 +78,9 @@ function App() {
                     </SafeLazyWrapper>
                   </ProtectedRoute>
                 </Route>
-                <Route path="/voice">
+                <Route path="/voice-assistant">
                   <ProtectedRoute>
-                    <SafeLazyWrapper message="Loading voice logger...">
-                      <LazyMealCamera />
-                    </SafeLazyWrapper>
+                    <VoiceAssistantPage />
                   </ProtectedRoute>
                 </Route>
                 <Route path="/sustainability">

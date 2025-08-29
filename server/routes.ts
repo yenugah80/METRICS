@@ -11,6 +11,7 @@ import { verifyJWT, type AuthenticatedRequest } from "./authService";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import * as aiService from "./openai";
+import OpenAI from "openai";
 import { nutritionService } from "./deterministicNutrition";
 import { nutritionService as legacyNutritionService } from "./nutritionApi";
 import { etlSystem } from "./etl";
@@ -47,6 +48,12 @@ if (!process.env.STRIPE_SECRET_KEY) {
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-08-27.basil",
 });
+
+// OpenAI setup
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error('Missing required OpenAI API key');
+}
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // SECURITY & PERFORMANCE MIDDLEWARE
@@ -120,6 +127,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Recipe chatbot routes with freemium middleware
   app.use('/api/chatbot', freemiumMiddleware);
   app.use(chatbotRoutes);
+
+  // Voice assistant endpoint with freemium middleware
+  app.post('/api/voice-assistant', verifyJWT, freemiumMiddleware, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      const { message, conversationHistory = [] } = req.body;
+      if (!message?.trim()) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+
+      // Build conversation context for the AI
+      const systemPrompt = `You are Nutri, a friendly and knowledgeable nutrition assistant. You help users with:
+      - Nutrition information and food facts
+      - Meal planning and recipe suggestions
+      - Dietary advice and healthy eating tips
+      - Food safety and storage information
+      - Understanding nutrition labels
+      - Weight management guidance
+      
+      Respond in a conversational, warm, and encouraging tone. Keep responses concise but informative (2-3 sentences max). 
+      Focus on practical, actionable advice. If asked about medical conditions, remind users to consult healthcare professionals.`;
+
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory.slice(-4).map((msg: any) => ({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        })),
+        { role: 'user', content: message }
+      ];
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini', // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        messages,
+        max_tokens: 200,
+        temperature: 0.7
+      });
+
+      const response = completion.choices[0]?.message?.content;
+      if (!response) {
+        throw new Error('No response from AI');
+      }
+
+      // Consume voice session token for non-premium users
+      if (!req.user?.isPremium) {
+        await storage.decrementVoiceSessionTokens(userId, 1);
+      }
+
+      res.json({ response });
+    } catch (error) {
+      logger.error('Voice assistant error', error, req);
+      res.status(500).json(secureErrorResponse(error, req));
+    }
+  });
 
   // Premium upgrade endpoint
   app.post('/api/upgrade-premium', verifyJWT, async (req: AuthenticatedRequest, res) => {

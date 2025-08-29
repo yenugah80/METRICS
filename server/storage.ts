@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   users,
   userProfiles,
@@ -79,6 +80,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
+  decrementVoiceSessionTokens(userId: string, amount: number): Promise<User>;
   
   // User profile operations
   getUserProfile(userId: string): Promise<UserProfile | undefined>;
@@ -263,6 +265,18 @@ export class DatabaseStorage implements IStorage {
         stripeSubscriptionId,
         isPremium: true,
         updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async decrementVoiceSessionTokens(userId: string, amount: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        voiceAnalysisTokens: sql`${users.voiceAnalysisTokens} - ${amount}`,
+        updatedAt: new Date()
       })
       .where(eq(users.id, userId))
       .returning();
