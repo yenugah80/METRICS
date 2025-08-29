@@ -15,11 +15,11 @@ export default function Landing() {
             </Badge>
             
             <h1 className="professional-heading text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-none">
-              <span className="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
                 Stop Guessing,
               </span>
               <br />
-              <span className="bg-gradient-to-r from-violet-500 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-gradient-primary font-extrabold">
                 Start Knowing
               </span>
             </h1>
@@ -37,7 +37,7 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-16">
               <Button 
                 size="xl"
-                className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-2xl hover:shadow-emerald-500/25 transform hover:scale-105 transition-all duration-300 border-0 px-10 py-6 text-lg font-semibold rounded-2xl"
+                className="btn-gradient px-10 py-6 text-lg font-semibold rounded-2xl transform hover:scale-105 transition-all duration-300"
                 onClick={() => window.location.href = '/auth'}
                 data-testid="button-signup-cta"
               >
@@ -46,7 +46,7 @@ export default function Landing() {
               </Button>
               <Button 
                 size="xl"
-                className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-violet-500/25 transform hover:scale-105 transition-all duration-300 border-0 px-10 py-6 text-lg font-semibold rounded-2xl"
+                className="btn-success px-10 py-6 text-lg font-semibold rounded-2xl transform hover:scale-105 transition-all duration-300"
                 onClick={() => window.location.href = '/demo'}
                 data-testid="button-demo"
               >
@@ -284,7 +284,7 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white shadow-2xl hover:shadow-orange-500/25 px-16 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105 transition-all duration-300 border-0"
+                className="btn-premium px-16 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105 transition-all duration-300"
                 onClick={() => window.location.href = '/dashboard'}
                 data-testid="button-premium-cta"
               >
@@ -292,7 +292,7 @@ export default function Landing() {
               </Button>
               <Button 
                 size="lg"
-                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-indigo-500/25 px-12 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105 transition-all duration-300 border-0"
+                className="btn-outline-glow px-12 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105 transition-all duration-300"
                 onClick={() => window.location.href = '/dashboard'}
                 data-testid="button-free-trial"
               >

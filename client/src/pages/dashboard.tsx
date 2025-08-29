@@ -485,19 +485,19 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
-                {usageStats && typeof usageStats === 'object' && (
-                  <div className="bg-muted/50 rounded-lg p-3">
+                {usageStats && typeof usageStats === 'object' ? (
+                  <div className="bg-slate-50/80 border border-slate-200 rounded-lg p-3">
                     <div className="text-xs text-center">
                       {(usageStats as any)?.usageStats?.isPremium ? (
-                        <span className="text-yellow-600 font-bold">✨ Premium Active</span>
+                        <span className="text-amber-700 font-bold">✨ Premium Active</span>
                       ) : (
-                        <span>
-                          Free: {(usageStats as any)?.usageStats?.remainingFree || 5} recipes left
+                        <span className="text-slate-600">
+                          Free: {String((usageStats as any)?.usageStats?.remainingFree || 5)} recipes left
                         </span>
                       )}
                     </div>
                   </div>
-                )}
+                ) : null}
                 
                 <Link href="/recipes">
                   <Button className="w-full btn-gradient" data-testid="button-try-premium">

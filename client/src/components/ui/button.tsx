@@ -9,19 +9,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl hover:-translate-y-0.5 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:via-transparent before:to-transparent before:translate-x-[-100%] before:transition-transform before:duration-500 hover:before:translate-x-[100%]",
+        default: "btn-gradient shadow-lg hover:shadow-xl hover:-translate-y-0.5 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:via-transparent before:to-transparent before:translate-x-[-100%] before:transition-transform before:duration-500 hover:before:translate-x-[100%]",
         destructive:
-          "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl hover:-translate-y-0.5",
+          "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl hover:-translate-y-0.5",
         outline:
-          "border-2 border-blue-200 bg-white/80 backdrop-blur-sm hover:bg-blue-50 hover:border-blue-300 hover:shadow-lg hover:-translate-y-0.5 text-slate-700",
+          "btn-outline-glow shadow-lg hover:shadow-xl hover:-translate-y-0.5",
         secondary:
-          "bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300 shadow-md hover:shadow-lg hover:-translate-y-0.5",
-        ghost: "hover:bg-blue-50 hover:text-blue-700 hover:shadow-md rounded-xl",
-        link: "text-blue-600 underline-offset-4 hover:underline hover:text-blue-700 transition-colors",
-        premium: "bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 shadow-xl hover:shadow-2xl hover:-translate-y-1 relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/30 before:via-transparent before:to-transparent before:translate-x-[-100%] before:transition-transform before:duration-700 hover:before:translate-x-[100%]",
-        success: "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl hover:-translate-y-0.5",
-        glass: "bg-white/10 backdrop-blur-xl border border-white/20 text-white hover:bg-white/20 hover:border-white/30 shadow-lg hover:shadow-2xl hover:-translate-y-0.5",
-        gradient: "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-xl hover:shadow-2xl hover:scale-105 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:transition-transform before:duration-1000 hover:before:translate-x-[100%]"
+          "bg-gradient-to-r from-slate-200 to-slate-300 text-slate-800 hover:from-slate-300 hover:to-slate-400 shadow-md hover:shadow-lg hover:-translate-y-0.5",
+        ghost: "hover:bg-slate-100 hover:text-slate-800 hover:shadow-md rounded-xl",
+        link: "text-slate-700 underline-offset-4 hover:underline hover:text-slate-800 transition-colors",
+        premium: "btn-premium shadow-xl hover:shadow-2xl hover:-translate-y-1 relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/30 before:via-transparent before:to-transparent before:translate-x-[-100%] before:transition-transform before:duration-700 hover:before:translate-x-[100%]",
+        success: "btn-success shadow-lg hover:shadow-xl hover:-translate-y-0.5",
+        glass: "bg-white/90 backdrop-blur-xl border border-slate-200 text-slate-800 hover:bg-white hover:border-slate-300 shadow-lg hover:shadow-2xl hover:-translate-y-0.5",
+        gradient: "btn-gradient shadow-xl hover:shadow-2xl hover:scale-105 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:transition-transform before:duration-1000 hover:before:translate-x-[100%]"
       },
       size: {
         default: "h-11 px-6 py-3",
