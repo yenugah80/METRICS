@@ -37,24 +37,18 @@ export default function Landing() {
             {/* Glowing Gradient Action Buttons */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4 mb-16">
               <button
-                className="relative rounded-full px-8 py-4 text-[15px] font-semibold text-white overflow-hidden group transform hover:scale-105 transition-all duration-300"
+                className="rounded-full px-8 py-4 text-[15px] font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transform hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-xl"
                 onClick={() => navigate('/auth')}
                 data-testid="button-journey-cta"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 opacity-90 group-hover:opacity-100 transition-opacity"></div>
-                <div className="absolute inset-0 opacity-30 bg-gradient-to-r from-white/10 via-transparent to-white/10"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-indigo-400/20 blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                <span className="relative z-10">Begin Your Journey</span>
+                Begin Your Journey
               </button>
               <button
-                className="relative rounded-full px-8 py-4 text-[15px] font-semibold text-white overflow-hidden group transform hover:scale-105 transition-all duration-300"
+                className="rounded-full px-8 py-4 text-[15px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transform hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg"
                 onClick={() => navigate('/demo')}
                 data-testid="button-demo"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 opacity-90 group-hover:opacity-100 transition-opacity"></div>
-                <div className="absolute inset-0 opacity-30 bg-gradient-to-r from-white/10 via-transparent to-white/10"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-400/20 blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                <span className="relative z-10">View Demonstration</span>
+                View Demonstration
               </button>
             </div>
 
@@ -194,11 +188,8 @@ export default function Landing() {
                   <div className="text-sm text-gray-600 font-medium mb-6">
                     Natural language processing • Contextual understanding • Instant transcription
                   </div>
-                  <button className="w-full relative overflow-hidden rounded-xl py-3 px-6 text-white font-semibold transform hover:scale-105 transition-all duration-300 group/btn" onClick={() => navigate('/auth')} data-testid="button-voice-logging">
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 opacity-90 group-hover/btn:opacity-100 transition-opacity"></div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/30 via-orange-300/30 to-red-300/30 blur-lg group-hover/btn:blur-xl transition-all duration-300"></div>
-                    <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.3)_0%,transparent_50%,rgba(255,255,255,0.3)_100%)] opacity-50"></div>
-                    <span className="relative z-10">Try Voice Logging</span>
+                  <button className="w-full rounded-xl py-3 px-6 text-amber-800 font-semibold bg-amber-50 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transform hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg" onClick={() => navigate('/auth')} data-testid="button-voice-logging">
+                    Try Voice Logging
                   </button>
                 </div>
               </CardContent>
@@ -222,11 +213,8 @@ export default function Landing() {
                   <div className="text-sm text-gray-600 font-medium mb-6">
                     Carbon tracking • Water footprint • Ethical sourcing scores
                   </div>
-                  <button className="w-full relative overflow-hidden rounded-xl py-3 px-6 text-white font-semibold transform hover:scale-105 transition-all duration-300 group/btn" onClick={() => navigate('/auth')} data-testid="button-track-impact">
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 opacity-90 group-hover/btn:opacity-100 transition-opacity"></div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-300/30 via-emerald-300/30 to-teal-300/30 blur-lg group-hover/btn:blur-xl transition-all duration-300"></div>
-                    <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.3)_0%,transparent_50%,rgba(255,255,255,0.3)_100%)] opacity-50"></div>
-                    <span className="relative z-10">Track Impact</span>
+                  <button className="w-full rounded-xl py-3 px-6 text-emerald-800 font-semibold bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transform hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg" onClick={() => navigate('/auth')} data-testid="button-track-impact">
+                    Track Impact
                   </button>
                 </div>
               </CardContent>
@@ -250,11 +238,8 @@ export default function Landing() {
                   <div className="text-sm text-gray-600 font-medium mb-6">
                     Trend identification • Pattern analysis • Predictive modeling
                   </div>
-                  <button className="w-full relative overflow-hidden rounded-xl py-3 px-6 text-white font-semibold transform hover:scale-105 transition-all duration-300 group/btn" onClick={() => navigate('/auth')} data-testid="button-view-analytics">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-90 group-hover/btn:opacity-100 transition-opacity"></div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-300/30 via-indigo-300/30 to-purple-300/30 blur-lg group-hover/btn:blur-xl transition-all duration-300"></div>
-                    <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.3)_0%,transparent_50%,rgba(255,255,255,0.3)_100%)] opacity-50"></div>
-                    <span className="relative z-10">View Analytics</span>
+                  <button className="w-full rounded-xl py-3 px-6 text-blue-800 font-semibold bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transform hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg" onClick={() => navigate('/auth')} data-testid="button-view-analytics">
+                    View Analytics
                   </button>
                 </div>
               </CardContent>
@@ -306,12 +291,11 @@ export default function Landing() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <button 
-                  className="relative overflow-hidden rounded-2xl py-4 px-12 text-purple-700 font-bold text-lg bg-white hover:bg-gray-50 transform hover:scale-105 transition-all duration-300 shadow-xl group"
+                  className="rounded-2xl py-4 px-12 text-white font-bold text-lg bg-white/90 hover:bg-white border border-white/20 transform hover:scale-[1.02] transition-all duration-300 shadow-xl backdrop-blur"
                   onClick={() => navigate('/auth')}
                   data-testid="button-start-premium"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white to-gray-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <span className="relative z-10">Start 7-Day Free Trial</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-700">Start 7-Day Free Trial</span>
                 </button>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-white mb-1">$6.99<span className="text-lg font-normal text-white/80">/month</span></div>

@@ -209,6 +209,29 @@
     transform: scale(0.98);
   }
 
+  .btn-gradient {
+    background: hsl(238, 64%, 60%);
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--ios-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease-out;
+    font-size: 15px;
+    padding: 12px 24px;
+  }
+  
+  .btn-gradient:hover {
+    background: hsl(238, 64%, 56%);
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .btn-gradient:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--shadow-sm);
+  }
+
   /* iOS-Style Card System */
   .ios-card {
     background: rgba(255, 255, 255, 0.8);

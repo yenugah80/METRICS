@@ -26,24 +26,24 @@ export default function Navigation() {
         <div className="rounded-2xl border border-white/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur-xl">
           <div className="flex items-center justify-between px-4 py-3">
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-emerald-500 text-white font-semibold text-sm">
+              <div className="grid h-9 w-9 place-items-center rounded-lg bg-indigo-600 text-white font-bold text-sm shadow-sm">
                 M
               </div>
               <span className="text-[17px] font-semibold tracking-[-0.01em] text-neutral-900">MyFoodMatrics</span>
             </Link>
             <nav className="hidden sm:flex items-center gap-2">
               <Link href="/features">
-                <button className="rounded-full px-4 py-2 text-[14px] font-medium hover:bg-black/5 transition-colors" data-testid="nav-features">
+                <button className="rounded-full px-4 py-2 text-[14px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200" data-testid="nav-features">
                   Features
                 </button>
               </Link>
               <Link href="/pricing">
-                <button className="rounded-full px-4 py-2 text-[14px] font-medium hover:bg-black/5 transition-colors" data-testid="nav-pricing">
+                <button className="rounded-full px-4 py-2 text-[14px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200" data-testid="nav-pricing">
                   Pricing
                 </button>
               </Link>
               <Link href="/auth">
-                <button className="rounded-full bg-black text-white px-4 py-2 text-[14px] font-medium hover:opacity-90 transition-opacity">
+                <button className="rounded-full bg-indigo-600 text-white px-4 py-2 text-[14px] font-medium hover:bg-indigo-700 transition-all duration-200 shadow-sm">
                   Get Started
                 </button>
               </Link>
@@ -51,7 +51,7 @@ export default function Navigation() {
             {/* Mobile menu button */}
             <div className="sm:hidden">
               <Link href="/auth">
-                <button className="rounded-full bg-black text-white px-4 py-2 text-[14px] font-medium hover:opacity-90 transition-opacity">
+                <button className="rounded-full bg-indigo-600 text-white px-4 py-2 text-[14px] font-medium hover:bg-indigo-700 transition-all duration-200 shadow-sm">
                   Get Started
                 </button>
               </Link>
@@ -69,13 +69,13 @@ export default function Navigation() {
         <div className="rounded-2xl border border-white/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur-xl">
           <div className="flex items-center justify-between px-4 py-3">
             <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-emerald-500 text-white font-semibold text-sm">
+              <div className="grid h-9 w-9 place-items-center rounded-lg bg-indigo-600 text-white font-bold text-sm shadow-sm">
                 M
               </div>
               <span className="text-[17px] font-semibold tracking-[-0.01em] text-neutral-900">MyFoodMatrics</span>
             </Link>
             <button
-              className="rounded-full border border-black/10 bg-white/70 px-4 py-2 text-[14px] font-medium backdrop-blur hover:bg-white transition-colors"
+              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-[14px] font-medium text-slate-700 backdrop-blur hover:bg-white hover:border-slate-300 transition-all duration-200 shadow-sm"
               onClick={handleLogout}
               disabled={signOutMutation.isPending}
               data-testid="button-logout"

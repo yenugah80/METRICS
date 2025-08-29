@@ -1,8 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 export default function PricingPage() {
+  const [, setLocation] = useLocation();
+  
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-6 py-16 max-w-5xl">
@@ -57,8 +60,8 @@ export default function PricingPage() {
               </div>
 
               <Button
-                onClick={() => window.location.href = '/auth'}
-                className="w-full bg-neutral-900 hover:bg-neutral-800 text-white py-4 rounded-full font-semibold transition-colors"
+                onClick={() => setLocation('/auth')}
+                className="w-full bg-slate-600 hover:bg-slate-700 text-white py-4 rounded-full font-semibold transition-all duration-200 shadow-md hover:shadow-lg"
                 data-testid="button-free-plan"
               >
                 Start Free
@@ -119,8 +122,8 @@ export default function PricingPage() {
               </div>
 
               <Button
-                onClick={() => window.location.href = '/auth'}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                onClick={() => setLocation('/auth')}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
                 data-testid="button-premium-plan"
               >
                 Start Premium Trial
