@@ -47,19 +47,28 @@ export default function Landing() {
               </Button>
             </div>
             
-            {/* Floating Trust Indicators */}
+            {/* Enhanced Trust Indicators */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div className="glow-card p-6 rounded-2xl float-animation">
-                <div className="text-3xl font-bold text-black">99.7%</div>
-                <div className="text-sm text-gray-600 uppercase tracking-wide mt-2 font-medium">Accuracy Rate</div>
+              <div className="feature-card-primary p-8 rounded-3xl float-animation">
+                <div className="w-12 h-12 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-green-50 to-emerald-50">
+                  <span className="text-xl">✓</span>
+                </div>
+                <div className="text-4xl font-bold text-black mb-2">99.7%</div>
+                <div className="text-sm text-gray-600 uppercase tracking-wide font-bold">Accuracy Rate</div>
               </div>
-              <div className="glow-card p-6 rounded-2xl float-animation" style={{animationDelay: '2s'}}>
-                <div className="text-3xl font-bold text-black">2M+</div>
-                <div className="text-sm text-gray-600 uppercase tracking-wide mt-2 font-medium">Food Database</div>
+              <div className="feature-card-primary p-8 rounded-3xl float-animation" style={{animationDelay: '2s'}}>
+                <div className="w-12 h-12 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-blue-50 to-indigo-50">
+                  <span className="text-xl">🗃️</span>
+                </div>
+                <div className="text-4xl font-bold text-black mb-2">2M+</div>
+                <div className="text-sm text-gray-600 uppercase tracking-wide font-bold">Food Database</div>
               </div>
-              <div className="glow-card p-6 rounded-2xl float-animation" style={{animationDelay: '4s'}}>
-                <div className="text-3xl font-bold text-black">&lt; 2s</div>
-                <div className="text-sm text-gray-600 uppercase tracking-wide mt-2 font-medium">Analysis Time</div>
+              <div className="feature-card-primary p-8 rounded-3xl float-animation" style={{animationDelay: '4s'}}>
+                <div className="w-12 h-12 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-4 mx-auto bg-gradient-to-br from-purple-50 to-pink-50">
+                  <span className="text-xl">⚡</span>
+                </div>
+                <div className="text-4xl font-bold text-black mb-2">&lt; 2s</div>
+                <div className="text-sm text-gray-600 uppercase tracking-wide font-bold">Analysis Time</div>
               </div>
             </div>
           </div>
@@ -78,18 +87,18 @@ export default function Landing() {
 
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
             {/* AI-Powered Food Recognition - Hero Feature */}
-            <Card className="glow-card-hero border-0 rounded-2xl overflow-hidden">
+            <Card className="feature-card-hero border-0 rounded-3xl overflow-hidden">
               <CardContent className="p-12">
                 <div className="mb-8">
-                  <Badge className="mb-6 bg-indigo-50 text-indigo-700 border-indigo-200 px-6 py-3 rounded-full font-semibold">
-                    Primary Technology
+                  <Badge className="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-indigo-200 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide">
+                    🚀 PRIMARY TECHNOLOGY
                   </Badge>
-                  <h3 className="professional-heading text-3xl font-bold mb-6">
+                  <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                     Artificial Intelligence
                     <br />
                     Food Recognition
                   </h3>
-                  <p className="body-text text-lg leading-relaxed mb-8">
+                  <p className="body-text text-lg leading-relaxed mb-8 text-gray-700">
                     Revolutionary computer vision technology that instantly identifies food items, estimates portion sizes, 
                     and calculates precise nutritional data. Our proprietary algorithms analyze texture, color, and shape 
                     to deliver unparalleled accuracy in nutritional assessment.
@@ -114,18 +123,18 @@ export default function Landing() {
             </Card>
 
             {/* Personalized Recommendations */}
-            <Card className="glow-card-hero border-0 rounded-2xl overflow-hidden">
+            <Card className="feature-card-hero border-0 rounded-3xl overflow-hidden">
               <CardContent className="p-12">
                 <div className="mb-8">
-                  <Badge className="mb-6 bg-purple-50 text-purple-700 border-purple-200 px-6 py-3 rounded-full font-semibold">
-                    Machine Learning
+                  <Badge className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border-purple-200 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide">
+                    🧠 MACHINE LEARNING
                   </Badge>
-                  <h3 className="professional-heading text-3xl font-bold mb-6">
+                  <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                     Personalized Meal
                     <br />
                     Recommendations
                   </h3>
-                  <p className="body-text text-lg leading-relaxed mb-8">
+                  <p className="body-text text-lg leading-relaxed mb-8 text-gray-700">
                     Advanced machine learning algorithms analyze your dietary preferences, nutritional requirements, 
                     and health objectives to provide customized meal suggestions that align with your lifestyle and goals.
                   </p>
@@ -152,57 +161,66 @@ export default function Landing() {
           {/* Secondary Features Grid */}
           <div className="grid md:grid-cols-3 gap-8">
             {/* Voice Logging */}
-            <Card className="glow-card border-0 rounded-3xl overflow-hidden pulse-glow">
-              <CardContent className="p-8">
-                <Badge className="mb-4 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 text-yellow-700 border-yellow-300/30 px-4 py-2 text-xs rounded-full">
-                  Premium Feature
+            <Card className="feature-card-premium border-0 rounded-3xl overflow-hidden">
+              <CardContent className="p-10">
+                <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-yellow-50 to-orange-50">
+                  <span className="text-2xl">🎤</span>
+                </div>
+                <Badge className="mb-6 bg-gradient-to-r from-yellow-400/30 to-orange-400/30 text-yellow-800 border-yellow-300/50 px-5 py-2 text-xs rounded-full font-bold tracking-wide">
+                  ⭐ PREMIUM FEATURE
                 </Badge>
-                <h3 className="professional-heading text-xl font-bold mb-4 bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                <h3 className="professional-heading text-2xl font-bold mb-6 bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
                   Voice-Powered Logging
                 </h3>
-                <p className="body-text text-blue-600/70 leading-relaxed mb-6">
+                <p className="body-text text-gray-700 leading-relaxed mb-6">
                   Advanced speech recognition technology enables hands-free nutrition tracking. 
                   Simply speak your meal description for automatic identification and logging.
                 </p>
-                <div className="text-sm text-blue-500/60">
+                <div className="text-sm text-gray-600 font-medium">
                   Natural language processing • Contextual understanding • Instant transcription
                 </div>
               </CardContent>
             </Card>
 
             {/* Sustainability Analysis */}
-            <Card className="glow-card border-0 rounded-3xl overflow-hidden pulse-glow" style={{animationDelay: '1.5s'}}>
-              <CardContent className="p-8">
-                <Badge className="mb-4 bg-gradient-to-r from-green-400/20 to-emerald-400/20 text-green-700 border-green-300/30 px-4 py-2 text-xs rounded-full">
-                  Premium Feature
+            <Card className="feature-card-primary border-0 rounded-3xl overflow-hidden">
+              <CardContent className="p-10">
+                <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-green-50 to-teal-50">
+                  <span className="text-2xl">🌱</span>
+                </div>
+                <Badge className="mb-6 bg-gradient-to-r from-green-400/30 to-emerald-400/30 text-green-800 border-green-300/50 px-5 py-2 text-xs rounded-full font-bold tracking-wide">
+                  🌿 ECO TRACKING
                 </Badge>
-                <h3 className="professional-heading text-xl font-bold mb-4 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                <h3 className="professional-heading text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                   Environmental Impact
                 </h3>
-                <p className="body-text text-blue-600/70 leading-relaxed mb-6">
+                <p className="body-text text-gray-700 leading-relaxed mb-6">
                   Comprehensive analysis of carbon footprint, water usage, and ethical sourcing 
                   for every meal, enabling environmentally conscious dietary decisions.
                 </p>
-                <div className="text-sm text-blue-500/60">
+                <div className="text-sm text-gray-600 font-medium">
                   Carbon tracking • Water footprint • Ethical sourcing scores
                 </div>
               </CardContent>
             </Card>
 
             {/* Advanced Analytics */}
-            <Card className="glow-card border-0 rounded-3xl overflow-hidden pulse-glow" style={{animationDelay: '3s'}}>
-              <CardContent className="p-8">
-                <Badge className="mb-4 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 text-blue-700 border-blue-300/30 px-4 py-2 text-xs rounded-full">
-                  Analytics Platform
+            <Card className="feature-card-primary border-0 rounded-3xl overflow-hidden">
+              <CardContent className="p-10">
+                <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br from-blue-50 to-indigo-50">
+                  <span className="text-2xl">📊</span>
+                </div>
+                <Badge className="mb-6 bg-gradient-to-r from-blue-400/30 to-indigo-400/30 text-blue-800 border-blue-300/50 px-5 py-2 text-xs rounded-full font-bold tracking-wide">
+                  📈 ANALYTICS PLATFORM
                 </Badge>
-                <h3 className="professional-heading text-xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <h3 className="professional-heading text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Health Trend Analysis
                 </h3>
-                <p className="body-text text-blue-600/70 leading-relaxed mb-6">
+                <p className="body-text text-gray-700 leading-relaxed mb-6">
                   Sophisticated analytics engine that correlates nutritional intake with energy levels, 
                   mood patterns, and overall health metrics for comprehensive insights.
                 </p>
-                <div className="text-sm text-blue-500/60">
+                <div className="text-sm text-gray-600 font-medium">
                   Trend identification • Pattern analysis • Predictive modeling
                 </div>
               </CardContent>

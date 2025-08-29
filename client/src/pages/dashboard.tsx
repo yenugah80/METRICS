@@ -104,43 +104,43 @@ export default function Dashboard() {
           <p className="body-text text-lg font-medium">Track your daily nutrition goals and discover new foods</p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* Enhanced Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Link href="/search">
-            <Card className="glow-card cursor-pointer transition-all duration-300">
-              <CardContent className="flex items-center p-6">
-                <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center mr-4">
-                  <Search className="h-6 w-6 text-indigo-600" />
+            <Card className="feature-card-primary border-0 rounded-2xl overflow-hidden">
+              <CardContent className="flex items-center p-8">
+                <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mr-6">
+                  <Search className="h-8 w-8 text-indigo-600" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-black">Search Foods</h3>
-                  <p className="text-sm font-medium">Find nutrition data</p>
+                  <h3 className="font-bold text-black text-lg mb-1">Search Foods</h3>
+                  <p className="text-sm font-medium text-gray-600">Find nutrition data instantly</p>
                 </div>
               </CardContent>
             </Card>
           </Link>
 
-          <Card className="glow-card cursor-pointer transition-all duration-300">
-            <CardContent className="flex items-center p-6">
-              <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mr-4">
-                <ScanLine className="h-6 w-6 text-purple-600" />
+          <Card className="feature-card-primary border-0 rounded-2xl overflow-hidden cursor-pointer">
+            <CardContent className="flex items-center p-8">
+              <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mr-6">
+                <ScanLine className="h-8 w-8 text-purple-600" />
               </div>
               <div>
-                <h3 className="font-bold text-black">Scan Barcode</h3>
-                <p className="text-sm font-medium">Quick product lookup</p>
+                <h3 className="font-bold text-black text-lg mb-1">Scan Barcode</h3>
+                <p className="text-sm font-medium text-gray-600">Quick product lookup</p>
               </div>
             </CardContent>
           </Card>
 
           <Link href="/camera">
-            <Card className="glow-card cursor-pointer transition-all duration-300">
-              <CardContent className="flex items-center p-6">
-                <div className="w-12 h-12 bg-teal-50 rounded-lg flex items-center justify-center mr-4">
-                  <Plus className="h-6 w-6 text-teal-600" />
+            <Card className="feature-card-primary border-0 rounded-2xl overflow-hidden">
+              <CardContent className="flex items-center p-8">
+                <div className="w-16 h-16 feature-icon-enhanced rounded-2xl flex items-center justify-center mr-6">
+                  <Plus className="h-8 w-8 text-teal-600" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-black">AI Camera</h3>
-                  <p className="text-sm font-medium">Photo meal analysis</p>
+                  <h3 className="font-bold text-black text-lg mb-1">AI Camera</h3>
+                  <p className="text-sm font-medium text-gray-600">Photo meal analysis</p>
                 </div>
               </CardContent>
             </Card>
@@ -150,13 +150,15 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Daily Progress */}
           <div className="lg:col-span-2">
-            <Card className="glow-card-hero">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 font-bold text-black">
-                  <Target className="h-5 w-5" />
+            <Card className="feature-card-hero border-0 rounded-2xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
+                  <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
+                    <Target className="h-5 w-5 text-indigo-600" />
+                  </div>
                   <span>Today's Progress</span>
                 </CardTitle>
-                <CardDescription className="font-medium">Your nutrition goals for today</CardDescription>
+                <CardDescription className="font-medium text-gray-600 ml-13">Your nutrition goals for today</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Calories */}
@@ -226,10 +228,12 @@ export default function Dashboard() {
 
           {/* Recent Meals */}
           <div>
-            <Card className="glow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 font-bold text-black">
-                  <Apple className="h-5 w-5" />
+            <Card className="feature-card-primary border-0 rounded-2xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
+                  <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
+                    <Apple className="h-5 w-5 text-green-600" />
+                  </div>
                   <span>Recent Meals</span>
                 </CardTitle>
               </CardHeader>
@@ -263,13 +267,15 @@ export default function Dashboard() {
 
         {/* Live API Demo */}
         <div className="mt-8">
-          <Card className="glow-card-hero">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 font-bold text-black">
-                <Zap className="h-5 w-5" />
+          <Card className="feature-card-hero border-0 rounded-2xl">
+            <CardHeader className="pb-6">
+              <CardTitle className="flex items-center space-x-3 font-bold text-black text-2xl">
+                <div className="w-12 h-12 feature-icon-enhanced rounded-xl flex items-center justify-center">
+                  <Zap className="h-6 w-6 text-yellow-600" />
+                </div>
                 <span>Live Nutrition API Demo</span>
               </CardTitle>
-              <CardDescription className="font-medium">
+              <CardDescription className="font-medium text-gray-600 ml-15">
                 Test our powerful nutrition database powered by USDA FoodData Central and Open Food Facts
               </CardDescription>
             </CardHeader>
