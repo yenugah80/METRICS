@@ -311,21 +311,71 @@ export default function Landing() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-blue-200/30 bg-gradient-to-r from-purple-50/30 to-pink-50/30 mt-32 relative z-10">
-        <div className="container mx-auto px-6 py-16">
-          <div className="text-center">
-            <h3 className="professional-heading text-2xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              MyFoodMatrics
-            </h3>
-            <p className="body-text text-blue-600/70 mb-8">
-              Professional nutrition intelligence for optimal health outcomes.
+      {/* Premium Footer Section */}
+      <div className="mt-32 relative z-10">
+        <Card className="mx-6 lg:mx-12 rounded-[2rem] overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600">
+          <CardContent className="px-8 py-16 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-8">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-white text-purple-600 font-bold text-lg shadow-sm">
+                M
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <Badge className="mb-6 bg-white/20 text-white border-white/30 px-6 py-3 rounded-2xl font-semibold backdrop-blur-sm">
+                TRANSFORM YOUR NUTRITION JOURNEY
+              </Badge>
+            </div>
+            
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Professional Nutrition Intelligence
+            </h2>
+            
+            <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8">
+              Unlimited analyses, priority speed, and advanced insights. Get voice logging, 
+              detailed sustainability metrics, and personalized AI recommendations.
             </p>
-            <p className="text-sm text-blue-500/60">
+            
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl mb-4">
+                  <div className="w-6 h-6 bg-white rounded-full"></div>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Unlimited Analysis</h3>
+                <p className="text-white/80 text-sm">No daily limits on food recognition</p>
+              </div>
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl mb-4">
+                  <div className="w-6 h-6 bg-white rounded-full"></div>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Voice Logging</h3>
+                <p className="text-white/80 text-sm">Hands-free nutrition tracking</p>
+              </div>
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl mb-4">
+                  <div className="w-6 h-6 bg-white rounded-full"></div>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Advanced Insights</h3>
+                <p className="text-white/80 text-sm">Real-time health correlations</p>
+              </div>
+            </div>
+            
+            <p className="text-white/60 text-sm mb-8">
+              Join 50,000+ users who trust MyFoodMatrics for their nutrition intelligence
+            </p>
+            
+            <p className="text-white/50 text-xs">
               © 2025 MyFoodMatrics. All rights reserved.
             </p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Simple Footer */}
+      <footer className="mt-16 pb-8 text-center">
+        <p className="text-sm text-slate-500">
+          Professional nutrition intelligence for optimal health outcomes.
+        </p>
       </footer>
     </div>
   );
