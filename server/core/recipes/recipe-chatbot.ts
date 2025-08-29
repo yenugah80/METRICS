@@ -166,15 +166,15 @@ export class RecipeChatbot {
         break;
       
       case 'cuisine_info':
-        response = await this.provideCuisineInformation(intent.cuisine);
+        response = await this.provideCuisineInformation(intent.cuisine || 'general');
         break;
       
       case 'cooking_advice':
-        response = await this.provideCookingAdvice(intent.topic, request.preferences);
+        response = await this.provideCookingAdvice(intent.topic || 'general', request.preferences);
         break;
       
       case 'ingredient_help':
-        response = await this.provideIngredientGuidance(intent.ingredients);
+        response = await this.provideIngredientGuidance(intent.ingredients || []);
         break;
       
       default:

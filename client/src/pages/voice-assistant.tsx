@@ -1,6 +1,14 @@
 import { useState } from "react";
-import { VoiceAssistant } from "@/components/VoiceAssistant";
-import { TokenDisplay } from "@/components/TokenDisplay";
+import { VoiceAssistant } from "@/components/data-display/VoiceAssistant";
+import { TokenDisplay } from "@/components/business/TokenDisplay";
+
+interface TokenInfo {
+  aiAnalysisTokens: number;
+  voiceAnalysisTokens: number;
+  recipeGenerationTokens: number;
+  isPremium: boolean;
+  lastTokenReset: string;
+}
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +19,7 @@ export default function VoiceAssistantPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
-  const { data: tokenInfo } = useQuery({
+  const { data: tokenInfo } = useQuery<TokenInfo>({
     queryKey: ['/api/user/tokens'],
     enabled: !!user
   });

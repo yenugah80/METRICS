@@ -509,3 +509,5 @@ export function RecipeChatbot() {
     </div>
   );
 }
+
+export default RecipeChatbot;

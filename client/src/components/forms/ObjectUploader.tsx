@@ -96,3 +96,5 @@ export function ObjectUploader({
     </div>
   );
 }
+
+export default ObjectUploader;

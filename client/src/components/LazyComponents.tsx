@@ -62,23 +62,23 @@ export const LazySubscribe = lazyLoadComponent(
 
 // Lazy-loaded heavy components
 export const LazyRecipeChatbot = lazyLoadComponent(
-  () => import('../components/recipe-chatbot')
+  () => import('./recipe-chatbot')
 );
 
 export const LazyBarcodeScanner = lazyLoadComponent(
-  () => import('../components/BarcodeScanner')
+  () => import('./forms/BarcodeScanner')
 );
 
 export const LazyCameraCapture = lazyLoadComponent(
-  () => import('../components/CameraCapture')
+  () => import('./forms/CameraCapture')
 );
 
 export const LazyVoiceLogger = lazyLoadComponent(
-  () => import('../components/VoiceLogger')
+  () => import('./data-display/VoiceLogger')
 );
 
 export const LazyObjectUploader = lazyLoadComponent(
-  () => import('../components/ObjectUploader')
+  () => import('./forms/ObjectUploader')
 );
 
 // Wrapper component with Suspense boundary
