@@ -15,12 +15,18 @@ export default function Landing() {
             </Badge>
             
             <h1 className="professional-heading text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-none">
-              Master Your
+              <span className="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
+                Stop Guessing,
+              </span>
               <br />
-              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
-                Nutrition
+              <span className="bg-gradient-to-r from-violet-500 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Start Knowing
               </span>
             </h1>
+            
+            <p className="text-lg lg:text-xl mb-4 max-w-2xl mx-auto text-slate-600 font-medium">
+              Master your nutrition with AI-powered precision
+            </p>
             
             <p className="body-text text-xl lg:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed">
               The only nutrition tracking application that understands your food through advanced artificial intelligence, 
@@ -30,8 +36,8 @@ export default function Landing() {
             {/* Creative CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-16">
               <Button 
-                variant="premium"
                 size="xl"
+                className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-2xl hover:shadow-emerald-500/25 transform hover:scale-105 transition-all duration-300 border-0 px-10 py-6 text-lg font-semibold rounded-2xl"
                 onClick={() => window.location.href = '/auth'}
                 data-testid="button-signup-cta"
               >
@@ -39,8 +45,8 @@ export default function Landing() {
                 Begin Your Journey
               </Button>
               <Button 
-                variant="glass"
                 size="xl"
+                className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-violet-500/25 transform hover:scale-105 transition-all duration-300 border-0 px-10 py-6 text-lg font-semibold rounded-2xl"
                 onClick={() => window.location.href = '/demo'}
                 data-testid="button-demo"
               >
@@ -278,16 +284,15 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button 
                 size="lg" 
-                className="btn-gradient px-16 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105"
+                className="bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white shadow-2xl hover:shadow-orange-500/25 px-16 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105 transition-all duration-300 border-0"
                 onClick={() => window.location.href = '/dashboard'}
                 data-testid="button-premium-cta"
               >
                 Start Professional Trial
               </Button>
               <Button 
-                variant="outline" 
                 size="lg"
-                className="btn-outline-glow px-12 py-6 text-lg font-medium h-auto rounded-2xl"
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-indigo-500/25 px-12 py-6 text-lg font-medium h-auto rounded-2xl transform hover:scale-105 transition-all duration-300 border-0"
                 onClick={() => window.location.href = '/dashboard'}
                 data-testid="button-free-trial"
               >
