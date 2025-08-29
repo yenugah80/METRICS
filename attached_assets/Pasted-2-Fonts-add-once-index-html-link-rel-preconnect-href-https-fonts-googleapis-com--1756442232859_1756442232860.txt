@@ -1,0 +1,91 @@
+2) Fonts (add once)
+<!-- index.html -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ios-radius: 1.25rem; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif; }
+</style>
+
+3) Glassy iOS NavBar
+// components/NavBar.tsx
+export default function NavBar() {
+  return (
+    <header className="sticky top-0 z-50 mx-auto mt-3 w-[min(1100px,92%)]">
+      <div className="rounded-2xl border border-white/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur-xl">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-emerald-500 to-indigo-500 text-white font-semibold">M</div>
+            <span className="text-[17px] font-semibold tracking-[-0.01em]">MyFoodMatrics</span>
+          </div>
+          <nav className="hidden sm:flex items-center gap-2">
+            <a className="rounded-full px-4 py-2 text-[14px] font-medium hover:bg-black/5">Features</a>
+            <a className="rounded-full px-4 py-2 text-[14px] font-medium hover:bg-black/5">Pricing</a>
+            <a href="/auth" className="rounded-full bg-black text-white px-4 py-2 text-[14px] font-medium hover:opacity-90">Get Started</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+4) Hero (Large Title + calm gradient background)
+// pages/Landing.tsx (hero section)
+export function Hero() {
+  return (
+    <section className="relative">
+      {/* soft brand background */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_80%_at_50%_-10%,rgba(99,102,241,.12),transparent_60%),radial-gradient(40%_60%_at_-10%_40%,rgba(16,185,129,.10),transparent_60%)]" />
+      <div className="mx-auto w-[min(1100px,92%)] pt-24 pb-10 text-center">
+        <p className="text-[13px] font-medium tracking-wide text-emerald-700/80">Master your nutrition with AI-powered precision</p>
+        <h1 className="mt-4 text-[44px] md:text-[56px] font-semibold leading-[1.05] tracking-[-0.02em] text-neutral-900">
+          Stop Guessing, <span className="text-emerald-700">Start Knowing</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-[720px] text-[16px] leading-7 text-neutral-600">
+          Photo, barcode, or voice—get instant macro & micro insights with a clean, iOS-grade experience.
+        </p>
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href="/auth" className="rounded-full bg-neutral-900 text-white px-5 py-[10px] text-[15px] font-medium hover:opacity-90">
+            Begin Your Journey
+          </a>
+          <a href="/demo" className="rounded-full border border-black/10 bg-white/70 px-5 py-[10px] text-[15px] font-medium backdrop-blur hover:bg-white">
+            View Demonstration
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+5) iOS-style Metric Cards (softer, lighter)
+// components/MetricCard.tsx
+export function MetricCard({ icon, label, value }: any) {
+  return (
+    <div className="rounded-[var(--ios-radius)] border border-white/60 bg-white/70 p-6 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+      <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-indigo-500 text-white">
+        {icon}
+      </div>
+      <div className="text-[28px] font-semibold tracking-[-0.01em] text-neutral-900">{value}</div>
+      <div className="mt-1 text-[13px] font-medium text-neutral-500">{label}</div>
+    </div>
+  );
+}
+
+
+Grid placement
+
+<div className="mx-auto grid w-[min(1100px,92%)] grid-cols-1 gap-5 pb-16 pt-4 sm:grid-cols-3">
+  <MetricCard value="99.7%" label="Accuracy Rate" />
+  <MetricCard value="2M+" label="Food Database" />
+  <MetricCard value="< 2s" label="Analysis Time" />
+</div>
+
+6) Micro-interactions (iOS-y)
+// one liner utilities
+<button className="transition-[transform,opacity,box-shadow] duration-150 ease-out active:scale-[0.98] hover:shadow-lg">…</button>
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
