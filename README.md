@@ -1,253 +1,285 @@
-# 🍎 MyFoodMatrics
-### AI-Powered Nutrition Intelligence Platform
+# MyFoodMatrics — Your pocket-nutritionist: meals, macros, and more instantly,
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/myfoodmatrics/app)
-[![Coverage](https://img.shields.io/badge/coverage-87%25-green)](https://github.com/myfoodmatrics/app)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/myfoodmatrics/app/releases)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+From photo to full nutrition breakdown in seconds accuracy you can trust
 
-> **Transforming nutrition tracking through AI-powered food recognition, voice logging, and personalized health insights**
+> **Status:** Pre‑alpha • <50 early users • Rapid iteration • Privacy‑first
 
----
-
-## 🚀 **Vision**
-
-**MyFoodMatrics** is revolutionizing how people track and understand their nutrition by making food logging as simple as taking a photo or speaking to your phone. We're building the future of personalized nutrition intelligence.
-
-### **The Problem We Solve**
-- 📱 **73% of people** abandon nutrition apps due to tedious manual logging
-- 🔍 **Research shows** accurate nutrition tracking improves health outcomes by 40%
-- 🌱 **Growing demand** for sustainability-conscious food choices lacks accessible tools
-
-### **Our Solution**
-- 📸 **99.7% accurate** AI food recognition from photos
-- 🎤 **Voice-powered** logging in natural language
-- 🌍 **Comprehensive** sustainability impact scoring
-- 🤖 **Personalized** recipe recommendations and health insights
+[![Build](https://img.shields.io/badge/build-passing-brightgreen)](#)
+[![Stage](https://img.shields.io/badge/stage-pre--alpha-orange)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue)](https://www.typescriptlang.org/)
+[![Slides](https://img.shields.io/badge/Pitch-Deck_\(slide.io\)-6FCF97)](https://slide.io/myfoodmatrics-deck)
 
 ---
 
-## 📊 **Market Opportunity**
+## Vision
 
-| Metric | Value | Growth |
-|--------|-------|--------|
-| **Total Addressable Market** | $15.6B | 23% CAGR |
-| **Nutrition App Market** | $4.4B | 18% CAGR |
-| **AI Health Tech Investment** | $2.8B | 2023 |
+Logging food should feel **effortless**. Snap a photo or speak naturally; get **clear nutrition**, **diet compatibility**, and **gentle coaching** that fits real life.
 
-*Sources: Grand View Research, CB Insights, Allied Market Research*
+**Near‑term goal (0→50 users):** validate delight and accuracy for 3 primary jobs‑to‑be‑done:
+
+1. *"Log this quickly"* → photo/voice to structured meal under **5s p95**.
+2. *"Is this good for me?"* → simple A–D score + key micronutrients.
+3. *"What should I have instead?"* → 1–2 swap suggestions.
+
+> We intentionally avoid inflated claims; accuracy is continuously measured and reported in‑app.
 
 ---
 
-## 🎯 **Demo & Key Features**
+## Problem → Solution
 
-### **Live Demo**: [try.myfoodmatrics.com](https://try.myfoodmatrics.com)
+**Problems**
 
-### **🔥 Core Features**
+* Manual logging is tedious → **Abandonment** in days.
+* Nutrition labels are confusing → **Decision fatigue**.
+* Allergy/diet checks require extra work → **Risk** & **friction**.
 
-#### **AI-Powered Food Recognition**
-```typescript
-// 99.7% accuracy in <2 seconds
-const analysis = await analyzeFood(photo);
-// Returns: nutrition, portions, allergens, sustainability score
+**MVP Solution**
+
+* **Photo → Meal**: client‑side pre‑parse + server AI refine (structured: items, qty, units).
+* **Voice logging (premium later)**: hands‑free speech → meal JSON.
+* **Simple health score**: macro balance + sodium/sugar caps + custom diet rules.
+* **Allergen & diet flags**: highlights with friendly alternatives.
+
+Roadmap features (post‑MVP): barcode scanner, sustainability scoring, recipe generation, mood/energy correlations.
+
+---
+
+## 🧱 Architecture (lean & auditable)
+
+```mermaid
+flowchart LR
+  A[Web (Next.js)] -->|HTTPS| B(API – Node/NestJS)
+  M[Mobile (Expo)] -->|HTTPS| B
+  B -->|Auth| C[Cognito]
+  B -->|SQL| D[(PostgreSQL – AWS RDS)]
+  B -->|Files| E[S3]
+  B -->|Jobs| F[SQS / BullMQ]
+  F --> G[AI Workers]
+  G --> H[OpenAI Vision/Whisper]
+  G --> I[Tesseract (OCR) / Textract]
+  B --> J[PostHog (Product Analytics)]
 ```
 
-#### **Voice-Powered Logging**
-```typescript
-// "I had a large coffee with oat milk and a blueberry muffin"
-const meal = await processVoiceInput(audio);
-// Automatically creates structured meal data
-```
+**Why this now**
 
-#### **Sustainability Intelligence**
-- **Carbon footprint** tracking per meal
-- **Water usage** impact analysis  
-- **Seasonal eating** recommendations
-- **Local sourcing** suggestions
-
-#### **Personalized Insights**
-- **Diet compatibility** scoring (keto, vegan, Mediterranean, etc.)
-- **Allergen detection** and alternatives
-- **Macro/micronutrient** optimization
-- **Health goal** tracking and recommendations
+* Small EC2 (t3.small) + RDS (db.t3.micro) keeps costs low.
+* Queue isolates heavier AI calls; requests remain snappy.
+* Clear PII map: Auth ⟷ Profile ⟷ Meal Data (minimized & encrypted).
 
 ---
 
-## 🏗️ **Technical Architecture**
+## 🗂️ Monorepo Layout
 
-### **Enterprise-Grade Stack**
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   React Client  │◄──►│   Express API    │◄──►│   PostgreSQL    │
-│  TypeScript/TSX │    │   TypeScript     │    │    Database     │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                        │                        │
-         ▼                        ▼                        ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   AI Services   │    │   Microservices  │    │   Monitoring    │
-│  • OpenAI GPT-4 │    │  • Authentication│    │  • Analytics    │
-│  • Computer     │    │  • Payments      │    │  • Performance  │
-│    Vision       │    │  • Storage       │    │  • Health       │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+myfoodmatrics/
+├─ README.md
+├─ LICENSE
+├─ .github/workflows/{ci.yml,release.yml,codeql.yml}
+├─ docs/
+│  ├─ architecture.md
+│  ├─ kpis.md
+│  ├─ onboarding.md
+│  └─ privacy.md
+├─ client/            # Next.js web
+│  ├─ src/
+│  ├─ public/
+│  └─ package.json
+├─ server/            # NestJS API
+│  ├─ src/
+│  ├─ tests/
+│  ├─ prisma/ (or migrations/)
+│  └─ package.json
+├─ middleware/        # workers (BullMQ/SQS)
+│  └─ src/
+├─ ml/                # scoring rules, prompt templates
+│  ├─ pipelines/
+│  └─ evaluation/
+├─ shared/            # DTOs, schemas, utils
+│  └─ src/
+└─ infra/             # Terraform/CDK + envs
+   └─ aws/
 ```
-
-### **🛡️ Built for Scale**
-- **Microservices-ready** monolith architecture
-- **99.9% uptime** SLA with health monitoring
-- **Auto-scaling** infrastructure ready
-- **GDPR/CCPA compliant** privacy-first design
 
 ---
 
-## 💰 **Business Model & Metrics**
+## 📦 Tech Choices
 
-### **Freemium SaaS Strategy**
-
-| Tier | Price | Features | Target Users |
-|------|-------|----------|--------------|
-| **Free** | $0/month | 5 daily analyses, basic tracking | 100K MAU |
-| **Premium** | $6.99/month | Unlimited analyses, voice logging, AI recipes | 15K subscribers |
-
-### **Key Performance Indicators**
-
-| Metric | Current | Target | Industry Benchmark |
-|--------|---------|--------|--------------------|
-| **User Retention** | 68% (30-day) | 75% | 65% |
-| **Conversion Rate** | 12% | 15% | 10-12% |
-| **LTV:CAC Ratio** | 6.2:1 | 7:1 | 3:1+ |
-| **Processing Speed** | <2s | <1s | 3-5s |
+* **Web:** Next.js (App Router), React Query, Tailwind.
+* **Mobile:** Expo (later), shared component library.
+* **API:** NestJS, Zod for validation, OpenAPI docs.
+* **DB:** PostgreSQL (AWS RDS) + Prisma.
+* **Storage:** S3 (original + optimized images), CloudFront CDN.
+* **Auth:** Amazon Cognito (email + SSO later).
+* **AI:** OpenAI Vision/Whisper; deterministic post‑processors.
+* **Analytics:** PostHog (self‑host optional) with privacy filters.
+* **CI/CD:** GitHub Actions → deploy via Terraform to AWS.
 
 ---
 
-## 🚀 **Getting Started**
+## 🧪 MVP Scope (truthful & measurable)
 
-### **Quick Demo**
+* p95 time: **≤5s** photo→meal; **≤8s** worst‑case first run.
+* First session success: **≥70%** (user logs 1 meal without help).
+* Weekly retention target (seed): **≥35%** for the first 50 users.
+* Accuracy is reported as: **top‑k recognition** + **portion error bands**.
+
+**Out of scope (for now):** offline mode, complex recipes, mood correlations, full sustainability LCA.
+
+---
+
+## 🔐 Privacy & Data Handling
+
+* **Data minimization**: store text meal representation; images optional/ephemeral (auto‑delete in 7 days unless user saves).
+* **Encryption**: TLS in transit; AES‑256 at rest (S3 + RDS).
+* **User controls**: export/delete data; explicit consent for images/voice.
+* **Model inputs**: PII redaction before sending to upstream providers.
+
+---
+
+## 🧰 Getting Started (Dev)
+
 ```bash
-# Clone and run locally
-git clone https://github.com/myfoodmatrics/app
+# 1) Clone
+git clone https://github.com/myfoodmatrics/myfoodmatrics
 cd myfoodmatrics
-npm install
-npm run dev
-# Visit http://localhost:5000
+
+# 2) Install (pnpm recommended)
+npm i -g pnpm
+pnpm i
+
+# 3) Env
+cp server/.env.example server/.env
+cp client/.env.example client/.env
+# Fill: DATABASE_URL, OPENAI_API_KEY, AWS creds, COGNITO config
+
+# 4) Dev
+pnpm -w dev  # runs client & server concurrently
+
+# 5) Test
+pnpm -w test
 ```
 
-### **Development Environment**
-```bash
-# Install dependencies
-npm install
+**server/.env.example**
 
-# Set up environment variables
-cp .env.example .env.local
-# Add your OpenAI, Stripe, and Database credentials
-
-# Run development server
-npm run dev
-
-# Run tests
-npm test
-
-# Build for production
-npm run build
+```
+NODE_ENV=development
+DATABASE_URL=postgresql://user:pass@localhost:5432/myfoodmatrics
+OPENAI_API_KEY=sk-...
+AWS_REGION=us-east-1
+S3_BUCKET=myfoodmatrics-assets
+COGNITO_USER_POOL_ID=...
+COGNITO_CLIENT_ID=...
+POSTHOG_KEY=phc_...
 ```
 
 ---
 
-## 📈 **Investor Highlights**
+## 🔎 API Sketch (OpenAPI excerpt)
 
-### **✅ Proven Traction**
-- **15,000+ food analyses** processed with 99.7% accuracy
-- **2,500+ beta users** with 68% 30-day retention
-- **$12,000 ARR** from early premium subscribers
-
-### **✅ Technical Moats**
-- **Proprietary food database** with 2M+ items
-- **Advanced AI pipeline** with multi-modal input processing
-- **Real-time sustainability scoring** algorithm
-
-### **✅ Market Validation**
-- **$2.8B invested** in nutrition tech startups (2023)
-- **73% of users** report improved eating habits
-- **Enterprise pilots** with 3 corporate wellness programs
-
-### **✅ Scalable Unit Economics**
-- **LTV:CAC of 6.2:1** with room for optimization
-- **<5% monthly churn** in premium tier
-- **40%+ gross margins** on premium subscriptions
-
----
-
-## 📊 **Financial Projections**
-
-### **Revenue Trajectory**
-```
-Year 1: $315K ARR    (3,750 premium users)
-Year 2: $1.26M ARR   (15,000 premium users)  
-Year 3: $3.78M ARR   (45,000 premium users)
+```yaml
+paths:
+  /v1/analysis/photo:
+    post:
+      summary: Photo → structured meal
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image: { type: string, format: binary }
+                sessionId: { type: string }
+      responses:
+        '200': { description: Meal JSON }
+  /v1/analysis/voice:
+    post:
+      summary: Voice → structured meal (experimental)
 ```
 
-### **Funding Requirements**
-**Seeking $2M Series A** to:
-- Scale engineering team (5 → 15 engineers)
-- Expand AI training data and models
-- Launch enterprise B2B product
-- International market expansion
+**Meal JSON (minimal)**
+
+```json
+{
+  "timestamp": "2025-08-29T12:30:00Z",
+  "items": [
+    { "name": "oatmeal", "qty": 1, "unit": "cup", "confidence": 0.82 },
+    { "name": "blueberries", "qty": 0.5, "unit": "cup", "confidence": 0.77 }
+  ],
+  "score": { "grade": "B", "explanations": ["high fiber", "added sugar low"] },
+  "flags": { "allergens": ["gluten?"], "diets": ["vegetarian"] }
+}
+```
 
 ---
 
-## 🏆 **Team & Advisory**
+## 🧭 KPIs for Seed (<50 users)
 
-### **Leadership Team**
-- **CTO**: 10+ years scaling consumer health apps
-- **Head of AI**: Former ML engineer at major tech company
-- **Head of Product**: Nutrition science background + product expertise
+* **Activation:** % first session reaching 1 logged meal.
+* **D1/D7 Retention:** day‑1 and day‑7 return rates.
+* **p95 Latency:** photo→meal total time.
+* **Accuracy:** top‑1/top‑3 label match; portion error band.
+* **Support tickets:** per 10 users.
 
-### **Advisory Board**
-- **Nutrition Science Advisor**: PhD Nutritionist, 50+ published papers
-- **AI/ML Advisor**: Former director of ML at health tech unicorn
-- **Business Advisor**: Successful health tech exit ($200M+)
+Cadence: weekly review; small A/Bs; share lightweight investor updates monthly.
 
 ---
 
-## 🔄 **Product Roadmap**
+## 🛣️ Roadmap (next 90 days)
 
-### **Q1 2024**
-- [ ] Launch premium tier
-- [ ] Voice logging iOS/Android
-- [ ] Advanced analytics dashboard
-- [ ] API for third-party integrations
+**Month 1**
 
-### **Q2 2024**
-- [ ] Enterprise B2B product
-- [ ] Wearable device integrations
-- [ ] International expansion (EU)
-- [ ] White-label partnerships
+* Ship reliable photo analysis; add basic A–D score.
+* Cohort‑based analytics dashboard; error replay tooling.
 
-### **Q3 2024**
-- [ ] AI nutritionist chat interface
-- [ ] Meal planning automation
-- [ ] Grocery shopping integration
-- [ ] Clinical trial partnerships
+**Month 2**
+
+* Guided corrections UI (edit items/quantities easily).
+* Add barcode lookup (OpenFoodFacts) as fallback.
+
+**Month 3**
+
+* Voice logging (opt‑in alpha).
+* Export/delete controls; data retention UI.
 
 ---
 
-## 📞 **Contact & Investment**
+## 🤝 Contributing
 
-**🎯 Ready to revolutionize nutrition tracking?**
-
-- **📧 Business**: hello@myfoodmatrics.com
-- **💼 Investors**: investors@myfoodmatrics.com
-- **🛠️ Technical**: dev@myfoodmatrics.com
-- **📱 Demo**: [try.myfoodmatrics.com](https://try.myfoodmatrics.com)
-
-### **📊 Due Diligence Materials**
-- **📈 Business metrics** and financial models
-- **🏗️ Technical architecture** deep-dive
-- **🔬 IP portfolio** and competitive analysis
-- **👥 Team backgrounds** and references
+* Conventional Commits; small PRs; checklist enforced in CI.
+* Branch naming: `feature/…`, `fix/…`, `chore/…`.
 
 ---
 
-**⭐ Built with investor-grade standards | Ready for scale | Proven market fit**
+## 🛡️ CI/CD (GitHub Actions)
 
-*MyFoodMatrics is transforming the $4.4B nutrition tracking market through AI-first innovation and exceptional user experience.*
+```yaml
+name: CI
+on: [push, pull_request]
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'pnpm' }
+      - run: pnpm i --frozen-lockfile
+      - run: pnpm -w build
+      - run: pnpm -w test -- --coverage
+```
+
+---
+
+## 📜 License
+
+MIT — see `LICENSE`.
+
+---
+
+## 📞 Contact
+
+* [hello@myfoodmatrics.com](mailto:hello@myfoodmatrics.com) • [investors@myfoodmatrics.com](mailto:investors@myfoodmatrics.com) • [dev@myfoodmatrics.com](mailto:dev@myfoodmatrics.com)
+
+**Slides:** add pitch link here → `https://slide.io/myfoodmatrics-deck`
