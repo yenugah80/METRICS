@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./api/routes/routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();

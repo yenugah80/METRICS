@@ -4,7 +4,7 @@
  * Replaces unreliable AI estimates with scientific data
  */
 
-import { USDAFoodDataAPI, OpenFoodFactsAPI, FoodItem, NutritionData } from './nutritionApi';
+import { USDAFoodDataAPI, OpenFoodFactsAPI, FoodItem, NutritionData } from '../../api/routes/nutritionApi';
 
 export interface DeterministicNutritionResult {
   foods: Array<{

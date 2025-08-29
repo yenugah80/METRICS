@@ -4,8 +4,8 @@
  */
 
 import { Router } from 'express';
-import { recipeChatbot, type RecipeRequest } from './recipe-chatbot';
-import { verifyJWT, type AuthenticatedRequest } from './authService';
+import { recipeChatbot, type RecipeRequest } from '../../core/recipes/recipe-chatbot';
+import { verifyJWT, type AuthenticatedRequest } from '../../infrastructure/auth/authService';
 
 const router = Router();
 

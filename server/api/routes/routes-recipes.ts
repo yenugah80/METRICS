@@ -1,6 +1,6 @@
 import type { Express } from "express";
-import { storage } from "./storage";
-import { verifyJWT, type AuthenticatedRequest } from "./authService";
+import { storage } from "../../infrastructure/database/storage";
+import { verifyJWT, type AuthenticatedRequest } from "../../infrastructure/auth/authService";
 
 // Types are now handled by AuthenticatedRequest from authService
 

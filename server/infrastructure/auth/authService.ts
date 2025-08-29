@@ -2,8 +2,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Request, Response, NextFunction } from "express";
-import { db } from "./db";
-import { users, authProviders, refreshTokens, passkeys } from "@shared/schema";
+import { db } from "../database/db";
+import { users, authProviders, refreshTokens, passkeys } from "../../../shared/schema";
 import { eq, and, isNull } from "drizzle-orm";
 
 export interface JWTPayload {

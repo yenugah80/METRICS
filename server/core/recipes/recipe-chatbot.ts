@@ -4,7 +4,7 @@
  */
 
 import OpenAI from 'openai';
-import { searchFoodInDatabase } from './comprehensive-food-database';
+import { searchFoodInDatabase } from '../nutrition/comprehensive-food-database';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
