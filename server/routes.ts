@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Apply compression for better performance
   app.use(compression({
-    filter: (req, res) => {
+    filter: (req: express.Request, res: express.Response) => {
       if (req.headers['x-no-compression']) return false;
       return compression.filter(req, res);
     },
@@ -229,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get current user usage stats endpoint
-  app.get('/api/usage-stats', verifyJWT, freemiumMiddleware, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/usage-stats', verifyJWT, freemiumMiddleware, async (req: FreemiumRequest, res) => {
     res.json({
       usageStats: req.usageStats || {
         recipesGenerated: 0,

@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { Request, Response, NextFunction } from "express";
 import { db } from "./db";
 import { users, authProviders, refreshTokens, passkeys } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export interface JWTPayload {
   userId: string;
@@ -27,9 +27,9 @@ export interface AuthenticatedRequest extends Request {
 
 // JWT configuration - SECURITY: No fallback secrets allowed in production
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 
-  (process.env.NODE_ENV === 'development' ? 'dev-access-secret-key-at-least-32-chars-long' : undefined);
+  (process.env.NODE_ENV === 'development' ? 'dev-access-secret-key-at-least-32-chars-long' : '');
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 
-  (process.env.NODE_ENV === 'development' ? 'dev-refresh-secret-key-at-least-32-chars-long' : undefined);
+  (process.env.NODE_ENV === 'development' ? 'dev-refresh-secret-key-at-least-32-chars-long' : '');
 
 // Validate required secrets at startup
 if (!JWT_ACCESS_SECRET || !JWT_REFRESH_SECRET) {
@@ -72,7 +72,14 @@ export class AuthService {
   // Verify JWT token
   verifyAccessToken(token: string): JWTPayload | null {
     try {
-      return jwt.verify(token, JWT_ACCESS_SECRET) as JWTPayload;
+      const decoded = jwt.verify(token, JWT_ACCESS_SECRET) as any;
+      return {
+        userId: decoded.userId,
+        email: decoded.email,
+        tokenFamily: decoded.tokenFamily,
+        iat: decoded.iat,
+        exp: decoded.exp
+      };
     } catch (error) {
       return null;
     }
@@ -81,7 +88,14 @@ export class AuthService {
   // Verify refresh token
   verifyRefreshToken(token: string): JWTPayload | null {
     try {
-      return jwt.verify(token, JWT_REFRESH_SECRET) as JWTPayload;
+      const decoded = jwt.verify(token, JWT_REFRESH_SECRET) as any;
+      return {
+        userId: decoded.userId,
+        email: decoded.email,
+        tokenFamily: decoded.tokenFamily,
+        iat: decoded.iat,
+        exp: decoded.exp
+      };
     } catch (error) {
       return null;
     }
@@ -131,7 +145,7 @@ export class AuthService {
       .where(
         and(
           eq(refreshTokens.token, token),
-          eq(refreshTokens.revokedAt, null)
+          isNull(refreshTokens.revokedAt)
         )
       );
 

@@ -463,7 +463,7 @@ export class DatabaseStorage implements IStorage {
   async getUserUsageStats(userId: string): Promise<{ recipesGenerated: number } | undefined> {
     try {
       // Get user to check monthly reset
-      const user = await this.getUserById(userId);
+      const user = await this.getUser(userId);
       if (!user) return { recipesGenerated: 0 };
       
       // Check if we need to reset monthly count
@@ -496,7 +496,7 @@ export class DatabaseStorage implements IStorage {
   async incrementUserRecipeUsage(userId: string): Promise<void> {
     try {
       // Get current user and increment monthly count
-      const user = await this.getUserById(userId);
+      const user = await this.getUser(userId);
       if (!user) return;
 
       await db
