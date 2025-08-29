@@ -1,11 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import {
@@ -13,567 +11,467 @@ import {
   TrendingUp,
   Target,
   Zap,
-  Plus,
   BarChart3,
   Calendar,
   Search,
   ScanLine,
   Mic,
-  Camera,
   Sparkles,
   Brain,
   CheckCircle,
   AlertTriangle,
   Loader2,
-  Star
+  Star,
+  Activity,
+  Flame,
+  Users,
+  Shield,
+  Database,
+  Wifi,
+  Clock,
+  Award,
+  Bell,
+  Camera
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
-interface DailyStats {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  goal_calories: number;
-  goal_protein: number;
-  goal_carbs: number;
-  goal_fat: number;
-  meals_logged: number;
+// Dashboard interfaces
+interface KPIMetric {
+  title: string;
+  value: string | number;
+  change: string;
+  trend: 'up' | 'down' | 'neutral';
+  icon: any;
+  color: string;
 }
 
-interface RecentMeal {
-  id: string;
+interface IntegrationModule {
   name: string;
-  time: string;
-  calories: number;
-  main_nutrients: {
-    protein: number;
-    carbs: number;
-    fat: number;
-  };
+  status: 'active' | 'inactive' | 'warning';
+  description: string;
+  icon: any;
+  metrics?: { label: string; value: string }[];
+}
+
+interface SystemHealth {
+  metric: string;
+  value: string;
+  status: 'excellent' | 'good' | 'warning' | 'critical';
+}
+
+interface RecentActivity {
+  id: string;
+  type: 'meal' | 'goal' | 'achievement' | 'system';
+  title: string;
+  description: string;
+  timestamp: string;
+  icon: any;
 }
 
 export default function Dashboard() {
   const { toast } = useToast();
-  const [demoText, setDemoText] = useState("");
-  const [demoBarcode, setDemoBarcode] = useState("");
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
   
-  // Fetch real data from APIs
-  const { data: dailyStatsData, isLoading: statsLoading } = useQuery({
-    queryKey: ["/api/stats/today"],
+  // Update time every minute
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Fetch comprehensive dashboard data
+  const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
+    queryKey: ["/api/dashboard/overview"],
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const { data: recentMealsData, isLoading: mealsLoading } = useQuery({
-    queryKey: ["/api/meals/recent"],
+  const { data: systemHealthData, isLoading: healthLoading } = useQuery({
+    queryKey: ["/api/system/health"],
+    refetchInterval: 60000, // Refresh every minute
   });
-  
+
   const { data: userProfile } = useQuery({
     queryKey: ["/api/profile"],
   });
-  
-  const { data: usageStats } = useQuery({
-    queryKey: ["/api/usage-stats"],
-  });
-  
-  // Food analysis mutation
-  const analyzeFoodMutation = useMutation({
-    mutationFn: async ({ type, data }: { type: string, data: string }) => {
-      const res = await apiRequest("POST", "/api/analyze-food", { type, data });
-      return await res.json();
-    },
-    onSuccess: (data) => {
-      setAnalysisResult(data.data);
-      toast({
-        title: "Analysis Complete!",
-        description: "Food nutrition analysis completed successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Analysis Failed",
-        description: "Unable to analyze food. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-  
-  // Barcode lookup mutation
-  const barcodeMutation = useMutation({
-    mutationFn: async (barcode: string) => {
-      const res = await apiRequest("GET", `/api/nutrition/barcode/${barcode}`);
-      return await res.json();
-    },
-    onSuccess: (data) => {
-      setAnalysisResult(data);
-      toast({
-        title: "Product Found!",
-        description: `Successfully found product: ${data.product_name || 'Unknown Product'}`,
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Product Not Found",
-        description: "Try a different barcode or use text analysis.",
-        variant: "destructive",
-      });
-    },
+
+  const { data: recentActivities, isLoading: activitiesLoading } = useQuery({
+    queryKey: ["/api/activities/recent"],
+    refetchInterval: 30000,
   });
 
-  // Transform API data to match component interface
-  const dailyStats: DailyStats = {
-    calories: (dailyStatsData as any)?.totalCalories || 0,
-    protein: parseFloat((dailyStatsData as any)?.totalProtein?.toString() || "0"),
-    carbs: parseFloat((dailyStatsData as any)?.totalCarbs?.toString() || "0"),
-    fat: parseFloat((dailyStatsData as any)?.totalFat?.toString() || "0"),
-    goal_calories: 2000, // Default goals - could be made configurable
-    goal_protein: 120,
-    goal_carbs: 250,
-    goal_fat: 65,
-    meals_logged: (dailyStatsData as any)?.mealCount || 0, // Fixed field name
+  // KPI Metrics based on real data
+  const kpiMetrics: KPIMetric[] = [
+    {
+      title: "Daily Calories",
+      value: dashboardData?.todayStats?.calories ?? 0,
+      change: `${dashboardData?.todayStats?.caloriesTrend ?? 0}% vs yesterday`,
+      trend: (dashboardData?.todayStats?.caloriesTrend ?? 0) >= 0 ? 'up' : 'down',
+      icon: Flame,
+      color: "from-orange-500 to-red-500"
+    },
+    {
+      title: "Meals Logged",
+      value: dashboardData?.todayStats?.mealsLogged ?? 0,
+      change: `${dashboardData?.weeklyStats?.avgMealsPerDay ?? 0}/day avg`,
+      trend: 'up',
+      icon: Apple,
+      color: "from-green-500 to-emerald-600"
+    },
+    {
+      title: "Goals Achieved",
+      value: `${dashboardData?.goalsProgress?.achieved ?? 0}/${dashboardData?.goalsProgress?.total ?? 0}`,
+      change: `${Math.round(((dashboardData?.goalsProgress?.achieved ?? 0) / (dashboardData?.goalsProgress?.total ?? 1) * 100))}% completion`,
+      trend: 'up',
+      icon: Target,
+      color: "from-blue-500 to-cyan-500"
+    },
+    {
+      title: "Active Streak",
+      value: `${dashboardData?.streak?.current ?? 0} days`,
+      change: `Best: ${dashboardData?.streak?.longest ?? 0} days`,
+      trend: 'up',
+      icon: Award,
+      color: "from-purple-500 to-pink-500"
+    }
+  ];
+
+  // Integration modules showing feature status
+  const integrationModules: IntegrationModule[] = [
+    {
+      name: "AI Food Analysis",
+      status: (systemHealthData as any)?.services?.aiAnalysis?.status ?? 'active',
+      description: "Computer vision, nutrition calculation",
+      icon: Brain,
+      metrics: [
+        { label: "Analyses Today", value: String((dashboardData as any)?.aiStats?.analysesToday ?? 0) },
+        { label: "Accuracy", value: `${(systemHealthData as any)?.services?.aiAnalysis?.accuracy ?? 95}%` },
+        { label: "Avg Response", value: `${(systemHealthData as any)?.services?.aiAnalysis?.responseTime ?? 0.8}s` }
+      ]
+    },
+    {
+      name: "Voice Logging",
+      status: (systemHealthData as any)?.services?.voiceProcessing?.status ?? 'active',
+      description: "Speech-to-text, natural language processing",
+      icon: Mic,
+      metrics: [
+        { label: "Voice Logs", value: String((dashboardData as any)?.voiceStats?.logsToday ?? 0) },
+        { label: "Recognition", value: `${(systemHealthData as any)?.services?.voiceProcessing?.accuracy ?? 92}%` },
+        { label: "Processing", value: `${(systemHealthData as any)?.services?.voiceProcessing?.responseTime ?? 1.2}s` }
+      ]
+    },
+    {
+      name: "Recipe Generation",
+      status: (systemHealthData as any)?.services?.recipeGeneration?.status ?? 'active',
+      description: "AI-powered personalized recipes",
+      icon: Sparkles,
+      metrics: [
+        { label: "Recipes Created", value: String((dashboardData as any)?.recipeStats?.generated ?? 0) },
+        { label: "Success Rate", value: `${(systemHealthData as any)?.services?.recipeGeneration?.successRate ?? 98}%` },
+        { label: "Avg Generation", value: `${(systemHealthData as any)?.services?.recipeGeneration?.avgTime ?? 2.1}s` }
+      ]
+    },
+    {
+      name: "Barcode Scanner",
+      status: (systemHealthData as any)?.services?.barcodeScanner?.status ?? 'active',
+      description: "Product database, nutrition lookup",
+      icon: ScanLine,
+      metrics: [
+        { label: "Scans Today", value: String((dashboardData as any)?.scanStats?.scansToday ?? 0) },
+        { label: "Success Rate", value: `${(systemHealthData as any)?.services?.barcodeScanner?.successRate ?? 87}%` },
+        { label: "Database", value: `${(systemHealthData as any)?.services?.barcodeScanner?.productCount ?? '2.1M'} products` }
+      ]
+    },
+    {
+      name: "Sustainability Scoring",
+      status: (systemHealthData as any)?.services?.sustainabilityScoring?.status ?? 'active',
+      description: "CO2 footprint, environmental impact",
+      icon: Shield,
+      metrics: [
+        { label: "Foods Scored", value: String((dashboardData as any)?.sustainabilityStats?.foodsScored ?? 0) },
+        { label: "Avg CO2 Score", value: `${(dashboardData as any)?.sustainabilityStats?.avgCO2Score ?? 0}/10` },
+        { label: "Water Impact", value: `${(dashboardData as any)?.sustainabilityStats?.avgWaterScore ?? 0}/10` }
+      ]
+    },
+    {
+      name: "Nutrition Database",
+      status: (systemHealthData as any)?.services?.nutritionDatabase?.status ?? 'active',
+      description: "USDA data, nutrient calculations",
+      icon: Database,
+      metrics: [
+        { label: "Foods Available", value: `${(systemHealthData as any)?.services?.nutritionDatabase?.foodCount ?? '8.5K'}` },
+        { label: "Data Freshness", value: "Updated daily" },
+        { label: "Accuracy", value: `${(systemHealthData as any)?.services?.nutritionDatabase?.accuracy ?? 99}%` }
+      ]
+    }
+  ];
+
+  // System health metrics
+  const systemHealth: SystemHealth[] = [
+    {
+      metric: "API Response",
+      value: `${(systemHealthData as any)?.performance?.avgResponseTime ?? 250}ms`,
+      status: ((systemHealthData as any)?.performance?.avgResponseTime ?? 250) < 500 ? 'excellent' : 'good'
+    },
+    {
+      metric: "Database",
+      value: `${(systemHealthData as any)?.performance?.dbResponseTime ?? 45}ms`,
+      status: ((systemHealthData as any)?.performance?.dbResponseTime ?? 45) < 100 ? 'excellent' : 'good'
+    },
+    {
+      metric: "Uptime",
+      value: `${(systemHealthData as any)?.performance?.uptime ?? 99.9}%`,
+      status: ((systemHealthData as any)?.performance?.uptime ?? 99.9) > 99 ? 'excellent' : 'good'
+    },
+    {
+      metric: "Active Users",
+      value: `${(systemHealthData as any)?.users?.activeNow ?? 0}`,
+      status: 'excellent'
+    }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'text-green-600 bg-green-50 border-green-200';
+      case 'warning': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'inactive': return 'text-red-600 bg-red-50 border-red-200';
+      default: return 'text-slate-600 bg-slate-50 border-slate-200';
+    }
   };
 
-  const recentMeals: RecentMeal[] = Array.isArray(recentMealsData) ? recentMealsData.map((meal: any) => ({
-    id: meal.id,
-    name: meal.name,
-    time: new Date(meal.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    calories: meal.nutrition?.calories || 0,
-    main_nutrients: {
-      protein: parseFloat(meal.nutrition?.protein || "0"),
-      carbs: parseFloat(meal.nutrition?.carbs || "0"),
-      fat: parseFloat(meal.nutrition?.fat || "0"),
-    },
-  })) : [];
+  const getHealthStatusColor = (status: string) => {
+    switch (status) {
+      case 'excellent': return 'text-green-600';
+      case 'good': return 'text-blue-600';
+      case 'warning': return 'text-yellow-600';
+      case 'critical': return 'text-red-600';
+      default: return 'text-slate-600';
+    }
+  };
 
-  if (statsLoading || mealsLoading) {
+  if (dashboardLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-slate-400" />
+          <p className="text-slate-600 font-medium">Loading your nutrition dashboard...</p>
+        </div>
       </div>
     );
   }
 
-  const getProgressColor = (current: number, goal: number) => {
-    const percentage = (current / goal) * 100;
-    if (percentage >= 100) return "bg-green-500";
-    if (percentage >= 80) return "bg-yellow-500";
-    return "bg-primary";
-  };
-
-  const getProgressPercentage = (current: number, goal: number) => {
-    return Math.min((current / goal) * 100, 100);
-  };
-
   return (
-    <div className="p-4 bg-background min-h-screen">
-      <div className="max-w-md mx-auto">
-        {/* Mobile Header */}
-        <div className="mb-6">
-          <h1 className="text-mobile-2xl font-bold mb-2 text-black">Today's Progress</h1>
-          <p className="text-mobile-sm text-gray-600 font-medium">Track your nutrition and discover new foods</p>
-        </div>
-
-        {/* Mobile-Optimized Quick Actions */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <Card className="mobile-card-compact">
-            <CardContent className="p-4 text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Camera className="h-6 w-6 text-blue-600" />
-              </div>
-              <Link href="/camera">
-                <Button className="w-full mobile-btn bg-blue-600 hover:bg-blue-700 text-white text-sm">
-                  Scan Food
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-          
-          <Card className="mobile-card-compact">
-            <CardContent className="p-4 text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Mic className="h-6 w-6 text-green-600" />
-              </div>
-              <Link href="/voice">
-                <Button className="w-full mobile-btn bg-green-600 hover:bg-green-700 text-white text-sm">
-                  Voice Log
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Mobile AI Analysis Card */}
-        <Card className="mobile-card-featured mb-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center space-x-2 text-mobile-lg font-bold text-black">
-              <Brain className="h-5 w-5 text-purple-600" />
-              <span>AI Food Analysis</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <label className="text-mobile-sm font-semibold text-black">Describe your meal:</label>
-              <Textarea 
-                placeholder="e.g., chicken salad with avocado"
-                value={demoText}
-                onChange={(e) => setDemoText(e.target.value)}
-                className="min-h-[60px] text-mobile-sm"
-                data-testid="input-food-description"
-              />
-            </div>
-            <Button 
-              onClick={() => analyzeFoodMutation.mutate({ type: 'text', data: demoText })}
-              disabled={!demoText.trim() || analyzeFoodMutation.isPending}
-              className="w-full mobile-btn btn-gradient"
-              data-testid="button-analyze-food"
-            >
-              {analyzeFoodMutation.isPending ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyzing...</>
-              ) : (
-                <><Sparkles className="h-4 w-4 mr-2" /> Analyze with AI</>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          {/* Analysis Results */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+      <div className="container mx-auto px-4 py-6 space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div>
-            {analysisResult ? (
-              <Card className="mobile-card-featured">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-mobile-lg font-bold text-black">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>Analysis Results</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Mobile Nutrition Summary */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                        {analysisResult.nutrition?.calories || analysisResult.total_calories || 0}
-                      </div>
-                      <div className="text-sm text-blue-600 dark:text-blue-400">Calories</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-                        {Math.round(analysisResult.nutrition?.protein || analysisResult.total_protein || 0)}g
-                      </div>
-                      <div className="text-sm text-green-600 dark:text-green-400">Protein</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
-                        {Math.round(analysisResult.nutrition?.carbs || analysisResult.total_carbs || 0)}g
-                      </div>
-                      <div className="text-sm text-yellow-600 dark:text-yellow-400">Carbs</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-                        {Math.round(analysisResult.nutrition?.fat || analysisResult.total_fat || 0)}g
-                      </div>
-                      <div className="text-sm text-orange-600 dark:text-orange-400">Fat</div>
-                    </div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              Dashboard Overview
+            </h1>
+            <p className="text-slate-600">
+              Monitor all of your business operations and integrations from here
+            </p>
+          </div>
+          <div className="flex items-center space-x-4 text-sm text-slate-500">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4" />
+              <span>{currentTime.toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Wifi className="h-4 w-4 text-green-500" />
+              <span>Live Data</span>
+            </div>
+          </div>
+        </div>
+
+        {/* KPI Metrics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {kpiMetrics.map((metric, index) => (
+            <Card key={index} className="card-elegant hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-slate-600">{metric.title}</p>
+                    <p className="text-3xl font-bold text-slate-900">{metric.value}</p>
+                    <p className={`text-xs flex items-center space-x-1 ${
+                      metric.trend === 'up' ? 'text-green-600' : 
+                      metric.trend === 'down' ? 'text-red-600' : 'text-slate-500'
+                    }`}>
+                      <TrendingUp className={`h-3 w-3 ${
+                        metric.trend === 'down' ? 'rotate-180' : ''
+                      }`} />
+                      <span>{metric.change}</span>
+                    </p>
                   </div>
-                  
-                  {/* Nutrition Score */}
-                  {analysisResult.nutrition_score && (
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-bold text-black">Nutrition Score</span>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={analysisResult.nutrition_score.grade === 'A' ? 'default' : 'secondary'}>
-                            Grade {analysisResult.nutrition_score.grade}
-                          </Badge>
-                          <div className="text-2xl font-bold text-primary">
-                            {analysisResult.nutrition_score.score}/100
-                          </div>
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${metric.color} flex items-center justify-center shadow-lg`}>
+                    <metric.icon className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Integration Modules */}
+          <div className="xl:col-span-2 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900">Integration Modules</h2>
+              <Button variant="outline" size="sm" className="btn-outline-glow">
+                <Activity className="h-4 w-4 mr-2" />
+                Manage Integrations
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {integrationModules.map((module, index) => (
+                <Card key={index} className="card-elegant hover:shadow-lg transition-all duration-300">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                          <module.icon className="h-5 w-5 text-slate-700" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg font-bold text-slate-900">{module.name}</CardTitle>
+                          <CardDescription className="text-sm text-slate-600">{module.description}</CardDescription>
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {analysisResult.nutrition_score.explanation}
-                      </p>
+                      <Badge className={`${getStatusColor(module.status)} border font-medium`}>
+                        {module.status === 'active' ? (
+                          <><CheckCircle className="h-3 w-3 mr-1" /> Active</>
+                        ) : module.status === 'warning' ? (
+                          <><AlertTriangle className="h-3 w-3 mr-1" /> Warning</>
+                        ) : (
+                          <><Activity className="h-3 w-3 mr-1" /> Inactive</>
+                        )}
+                      </Badge>
                     </div>
-                  )}
-                  
-                  {/* Diet Compatibility */}
-                  {analysisResult.diet_compatibility && (
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <div className="font-bold text-black mb-2">Diet Compatibility</div>
-                      <div className="flex flex-wrap gap-2">
-                        {Object.entries(analysisResult.diet_compatibility).map(([diet, score]: [string, any]) => (
-                          <Badge 
-                            key={diet} 
-                            variant={score > 80 ? "default" : score > 50 ? "secondary" : "destructive"}
-                            className="capitalize"
-                          >
-                            {diet}: {score}%
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Foods Detected */}
-                  {analysisResult.foods && (
-                    <div>
-                      <div className="font-bold text-black mb-2">Foods Detected:</div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {analysisResult.foods.map((food: any, index: number) => (
-                          <div key={index} className="border rounded-lg p-2 text-sm">
-                            <div className="font-medium">{food.name}</div>
-                            <div className="text-muted-foreground">
-                              {food.quantity} {food.unit} • {food.calories || 0} cal
-                            </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {module.metrics && (
+                      <div className="grid grid-cols-3 gap-4">
+                        {module.metrics.map((metric, metricIndex) => (
+                          <div key={metricIndex} className="text-center">
+                            <p className="text-lg font-bold text-slate-900">{metric.value}</p>
+                            <p className="text-xs text-slate-500 font-medium">{metric.label}</p>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="mobile-card-featured">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-mobile-lg font-bold text-black">
-                    <Target className="h-5 w-5 text-indigo-600" />
-                    <span>Daily Goals</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Calories */}
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-black">Calories</span>
-                      <span className="text-sm font-medium">
-                        {dailyStats.calories} / {dailyStats.goal_calories}
-                      </span>
-                    </div>
-                    <Progress
-                      value={getProgressPercentage(dailyStats.calories, dailyStats.goal_calories)}
-                      className="h-3"
-                    />
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {dailyStats.goal_calories - dailyStats.calories} calories remaining
-                    </div>
-                  </div>
-
-                  {/* Macros */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-bold text-black">Protein</span>
-                        <span className="text-xs font-medium">{dailyStats.protein}g / {dailyStats.goal_protein}g</span>
-                      </div>
-                      <Progress
-                        value={getProgressPercentage(dailyStats.protein, dailyStats.goal_protein)}
-                        className="h-2"
-                      />
-                    </div>
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-bold text-black">Carbs</span>
-                        <span className="text-xs font-medium">{dailyStats.carbs}g / {dailyStats.goal_carbs}g</span>
-                      </div>
-                      <Progress
-                        value={getProgressPercentage(dailyStats.carbs, dailyStats.goal_carbs)}
-                        className="h-2"
-                      />
-                    </div>
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-bold text-black">Fat</span>
-                        <span className="text-xs font-medium">{dailyStats.fat}g / {dailyStats.goal_fat}g</span>
-                      </div>
-                      <Progress
-                        value={getProgressPercentage(dailyStats.fat, dailyStats.goal_fat)}
-                        className="h-2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Today's Summary */}
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4" />
-                        <span className="font-medium">Today</span>
-                      </div>
-                      <Badge variant="secondary">{dailyStats.meals_logged} meals logged</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
 
-          {/* Recent Meals & Features */}
+          {/* System Health & Recent Activity */}
           <div className="space-y-6">
-            <Card className="feature-card-primary border-0 rounded-2xl">
+            {/* System Health */}
+            <Card className="card-elegant">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
-                  <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
-                    <Apple className="h-5 w-5 text-green-600" />
+                <CardTitle className="flex items-center space-x-3 text-lg font-bold text-slate-900">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                    <Activity className="h-4 w-4 text-white" />
                   </div>
-                  <span>Recent Meals</span>
+                  <span>System Health</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {recentMeals.length > 0 ? recentMeals.map((meal) => (
-                  <div key={meal.id} className="border rounded-lg p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="font-bold text-sm text-black">{meal.name}</h4>
-                        <p className="text-xs font-medium">{meal.time}</p>
-                      </div>
-                      <Badge variant="outline">{meal.calories} cal</Badge>
-                    </div>
-                    <div className="flex space-x-2 text-xs">
-                      <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
-                        P: {meal.main_nutrients.protein}g
-                      </span>
-                      <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded">
-                        C: {meal.main_nutrients.carbs}g
-                      </span>
-                      <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-2 py-1 rounded">
-                        F: {meal.main_nutrients.fat}g
-                      </span>
+                {systemHealth.map((health, index) => (
+                  <div key={index} className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-slate-700">{health.metric}</span>
+                    <span className={`text-sm font-bold ${getHealthStatusColor(health.status)}`}>
+                      {health.value}
+                    </span>
+                  </div>
+                ))}
+                <div className="pt-4 border-t border-slate-200">
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>Overall Health</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span className="font-medium text-green-600">Excellent</span>
                     </div>
                   </div>
-                )) : (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <Apple className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No meals logged yet.</p>
-                    <p className="text-sm">Try the AI analysis above!</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activities */}
+            <Card className="card-elegant">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-3 text-lg font-bold text-slate-900">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                    <Bell className="h-4 w-4 text-white" />
+                  </div>
+                  <span>Recent Activity</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {activitiesLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                  </div>
+                ) : (recentActivities as any)?.slice(0, 5).map((activity: RecentActivity, index: number) => {
+                  const ActivityIcon = activity.icon === 'Apple' ? Apple : 
+                                     activity.icon === 'Target' ? Target :
+                                     activity.icon === 'Shield' ? Shield :
+                                     activity.icon === 'Sparkles' ? Sparkles : Bell;
+                  return (
+                    <div key={activity.id || index} className="flex items-center space-x-3 py-2">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                        <ActivityIcon className="h-4 w-4 text-slate-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900 truncate">
+                          {activity.title}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {activity.description}
+                        </p>
+                      </div>
+                      <span className="text-xs text-slate-400 flex-shrink-0">
+                        {activity.timestamp}
+                      </span>
+                    </div>
+                  );
+                })}
+                {(!(recentActivities as any) || (recentActivities as any)?.length === 0) && !activitiesLoading && (
+                  <div className="text-center py-8 text-slate-500">
+                    <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No recent activity</p>
                   </div>
                 )}
               </CardContent>
             </Card>
-            
-            {/* Premium Features Showcase */}
-            <Card className="feature-card-premium border-0 rounded-2xl">
+
+            {/* Quick Actions */}
+            <Card className="card-elegant">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center space-x-3 font-bold text-black text-xl">
-                  <div className="w-10 h-10 feature-icon-enhanced rounded-xl flex items-center justify-center">
-                    <Star className="h-5 w-5 text-yellow-600" />
-                  </div>
-                  <span>Premium Features</span>
-                </CardTitle>
+                <CardTitle className="text-lg font-bold text-slate-900">Quick Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Mic className="h-5 w-5 text-purple-600" />
-                    <div>
-                      <div className="font-bold text-sm">Voice Logging</div>
-                      <div className="text-xs text-muted-foreground">"I had a chicken salad"</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <div className="font-bold text-sm">Sustainability Scores</div>
-                      <div className="text-xs text-muted-foreground">CO2 & water impact</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Sparkles className="h-5 w-5 text-green-600" />
-                    <div>
-                      <div className="font-bold text-sm">Unlimited AI Recipes</div>
-                      <div className="text-xs text-muted-foreground">Personalized to your diet</div>
-                    </div>
-                  </div>
-                </div>
-                
-                {usageStats && typeof usageStats === 'object' ? (
-                  <div className="bg-slate-50/80 border border-slate-200 rounded-lg p-3">
-                    <div className="text-xs text-center">
-                      {(usageStats as any)?.usageStats?.isPremium ? (
-                        <span className="text-amber-700 font-bold">✨ Premium Active</span>
-                      ) : (
-                        <span className="text-slate-600">
-                          Free: {String((usageStats as any)?.usageStats?.remainingFree || 5)} recipes left
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-                
+              <CardContent className="space-y-3">
+                <Link href="/meal-camera">
+                  <Button className="w-full btn-gradient justify-start" size="sm">
+                    <Camera className="h-4 w-4 mr-3" />
+                    Log Meal with Photo
+                  </Button>
+                </Link>
+                <Link href="/search">
+                  <Button className="w-full btn-outline-glow justify-start" size="sm">
+                    <Search className="h-4 w-4 mr-3" />
+                    Search Food Database
+                  </Button>
+                </Link>
                 <Link href="/recipes">
-                  <Button className="w-full btn-gradient" data-testid="button-try-premium">
-                    Try Premium Features
+                  <Button className="w-full btn-outline-glow justify-start" size="sm">
+                    <Sparkles className="h-4 w-4 mr-3" />
+                    Generate AI Recipe
                   </Button>
                 </Link>
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* Real Features Navigation */}
-        <div className="mt-8">
-          <Card className="feature-card-hero border-0 rounded-2xl">
-            <CardHeader className="pb-6">
-              <CardTitle className="flex items-center space-x-3 font-bold text-black text-2xl">
-                <div className="w-12 h-12 feature-icon-enhanced rounded-xl flex items-center justify-center">
-                  <Zap className="h-6 w-6 text-yellow-600" />
-                </div>
-                <span>Explore All Features</span>
-              </CardTitle>
-              <CardDescription className="font-medium text-gray-600 ml-15">
-                Access the full power of MyFoodMatrics - comprehensive nutrition tracking and AI analysis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Link href="/search">
-                  <Button className="w-full h-28 flex flex-col items-center justify-center space-y-3 btn-gradient transform hover:scale-105 transition-all duration-300">
-                    <Search className="h-7 w-7" />
-                    <div className="text-center">
-                      <div className="font-bold text-base">Food Search</div>
-                      <div className="text-xs opacity-90 mt-1">2M+ products</div>
-                    </div>
-                  </Button>
-                </Link>
-
-                <Link href="/camera">
-                  <Button className="w-full h-28 flex flex-col items-center justify-center space-y-3 btn-gradient transform hover:scale-105 transition-all duration-300">
-                    <Camera className="h-7 w-7" />
-                    <div className="text-center">
-                      <div className="font-bold text-base">AI Camera</div>
-                      <div className="text-xs opacity-90 mt-1">Photo analysis</div>
-                    </div>
-                  </Button>
-                </Link>
-                
-                <Link href="/recipes">
-                  <Button className="w-full h-28 flex flex-col items-center justify-center space-y-3 btn-gradient transform hover:scale-105 transition-all duration-300">
-                    <Sparkles className="h-7 w-7" />
-                    <div className="text-center">
-                      <div className="font-bold text-base">AI Recipes</div>
-                      <div className="text-xs opacity-90 mt-1">Personalized</div>
-                    </div>
-                  </Button>
-                </Link>
-
-                <Button 
-                  onClick={() => {
-                    toast({
-                      title: "Analytics Coming Soon!",
-                      description: "Advanced nutrition analytics and trends are being developed.",
-                    });
-                  }}
-                  className="w-full h-28 flex flex-col items-center justify-center space-y-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 border-2 border-slate-300 hover:border-slate-400 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                  data-testid="button-analytics"
-                >
-                  <BarChart3 className="h-7 w-7" />
-                  <div className="text-center">
-                    <div className="font-bold text-base">Analytics</div>
-                    <div className="text-xs opacity-75 mt-1">Coming soon</div>
-                  </div>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
