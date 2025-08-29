@@ -45,8 +45,9 @@ Roadmap features (post‑MVP): barcode scanner, sustainability scoring, recipe g
 
 ---
 
-## 🧱 Architecture (lean & auditable)
+## Architecture (lean & auditable)
 
+```mermaid
 flowchart LR
   A["Web (Next.js)"] -->|HTTPS| B["API (Node / NestJS)"]
   M["Mobile (Expo)"] -->|HTTPS| B
@@ -58,6 +59,8 @@ flowchart LR
   G --> H["OpenAI Vision / Whisper"]
   G --> I["OCR (Tesseract / Textract)"]
   B --> J["Analytics (PostHog)"]
+```
+
 
 
 ## 🗂️ Monorepo Layout
@@ -94,7 +97,7 @@ myfoodmatrics/
 
 ---
 
-## 📦 Tech Choices
+## Tech Choices
 
 * **Web:** Next.js (App Router), React Query, Tailwind.
 * **Mobile:** Expo (later), shared component library.
@@ -108,7 +111,7 @@ myfoodmatrics/
 
 ---
 
-## 🧪 MVP Scope (truthful & measurable)
+## MVP Scope (truthful & measurable)
 
 * p95 time: **≤5s** photo→meal; **≤8s** worst‑case first run.
 * First session success: **≥70%** (user logs 1 meal without help).
@@ -128,7 +131,7 @@ myfoodmatrics/
 
 ---
 
-## 🧰 Getting Started (Dev)
+## Getting Started (Dev)
 
 ```bash
 # 1) Clone
@@ -166,7 +169,7 @@ POSTHOG_KEY=phc_...
 
 ---
 
-## 🔎 API Sketch (OpenAPI excerpt)
+## API Sketch (OpenAPI excerpt)
 
 ```yaml
 paths:
@@ -204,7 +207,7 @@ paths:
 
 ---
 
-## 🧭 KPIs for Seed (<50 users)
+## KPIs for Seed (<50 users)
 
 * **Activation:** % first session reaching 1 logged meal.
 * **D1/D7 Retention:** day‑1 and day‑7 return rates.
@@ -216,23 +219,6 @@ Cadence: weekly review; small A/Bs; share lightweight investor updates monthly.
 
 ---
 
-## 🛣️ Roadmap (next 90 days)
-
-**Month 1**
-
-* Ship reliable photo analysis; add basic A–D score.
-* Cohort‑based analytics dashboard; error replay tooling.
-
-**Month 2**
-
-* Guided corrections UI (edit items/quantities easily).
-* Add barcode lookup (OpenFoodFacts) as fallback.
-
-**Month 3**
-
-* Voice logging (opt‑in alpha).
-* Export/delete controls; data retention UI.
-
 ---
 
 ## 🤝 Contributing
@@ -242,7 +228,7 @@ Cadence: weekly review; small A/Bs; share lightweight investor updates monthly.
 
 ---
 
-## 🛡️ CI/CD (GitHub Actions)
+## CI/CD (GitHub Actions)
 
 ```yaml
 name: CI
