@@ -100,47 +100,47 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Nutrition Dashboard</h1>
-          <p className="text-muted-foreground">Track your daily nutrition goals and discover new foods</p>
+          <h1 className="professional-heading text-3xl font-bold mb-2">Nutrition Dashboard</h1>
+          <p className="body-text text-lg font-medium">Track your daily nutrition goals and discover new foods</p>
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Link href="/search">
-            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <Card className="glow-card cursor-pointer transition-all duration-300">
               <CardContent className="flex items-center p-6">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
-                  <Search className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center mr-4">
+                  <Search className="h-6 w-6 text-indigo-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Search Foods</h3>
-                  <p className="text-sm text-muted-foreground">Find nutrition data</p>
+                  <h3 className="font-bold text-black">Search Foods</h3>
+                  <p className="text-sm font-medium">Find nutrition data</p>
                 </div>
               </CardContent>
             </Card>
           </Link>
 
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+          <Card className="glow-card cursor-pointer transition-all duration-300">
             <CardContent className="flex items-center p-6">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mr-4">
-                <ScanLine className="h-6 w-6 text-accent" />
+              <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mr-4">
+                <ScanLine className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <h3 className="font-semibold">Scan Barcode</h3>
-                <p className="text-sm text-muted-foreground">Quick product lookup</p>
+                <h3 className="font-bold text-black">Scan Barcode</h3>
+                <p className="text-sm font-medium">Quick product lookup</p>
               </div>
             </CardContent>
           </Card>
 
           <Link href="/camera">
-            <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <Card className="glow-card cursor-pointer transition-all duration-300">
               <CardContent className="flex items-center p-6">
-                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mr-4">
-                  <Plus className="h-6 w-6 text-green-600" />
+                <div className="w-12 h-12 bg-teal-50 rounded-lg flex items-center justify-center mr-4">
+                  <Plus className="h-6 w-6 text-teal-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">AI Camera</h3>
-                  <p className="text-sm text-muted-foreground">Photo meal analysis</p>
+                  <h3 className="font-bold text-black">AI Camera</h3>
+                  <p className="text-sm font-medium">Photo meal analysis</p>
                 </div>
               </CardContent>
             </Card>
@@ -150,20 +150,20 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Daily Progress */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="glow-card-hero">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+                <CardTitle className="flex items-center space-x-2 font-bold text-black">
                   <Target className="h-5 w-5" />
                   <span>Today's Progress</span>
                 </CardTitle>
-                <CardDescription>Your nutrition goals for today</CardDescription>
+                <CardDescription className="font-medium">Your nutrition goals for today</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Calories */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-medium">Calories</span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="font-bold text-black">Calories</span>
+                    <span className="text-sm font-medium">
                       {dailyStats.calories} / {dailyStats.goal_calories}
                     </span>
                   </div>
@@ -180,8 +180,8 @@ export default function Dashboard() {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Protein</span>
-                      <span className="text-xs">{dailyStats.protein}g / {dailyStats.goal_protein}g</span>
+                      <span className="text-sm font-bold text-black">Protein</span>
+                      <span className="text-xs font-medium">{dailyStats.protein}g / {dailyStats.goal_protein}g</span>
                     </div>
                     <Progress
                       value={getProgressPercentage(dailyStats.protein, dailyStats.goal_protein)}
@@ -190,8 +190,8 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Carbs</span>
-                      <span className="text-xs">{dailyStats.carbs}g / {dailyStats.goal_carbs}g</span>
+                      <span className="text-sm font-bold text-black">Carbs</span>
+                      <span className="text-xs font-medium">{dailyStats.carbs}g / {dailyStats.goal_carbs}g</span>
                     </div>
                     <Progress
                       value={getProgressPercentage(dailyStats.carbs, dailyStats.goal_carbs)}
@@ -200,8 +200,8 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Fat</span>
-                      <span className="text-xs">{dailyStats.fat}g / {dailyStats.goal_fat}g</span>
+                      <span className="text-sm font-bold text-black">Fat</span>
+                      <span className="text-xs font-medium">{dailyStats.fat}g / {dailyStats.goal_fat}g</span>
                     </div>
                     <Progress
                       value={getProgressPercentage(dailyStats.fat, dailyStats.goal_fat)}
@@ -226,9 +226,9 @@ export default function Dashboard() {
 
           {/* Recent Meals */}
           <div>
-            <Card>
+            <Card className="glow-card">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+                <CardTitle className="flex items-center space-x-2 font-bold text-black">
                   <Apple className="h-5 w-5" />
                   <span>Recent Meals</span>
                 </CardTitle>
@@ -238,8 +238,8 @@ export default function Dashboard() {
                   <div key={meal.id} className="border rounded-lg p-3">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <h4 className="font-medium text-sm">{meal.name}</h4>
-                        <p className="text-xs text-muted-foreground">{meal.time}</p>
+                        <h4 className="font-bold text-sm text-black">{meal.name}</h4>
+                        <p className="text-xs font-medium">{meal.time}</p>
                       </div>
                       <Badge variant="outline">{meal.calories} cal</Badge>
                     </div>
@@ -263,30 +263,30 @@ export default function Dashboard() {
 
         {/* Live API Demo */}
         <div className="mt-8">
-          <Card>
+          <Card className="glow-card-hero">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 font-bold text-black">
                 <Zap className="h-5 w-5" />
                 <span>Live Nutrition API Demo</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="font-medium">
                 Test our powerful nutrition database powered by USDA FoodData Central and Open Food Facts
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Link href="/search">
-                  <Button className="w-full h-20 flex flex-col items-center justify-center space-y-2">
+                  <Button className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-gradient">
                     <Search className="h-6 w-6" />
                     <div className="text-center">
-                      <div className="font-medium">Search Foods</div>
-                      <div className="text-xs opacity-75">Try "banana" or "chicken"</div>
+                      <div className="font-bold">Search Foods</div>
+                      <div className="text-xs opacity-90">Try "banana" or "chicken"</div>
                     </div>
                   </Button>
                 </Link>
 
                 <Button 
-                  className="w-full h-20 flex flex-col items-center justify-center space-y-2"
+                  className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-gradient"
                   onClick={() => {
                     window.location.href = "/search";
                     setTimeout(() => {
@@ -297,18 +297,18 @@ export default function Dashboard() {
                 >
                   <ScanLine className="h-6 w-6" />
                   <div className="text-center">
-                    <div className="font-medium">Scan Barcode</div>
-                    <div className="text-xs opacity-75">Try Nutella: 3017620422003</div>
+                    <div className="font-bold">Scan Barcode</div>
+                    <div className="text-xs opacity-90">Try Nutella: 3017620422003</div>
                   </div>
                 </Button>
 
                 <Button 
                   variant="outline"
-                  className="w-full h-20 flex flex-col items-center justify-center space-y-2"
+                  className="w-full h-20 flex flex-col items-center justify-center space-y-2 btn-outline-glow"
                 >
                   <BarChart3 className="h-6 w-6" />
                   <div className="text-center">
-                    <div className="font-medium">View Analytics</div>
+                    <div className="font-bold">View Analytics</div>
                     <div className="text-xs opacity-75">Coming soon</div>
                   </div>
                 </Button>

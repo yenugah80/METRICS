@@ -99,18 +99,18 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-lg">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <span className="text-primary-foreground font-bold text-xl">M</span>
+            <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <span className="text-white font-bold text-xl">M</span>
             </div>
-            <h1 className="professional-heading text-3xl lg:text-4xl font-bold text-foreground mb-4">
+            <h1 className="professional-heading text-3xl lg:text-4xl font-bold mb-4">
               Welcome to MyFoodMatrics
             </h1>
-            <p className="body-text text-lg text-muted-foreground">
+            <p className="body-text text-lg">
               Professional nutrition intelligence platform
             </p>
           </div>
 
-          <Card className="shadow-xl border-2 border-border">
+          <Card className="glow-card-hero border-0 shadow-xl">
             <CardHeader className="space-y-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 h-12">
@@ -121,8 +121,8 @@ export default function AuthPage() {
                 {/* Sign In Tab */}
                 <TabsContent value="signin" className="space-y-6 mt-8">
                   <div className="text-center">
-                    <CardTitle className="professional-heading text-2xl">Welcome Back</CardTitle>
-                    <CardDescription className="body-text text-base mt-2">
+                    <CardTitle className="professional-heading text-2xl font-bold">Welcome Back</CardTitle>
+                    <CardDescription className="body-text text-base mt-2 font-medium">
                       Access your nutrition intelligence dashboard
                     </CardDescription>
                   </div>
@@ -181,7 +181,7 @@ export default function AuthPage() {
 
                     <Button 
                       type="submit" 
-                      className="w-full h-12 text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
+                      className="w-full h-12 text-base font-bold btn-gradient"
                       disabled={signInMutation.isPending}
                       data-testid="button-signin"
                     >
@@ -193,8 +193,8 @@ export default function AuthPage() {
                 {/* Sign Up Tab */}
                 <TabsContent value="signup" className="space-y-6 mt-8">
                   <div className="text-center">
-                    <CardTitle className="professional-heading text-2xl">Create Your Account</CardTitle>
-                    <CardDescription className="body-text text-base mt-2">
+                    <CardTitle className="professional-heading text-2xl font-bold">Create Your Account</CardTitle>
+                    <CardDescription className="body-text text-base mt-2 font-medium">
                       Begin your professional nutrition journey
                     </CardDescription>
                   </div>
@@ -304,7 +304,7 @@ export default function AuthPage() {
 
                     <Button 
                       type="submit" 
-                      className="w-full h-12 text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
+                      className="w-full h-12 text-base font-bold btn-gradient"
                       disabled={signUpMutation.isPending}
                       data-testid="button-signup"
                     >
@@ -330,7 +330,7 @@ export default function AuthPage() {
                 <Button
                   onClick={handleGoogleAuth}
                   variant="outline"
-                  className="w-full h-12 text-base font-medium border-2 border-border hover:bg-muted"
+                  className="w-full h-12 text-base font-semibold btn-outline-glow"
                   data-testid="button-google-auth"
                 >
                   Continue with Google
@@ -339,7 +339,7 @@ export default function AuthPage() {
                 <Button
                   variant="outline"
                   onClick={handleSSOLogin}
-                  className="w-full h-12 text-base font-medium border-2 border-border hover:bg-muted"
+                  className="w-full h-12 text-base font-semibold btn-outline-glow"
                   data-testid="button-sso-auth"
                 >
                   Enterprise Single Sign-On
@@ -351,7 +351,7 @@ export default function AuthPage() {
                 <Button
                   variant="outline"
                   onClick={handlePasskeyAuth}
-                  className="w-full h-12 text-base font-medium border-2 border-border hover:bg-muted"
+                  className="w-full h-12 text-base font-semibold btn-outline-glow"
                   data-testid="button-passkey-auth"
                 >
                   Biometric Authentication

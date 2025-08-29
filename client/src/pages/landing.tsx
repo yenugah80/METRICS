@@ -9,19 +9,19 @@ export default function Landing() {
         {/* Dreamy Hero Section */}
         <div className="text-center mb-32">
           <div className="max-w-4xl mx-auto">
-            <Badge className="mb-8 glow-card border-0 text-blue-600 px-8 py-3 text-sm tracking-wider uppercase font-medium">
+            <Badge className="mb-8 glow-card border-0 text-gray-700 font-semibold px-8 py-3 text-sm tracking-wider uppercase">
               Revolutionary Nutrition Intelligence
             </Badge>
             
-            <h1 className="professional-heading text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-none text-gradient bg-gradient-to-br from-blue-600 via-purple-500 to-teal-500 bg-clip-text text-transparent">
+            <h1 className="professional-heading text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-none">
               Master Your
               <br />
-              <span className="bg-gradient-to-r from-teal-500 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
                 Nutrition
               </span>
             </h1>
             
-            <p className="body-text text-xl lg:text-2xl text-blue-600/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="body-text text-xl lg:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed">
               The only nutrition tracking application that understands your food through advanced artificial intelligence, 
               providing precise macro-nutrient analysis and personalized health insights.
             </p>
@@ -49,17 +49,17 @@ export default function Landing() {
             
             {/* Floating Trust Indicators */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div className="glow-card p-6 rounded-3xl float-animation">
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">99.7%</div>
-                <div className="text-sm text-blue-600/70 uppercase tracking-wide mt-2">Accuracy Rate</div>
+              <div className="glow-card p-6 rounded-2xl float-animation">
+                <div className="text-3xl font-bold text-black">99.7%</div>
+                <div className="text-sm text-gray-600 uppercase tracking-wide mt-2 font-medium">Accuracy Rate</div>
               </div>
-              <div className="glow-card p-6 rounded-3xl float-animation" style={{animationDelay: '2s'}}>
-                <div className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-teal-500 bg-clip-text text-transparent">2M+</div>
-                <div className="text-sm text-blue-600/70 uppercase tracking-wide mt-2">Food Database</div>
+              <div className="glow-card p-6 rounded-2xl float-animation" style={{animationDelay: '2s'}}>
+                <div className="text-3xl font-bold text-black">2M+</div>
+                <div className="text-sm text-gray-600 uppercase tracking-wide mt-2 font-medium">Food Database</div>
               </div>
-              <div className="glow-card p-6 rounded-3xl float-animation" style={{animationDelay: '4s'}}>
-                <div className="text-3xl font-bold bg-gradient-to-r from-teal-500 to-blue-500 bg-clip-text text-transparent">&lt; 2s</div>
-                <div className="text-sm text-blue-600/70 uppercase tracking-wide mt-2">Analysis Time</div>
+              <div className="glow-card p-6 rounded-2xl float-animation" style={{animationDelay: '4s'}}>
+                <div className="text-3xl font-bold text-black">&lt; 2s</div>
+                <div className="text-sm text-gray-600 uppercase tracking-wide mt-2 font-medium">Analysis Time</div>
               </div>
             </div>
           </div>
@@ -68,81 +68,81 @@ export default function Landing() {
         {/* Glowing Features Section */}
         <div className="mb-32">
           <div className="text-center mb-20">
-            <h2 className="professional-heading text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-br from-blue-600 via-purple-500 to-teal-500 bg-clip-text text-transparent">
+            <h2 className="professional-heading text-4xl lg:text-5xl font-bold mb-6">
               Comprehensive Nutrition Intelligence
             </h2>
-            <p className="body-text text-xl text-blue-600/80 max-w-3xl mx-auto">
+            <p className="body-text text-xl max-w-3xl mx-auto">
               Advanced technologies working in harmony to provide unprecedented insight into your nutritional intake and health trajectory.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
             {/* AI-Powered Food Recognition - Hero Feature */}
-            <Card className="glow-card-hero border-0 rounded-3xl overflow-hidden">
+            <Card className="glow-card-hero border-0 rounded-2xl overflow-hidden">
               <CardContent className="p-12">
                 <div className="mb-8">
-                  <Badge className="mb-6 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-700 border-blue-300/30 px-6 py-3 rounded-full">
+                  <Badge className="mb-6 bg-indigo-50 text-indigo-700 border-indigo-200 px-6 py-3 rounded-full font-semibold">
                     Primary Technology
                   </Badge>
-                  <h3 className="professional-heading text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <h3 className="professional-heading text-3xl font-bold mb-6">
                     Artificial Intelligence
                     <br />
                     Food Recognition
                   </h3>
-                  <p className="body-text text-lg text-blue-600/70 leading-relaxed mb-8">
+                  <p className="body-text text-lg leading-relaxed mb-8">
                     Revolutionary computer vision technology that instantly identifies food items, estimates portion sizes, 
                     and calculates precise nutritional data. Our proprietary algorithms analyze texture, color, and shape 
                     to deliver unparalleled accuracy in nutritional assessment.
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-6 pt-8 border-t border-blue-200/30">
+                <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-blue-600 mb-2">99.7%</div>
-                    <div className="text-sm text-blue-500/60">Recognition Accuracy</div>
+                    <div className="text-lg font-bold text-black mb-2">99.7%</div>
+                    <div className="text-sm text-gray-600 font-medium">Recognition Accuracy</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-blue-600 mb-2">Instant</div>
-                    <div className="text-sm text-blue-500/60">Processing Speed</div>
+                    <div className="text-lg font-bold text-black mb-2">Instant</div>
+                    <div className="text-sm text-gray-600 font-medium">Processing Speed</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-blue-600 mb-2">2M+</div>
-                    <div className="text-sm text-blue-500/60">Food Database</div>
+                    <div className="text-lg font-bold text-black mb-2">2M+</div>
+                    <div className="text-sm text-gray-600 font-medium">Food Database</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Personalized Recommendations */}
-            <Card className="glow-card-hero border-0 rounded-3xl overflow-hidden">
+            <Card className="glow-card-hero border-0 rounded-2xl overflow-hidden">
               <CardContent className="p-12">
                 <div className="mb-8">
-                  <Badge className="mb-6 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-700 border-blue-300/30 px-6 py-3 rounded-full">
+                  <Badge className="mb-6 bg-purple-50 text-purple-700 border-purple-200 px-6 py-3 rounded-full font-semibold">
                     Machine Learning
                   </Badge>
-                  <h3 className="professional-heading text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <h3 className="professional-heading text-3xl font-bold mb-6">
                     Personalized Meal
                     <br />
                     Recommendations
                   </h3>
-                  <p className="body-text text-lg text-blue-600/70 leading-relaxed mb-8">
+                  <p className="body-text text-lg leading-relaxed mb-8">
                     Advanced machine learning algorithms analyze your dietary preferences, nutritional requirements, 
                     and health objectives to provide customized meal suggestions that align with your lifestyle and goals.
                   </p>
                 </div>
                 
-                <div className="space-y-4 pt-8 border-t border-blue-200/30">
+                <div className="space-y-4 pt-8 border-t border-gray-200">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-blue-600/60">Dietary Preferences</span>
-                    <span className="text-sm font-medium text-blue-700">Adaptive Learning</span>
+                    <span className="text-sm text-gray-600">Dietary Preferences</span>
+                    <span className="text-sm font-bold text-black">Adaptive Learning</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-blue-600/60">Nutritional Goals</span>
-                    <span className="text-sm font-medium text-blue-700">Precision Targeting</span>
+                    <span className="text-sm text-gray-600">Nutritional Goals</span>
+                    <span className="text-sm font-bold text-black">Precision Targeting</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-blue-600/60">Health Objectives</span>
-                    <span className="text-sm font-medium text-blue-700">Intelligent Optimization</span>
+                    <span className="text-sm text-gray-600">Health Objectives</span>
+                    <span className="text-sm font-bold text-black">Intelligent Optimization</span>
                   </div>
                 </div>
               </CardContent>
