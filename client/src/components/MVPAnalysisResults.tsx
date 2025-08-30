@@ -3,7 +3,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, CheckCircle, Info, Heart, Shield, Globe, Utensils, ArrowRight } from "lucide-react";
+import { AlertTriangle, CheckCircle, Info, Heart, Shield, Globe, Utensils, ArrowRight, Zap } from "lucide-react";
+import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface MVPAnalysisResult {
   foods: Array<{
@@ -83,6 +86,59 @@ export default function MVPAnalysisResults({
   onSaveMeal, 
   onNewAnalysis 
 }: MVPAnalysisResultsProps) {
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const handleSaveMeal = async () => {
+    if (!onSaveMeal) return;
+    
+    setIsSaving(true);
+    try {
+      // Save the meal
+      await onSaveMeal();
+      
+      // Award XP for meal logging
+      try {
+        await apiRequest('/api/gamification/award-xp', {
+          method: 'POST',
+          body: JSON.stringify({
+            eventType: 'meal_logged',
+            xpAmount: 10,
+            reason: 'Logged meal with AI analysis'
+          })
+        });
+        
+        // Show celebration toast with XP reward
+        toast({
+          title: "🎉 Meal Saved Successfully!",
+          description: (
+            <div className="flex items-center space-x-2">
+              <Zap className="h-4 w-4 text-yellow-500" />
+              <span>+10 XP earned for logging this meal!</span>
+            </div>
+          ),
+          duration: 4000,
+        });
+      } catch (xpError) {
+        console.log('XP award failed:', xpError);
+        // Still show success toast even if XP fails
+        toast({
+          title: "✅ Meal Saved Successfully!",
+          description: "Your meal has been added to your nutrition log.",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to save meal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save meal. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
   
   const getSafetyColor = (status: string) => {
     switch (status) {
@@ -425,8 +481,22 @@ export default function MVPAnalysisResults({
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         {onSaveMeal && (
-          <Button onClick={onSaveMeal} className="flex-1">
-            Save This Meal
+          <Button 
+            onClick={handleSaveMeal} 
+            disabled={isSaving}
+            className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+          >
+            {isSaving ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Saving...</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Zap className="h-4 w-4" />
+                <span>Save Meal (+10 XP)</span>
+              </div>
+            )}
           </Button>
         )}
         {onNewAnalysis && (

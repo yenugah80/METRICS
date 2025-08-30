@@ -15,6 +15,11 @@ import {
   activities,
   recipes,
   systemMetrics,
+  shoppingLists,
+  shoppingListItems,
+  userPoints,
+  achievements,
+  userAchievements,
   type User,
   type UpsertUser,
   type Meal,
@@ -33,6 +38,16 @@ import {
   type InsertRecipe,
   type SystemMetric,
   type InsertSystemMetric,
+  type ShoppingList,
+  type InsertShoppingList,
+  type ShoppingListItem,
+  type InsertShoppingListItem,
+  type UserPoints,
+  type InsertUserPoints,
+  type Achievement,
+  type InsertAchievement,
+  type UserAchievement,
+  type InsertUserAchievement,
 } from '../../../shared/schema';
 
 export interface IStorage {
@@ -87,6 +102,33 @@ export interface IStorage {
   // Dashboard data
   getDashboardOverview(userId: string): Promise<any>;
   getSystemHealth(): Promise<any>;
+  
+  // Shopping Lists
+  getUserShoppingLists(userId: string): Promise<ShoppingList[]>;
+  createShoppingList(shoppingList: InsertShoppingList): Promise<ShoppingList>;
+  updateShoppingList(id: string, updates: Partial<ShoppingList>): Promise<ShoppingList>;
+  deleteShoppingList(id: string): Promise<void>;
+  
+  // Shopping List Items
+  getShoppingListItems(shoppingListId: string): Promise<ShoppingListItem[]>;
+  addShoppingListItem(item: InsertShoppingListItem): Promise<ShoppingListItem>;
+  updateShoppingListItem(id: string, updates: Partial<ShoppingListItem>): Promise<ShoppingListItem>;
+  deleteShoppingListItem(id: string): Promise<void>;
+  
+  // Gamification
+  getUserPoints(userId: string): Promise<UserPoints | undefined>;
+  updateUserPoints(userId: string, pointsToAdd: number, reason: string): Promise<UserPoints>;
+  getUserAchievements(userId: string): Promise<UserAchievement[]>;
+  unlockAchievement(userId: string, achievementId: string): Promise<UserAchievement>;
+  getAvailableAchievements(): Promise<Achievement[]>;
+  
+  // Save AI-generated meal data
+  saveMealFromAI(userId: string, aiAnalysis: any): Promise<Meal>;
+  
+  // User activity and engagement methods
+  getActiveUserCount(): Promise<number>;
+  getUserActivityStreak(userId: string): Promise<number>;
+  getUserLongestStreak(userId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -273,7 +315,7 @@ export class DatabaseStorage implements IStorage {
       .from(dailyNutrition)
       .where(and(
         eq(dailyNutrition.userId, userId),
-        eq(dailyNutrition.date, new Date(date))
+        eq(dailyNutrition.date, date)
       ));
     return nutrition;
   }
@@ -297,13 +339,14 @@ export class DatabaseStorage implements IStorage {
   async getUserNutritionHistory(userId: string, days: number): Promise<DailyNutrition[]> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
+    const startDateStr = startDate.toISOString().split('T')[0];
     
     return await db
       .select()
       .from(dailyNutrition)
       .where(and(
         eq(dailyNutrition.userId, userId),
-        gte(dailyNutrition.date, startDate)
+        gte(dailyNutrition.date, startDateStr)
       ))
       .orderBy(desc(dailyNutrition.date));
   }
@@ -562,6 +605,405 @@ export class DatabaseStorage implements IStorage {
     }
     
     return streak;
+  }
+  
+  // Shopping Lists implementation
+  async getUserShoppingLists(userId: string): Promise<ShoppingList[]> {
+    return await db
+      .select()
+      .from(shoppingLists)
+      .where(eq(shoppingLists.userId, userId))
+      .orderBy(desc(shoppingLists.createdAt));
+  }
+  
+  async createShoppingList(shoppingListData: InsertShoppingList): Promise<ShoppingList> {
+    const [shoppingList] = await db.insert(shoppingLists).values(shoppingListData).returning();
+    
+    // Log shopping list creation activity
+    await this.logActivity({
+      userId: shoppingList.userId,
+      activityType: 'shopping_list_created',
+      title: 'Shopping List Created',
+      description: `Created "${shoppingList.name}"`,
+    });
+    
+    return shoppingList;
+  }
+  
+  async updateShoppingList(id: string, updates: Partial<ShoppingList>): Promise<ShoppingList> {
+    const [shoppingList] = await db
+      .update(shoppingLists)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(shoppingLists.id, id))
+      .returning();
+    
+    if (!shoppingList) {
+      throw new Error('Shopping list not found');
+    }
+    
+    return shoppingList;
+  }
+  
+  async deleteShoppingList(id: string): Promise<void> {
+    await db.delete(shoppingLists).where(eq(shoppingLists.id, id));
+  }
+  
+  // Shopping List Items implementation
+  async getShoppingListItems(shoppingListId: string): Promise<ShoppingListItem[]> {
+    return await db
+      .select()
+      .from(shoppingListItems)
+      .where(eq(shoppingListItems.shoppingListId, shoppingListId))
+      .orderBy(desc(shoppingListItems.createdAt));
+  }
+  
+  async addShoppingListItem(itemData: InsertShoppingListItem): Promise<ShoppingListItem> {
+    const [item] = await db.insert(shoppingListItems).values(itemData).returning();
+    
+    // Update shopping list item counts
+    await db
+      .update(shoppingLists)
+      .set({ 
+        totalItems: sql`${shoppingLists.totalItems} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(shoppingLists.id, item.shoppingListId));
+    
+    return item;
+  }
+  
+  async updateShoppingListItem(id: string, updates: Partial<ShoppingListItem>): Promise<ShoppingListItem> {
+    const [item] = await db
+      .update(shoppingListItems)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(shoppingListItems.id, id))
+      .returning();
+    
+    if (!item) {
+      throw new Error('Shopping list item not found');
+    }
+    
+    // If completing/uncompleting item, update shopping list counts
+    if ('isCompleted' in updates) {
+      const increment = updates.isCompleted ? 1 : -1;
+      await db
+        .update(shoppingLists)
+        .set({ 
+          completedItems: sql`${shoppingLists.completedItems} + ${increment}`,
+          updatedAt: new Date()
+        })
+        .where(eq(shoppingLists.id, item.shoppingListId));
+    }
+    
+    return item;
+  }
+  
+  async deleteShoppingListItem(id: string): Promise<void> {
+    // Get item first to update shopping list counts
+    const [item] = await db.select().from(shoppingListItems).where(eq(shoppingListItems.id, id));
+    
+    if (item) {
+      // Delete item
+      await db.delete(shoppingListItems).where(eq(shoppingListItems.id, id));
+      
+      // Update shopping list counts
+      const completedDecrement = item.isCompleted ? 1 : 0;
+      await db
+        .update(shoppingLists)
+        .set({ 
+          totalItems: sql`${shoppingLists.totalItems} - 1`,
+          completedItems: sql`${shoppingLists.completedItems} - ${completedDecrement}`,
+          updatedAt: new Date()
+        })
+        .where(eq(shoppingLists.id, item.shoppingListId));
+    }
+  }
+  
+  // Gamification implementation
+  async getUserPoints(userId: string): Promise<UserPoints | undefined> {
+    const [points] = await db.select().from(userPoints).where(eq(userPoints.userId, userId));
+    return points;
+  }
+  
+  async updateUserPoints(userId: string, pointsToAdd: number, reason: string): Promise<UserPoints> {
+    // Get or create user points record
+    let userPointsRecord = await this.getUserPoints(userId);
+    
+    if (!userPointsRecord) {
+      // Create new points record
+      const [newRecord] = await db.insert(userPoints).values({
+        userId,
+        totalPoints: pointsToAdd,
+        weeklyPoints: pointsToAdd,
+        monthlyPoints: pointsToAdd,
+      }).returning();
+      userPointsRecord = newRecord;
+    } else {
+      // Update existing record
+      const currentTotal = userPointsRecord.totalPoints || 0;
+      const currentWeekly = userPointsRecord.weeklyPoints || 0;
+      const currentMonthly = userPointsRecord.monthlyPoints || 0;
+      
+      const newTotal = currentTotal + pointsToAdd;
+      const newLevel = Math.floor(newTotal / 100) + 1;
+      const pointsToNext = 100 - (newTotal % 100);
+      
+      const [updated] = await db
+        .update(userPoints)
+        .set({
+          totalPoints: newTotal,
+          currentLevel: newLevel,
+          pointsToNextLevel: pointsToNext,
+          weeklyPoints: currentWeekly + pointsToAdd,
+          monthlyPoints: currentMonthly + pointsToAdd,
+          updatedAt: new Date(),
+        })
+        .where(eq(userPoints.userId, userId))
+        .returning();
+      
+      userPointsRecord = updated;
+    }
+    
+    // Log points earned activity
+    await this.logActivity({
+      userId,
+      activityType: 'points_earned',
+      title: 'Points Earned',
+      description: `+${pointsToAdd} points for ${reason}`,
+      metadata: { pointsEarned: pointsToAdd, reason },
+    });
+    
+    return userPointsRecord;
+  }
+  
+  async getUserAchievements(userId: string): Promise<UserAchievement[]> {
+    return await db
+      .select()
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, userId))
+      .orderBy(desc(userAchievements.unlockedAt));
+  }
+  
+  async unlockAchievement(userId: string, achievementId: string): Promise<UserAchievement> {
+    // Check if already unlocked
+    const [existing] = await db
+      .select()
+      .from(userAchievements)
+      .where(and(
+        eq(userAchievements.userId, userId),
+        eq(userAchievements.achievementId, achievementId)
+      ));
+    
+    if (existing) {
+      return existing;
+    }
+    
+    // Unlock achievement
+    const [userAchievement] = await db
+      .insert(userAchievements)
+      .values({ userId, achievementId })
+      .returning();
+    
+    // Get achievement details for points reward
+    const [achievement] = await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.id, achievementId));
+    
+    if (achievement && achievement.pointsReward && achievement.pointsReward > 0) {
+      await this.updateUserPoints(userId, achievement.pointsReward, `Achievement: ${achievement.name}`);
+    }
+    
+    // Log achievement unlock activity
+    await this.logActivity({
+      userId,
+      activityType: 'achievement_unlocked',
+      title: 'Achievement Unlocked!',
+      description: `Unlocked "${achievement?.name || 'New Achievement'}"`,
+      metadata: { achievementId, pointsReward: achievement?.pointsReward || 0 },
+    });
+    
+    return userAchievement;
+  }
+  
+  async getAvailableAchievements(): Promise<Achievement[]> {
+    return await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.isActive, true))
+      .orderBy(achievements.pointsRequired);
+  }
+  
+  // Save AI-generated meal data
+  async saveMealFromAI(userId: string, aiAnalysis: any): Promise<Meal> {
+    // Create meal from AI analysis
+    const mealData: InsertMeal = {
+      userId,
+      name: aiAnalysis.mealName || 'AI Analyzed Meal',
+      mealType: aiAnalysis.mealType || 'snack',
+      description: aiAnalysis.description,
+      loggedVia: 'photo',
+      imageUrl: aiAnalysis.imageUrl,
+      totalCalories: aiAnalysis.nutrition?.calories || 0,
+      totalProtein: aiAnalysis.nutrition?.protein || 0,
+      totalCarbs: aiAnalysis.nutrition?.carbs || 0,
+      totalFat: aiAnalysis.nutrition?.fat || 0,
+      totalFiber: aiAnalysis.nutrition?.fiber || 0,
+      totalSodium: aiAnalysis.nutrition?.sodium || 0,
+      nutritionScore: aiAnalysis.nutritionScore,
+      sustainabilityScore: aiAnalysis.sustainabilityScore,
+      confidence: aiAnalysis.confidence,
+    };
+    
+    const meal = await this.createMeal(mealData);
+    
+    // Add meal items if provided
+    if (aiAnalysis.foodItems && Array.isArray(aiAnalysis.foodItems)) {
+      for (const foodItem of aiAnalysis.foodItems) {
+        await this.addMealItem({
+          mealId: meal.id,
+          customFoodName: foodItem.name,
+          quantity: foodItem.quantity || 1,
+          unit: foodItem.unit || 'serving',
+          gramsEquivalent: foodItem.gramsEquivalent || 100,
+          calories: foodItem.calories || 0,
+          protein: foodItem.protein || 0,
+          carbs: foodItem.carbs || 0,
+          fat: foodItem.fat || 0,
+          fiber: foodItem.fiber || 0,
+          sodium: foodItem.sodium || 0,
+          confidence: foodItem.confidence,
+        });
+      }
+    }
+    
+    // Award points for meal logging
+    await this.updateUserPoints(userId, 10, 'meal logged');
+    
+    // Update daily nutrition
+    const today = new Date().toISOString().split('T')[0];
+    const existingNutrition = await this.getDailyNutrition(userId, today);
+    
+    await this.createOrUpdateDailyNutrition({
+      userId,
+      date: today,
+      totalCalories: (existingNutrition?.totalCalories || 0) + (aiAnalysis.nutrition?.calories || 0),
+      totalProtein: (existingNutrition?.totalProtein || 0) + (aiAnalysis.nutrition?.protein || 0),
+      totalCarbs: (existingNutrition?.totalCarbs || 0) + (aiAnalysis.nutrition?.carbs || 0),
+      totalFat: (existingNutrition?.totalFat || 0) + (aiAnalysis.nutrition?.fat || 0),
+      totalFiber: (existingNutrition?.totalFiber || 0) + (aiAnalysis.nutrition?.fiber || 0),
+      totalSodium: (existingNutrition?.totalSodium || 0) + (aiAnalysis.nutrition?.sodium || 0),
+      mealsLogged: (existingNutrition?.mealsLogged || 0) + 1,
+      overallNutritionScore: aiAnalysis.nutritionScore,
+      sustainabilityScore: aiAnalysis.sustainabilityScore,
+    });
+    
+    return meal;
+  }
+  
+  // User activity and engagement methods
+  async getActiveUserCount(): Promise<number> {
+    // Count users who have been active in the last 24 hours
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const activeUsers = await db
+      .select({ count: sql`count(DISTINCT ${activities.userId})` })
+      .from(activities)
+      .where(gte(activities.createdAt, yesterday));
+    
+    return Number(activeUsers[0]?.count) || 1;
+  }
+  
+  async getUserActivityStreak(userId: string): Promise<number> {
+    // Get user's consecutive days of meal logging
+    const userMeals = await db
+      .select()
+      .from(meals)
+      .where(eq(meals.userId, userId))
+      .orderBy(desc(meals.createdAt));
+    
+    if (userMeals.length === 0) return 0;
+    
+    let streak = 0;
+    const today = new Date().toDateString();
+    let currentDate = new Date();
+    
+    // Check if user logged a meal today
+    const todayMeals = userMeals.filter(meal => 
+      new Date(meal.createdAt).toDateString() === today
+    );
+    
+    if (todayMeals.length === 0) {
+      // Check yesterday
+      currentDate.setDate(currentDate.getDate() - 1);
+    }
+    
+    // Count consecutive days
+    while (true) {
+      const dateString = currentDate.toDateString();
+      const dayMeals = userMeals.filter(meal =>
+        new Date(meal.createdAt).toDateString() === dateString
+      );
+      
+      if (dayMeals.length > 0) {
+        streak++;
+        currentDate.setDate(currentDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    
+    return streak;
+  }
+  
+  async getUserLongestStreak(userId: string): Promise<number> {
+    // This would be stored in a separate user_stats table in production
+    // For now, calculate based on meal history
+    const userMeals = await db
+      .select()
+      .from(meals)
+      .where(eq(meals.userId, userId))
+      .orderBy(meals.createdAt);
+    
+    if (userMeals.length === 0) return 0;
+    
+    let longestStreak = 0;
+    let currentStreak = 0;
+    let previousDate: string | null = null;
+    
+    // Group meals by date and find longest consecutive streak
+    const mealsByDate = new Map<string, boolean>();
+    
+    userMeals.forEach(meal => {
+      const dateString = new Date(meal.createdAt).toDateString();
+      mealsByDate.set(dateString, true);
+    });
+    
+    const sortedDates = Array.from(mealsByDate.keys()).sort();
+    
+    for (const dateString of sortedDates) {
+      const currentDate = new Date(dateString);
+      
+      if (previousDate) {
+        const prevDate = new Date(previousDate);
+        const diffTime = currentDate.getTime() - prevDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+          currentStreak++;
+        } else {
+          longestStreak = Math.max(longestStreak, currentStreak);
+          currentStreak = 1;
+        }
+      } else {
+        currentStreak = 1;
+      }
+      
+      previousDate = dateString;
+    }
+    
+    return Math.max(longestStreak, currentStreak);
   }
 }
 

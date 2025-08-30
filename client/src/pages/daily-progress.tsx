@@ -1,392 +1,287 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Award, Calendar, Droplets, Target, TrendingUp, CheckCircle, Star, Trophy, Zap } from "lucide-react";
+import { Award, Calendar, Droplets, Target, TrendingUp, CheckCircle, Star, Trophy, Zap, Crown, Flame, Medal } from "lucide-react";
 
-interface DailyStats {
-  date: string;
-  totalCalories: number;
-  targetCalories: number;
-  mealsLogged: number;
-  waterIntake: number; // in glasses
-  targetWater: number;
-  wellnessScore: number;
-  achievements: string[];
+interface GamificationProfile {
+  userId: string;
+  totalXP: number;
+  currentLevel: number;
+  currentStreak: number;
+  longestStreak: number;
+  badges: GamificationBadge[];
+  dailyQuests: DailyQuest[];
+  stats: {
+    totalMealsLogged: number;
+    recipesGenerated: number;
+    avgNutritionScore: number;
+    voiceInputsUsed: number;
+  };
 }
 
-interface Badge {
+interface GamificationBadge {
   id: string;
   name: string;
   description: string;
-  icon: React.ReactNode;
-  unlocked: boolean;
-  unlockedDate?: string;
+  icon: string;
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+  unlockedAt: Date;
+}
+
+interface DailyQuest {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  xpReward: number;
+  completed: boolean;
 }
 
 export default function DailyProgress() {
-  const [currentDate] = useState(new Date());
-  const [weekData, setWeekData] = useState<DailyStats[]>([]);
-  const [badges, setBadges] = useState<Badge[]>([]);
   const [waterIntake, setWaterIntake] = useState(6);
 
-  // Fetch real user progress data
-  useEffect(() => {
-    const fetchProgressData = async () => {
-      try {
-        // Fetch real user stats from API
-        const [statsResponse, badgesResponse] = await Promise.all([
-          fetch('/api/stats/weekly'),
-          fetch('/api/achievements/badges')
-        ]);
-        
-        if (statsResponse.ok) {
-          const realWeekData = await statsResponse.json();
-          setWeekData(realWeekData);
-        } else {
-          // Use calculated stats from user's actual meals
-          const todayDate = new Date().toISOString().split('T')[0];
-          const calculatedStats: DailyStats[] = [
-            {
-              date: todayDate,
-              totalCalories: todayStats.totalCalories,
-              targetCalories: todayStats.targetCalories,
-              mealsLogged: todayStats.mealsLogged,
-              waterIntake: waterIntake,
-              targetWater: todayStats.targetWater,
-              wellnessScore: Math.round((todayStats.totalCalories / todayStats.targetCalories) * 100),
-              achievements: todayStats.totalCalories >= todayStats.targetCalories ? ["Calorie Goal Met"] : []
-            }
-          ];
-          setWeekData(calculatedStats);
-        }
-        
-        if (badgesResponse.ok) {
-          const realBadges = await badgesResponse.json();
-          setBadges(realBadges);
-        } else {
-          // Generate dynamic badges based on actual user progress
-          const todayDate = new Date().toISOString().split('T')[0];
-          const dynamicBadges: Badge[] = [
-            {
-              id: "first_meal",
-              name: "First Steps",
-              description: "Log your first meal",
-              icon: <Star className="h-6 w-6" />,
-              unlocked: todayStats.mealsLogged > 0,
-              unlockedDate: todayStats.mealsLogged > 0 ? todayDate : undefined
-            },
-            {
-              id: "calorie_tracker",
-              name: "Calorie Tracker",
-              description: "Track calories for your health",
-              icon: <Trophy className="h-6 w-6" />,
-              unlocked: todayStats.totalCalories > 0,
-              unlockedDate: todayStats.totalCalories > 0 ? todayDate : undefined
-            },
-            {
-              id: "hydration_hero",
-              name: "Hydration Hero",
-              description: "Meet water intake goal",
-              icon: <Droplets className="h-6 w-6" />,
-              unlocked: waterIntake >= todayStats.targetWater,
-              unlockedDate: waterIntake >= todayStats.targetWater ? todayDate : undefined
-            },
-            {
-              id: "nutrition_ninja",
-              name: "Nutrition Ninja",
-              description: "Analyze food with smart camera",
-              icon: <Zap className="h-6 w-6" />,
-              unlocked: false
-            },
-            {
-              id: "goal_crusher",
-              name: "Goal Crusher",
-              description: "Meet daily calorie goals",
-              icon: <Target className="h-6 w-6" />,
-              unlocked: todayStats.totalCalories >= todayStats.targetCalories,
-              unlockedDate: todayStats.totalCalories >= todayStats.targetCalories ? todayDate : undefined
-            }
-          ];
-          setBadges(dynamicBadges);
-        }
-      } catch (error) {
-        console.error('Failed to fetch progress data:', error);
-        // Keep using fallback data
-      }
-    };
-    
-    fetchProgressData();
-  }, [waterIntake]);
+  // Fetch gamification profile
+  const { data: gamificationData, isLoading: isGamificationLoading } = useQuery<GamificationProfile>({
+    queryKey: ['/api/gamification/profile'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
-  const todayStats = weekData.find(day => day.date === currentDate.toISOString().split('T')[0]) || {
-    date: currentDate.toISOString().split('T')[0],
-    totalCalories: 0,
-    targetCalories: 2000,
-    mealsLogged: 0,
-    waterIntake: waterIntake,
-    targetWater: 8,
-    wellnessScore: 0,
-    achievements: []
+  // Helper functions for tier colors and icons
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case 'bronze': return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'silver': return 'text-slate-600 bg-slate-50 border-slate-200';
+      case 'gold': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'platinum': return 'text-purple-600 bg-purple-50 border-purple-200';
+      default: return 'text-slate-600 bg-slate-50 border-slate-200';
+    }
   };
 
-  const addWaterGlass = () => {
-    setWaterIntake(prev => Math.min(prev + 1, 12));
+  const getTierIcon = (tier: string) => {
+    switch (tier) {
+      case 'bronze': return <Medal className="h-4 w-4" />;
+      case 'silver': return <Star className="h-4 w-4" />;
+      case 'gold': return <Trophy className="h-4 w-4" />;
+      case 'platinum': return <Crown className="h-4 w-4" />;
+      default: return <Award className="h-4 w-4" />;
+    }
   };
 
-  const removeWaterGlass = () => {
-    setWaterIntake(prev => Math.max(prev - 1, 0));
-  };
+  if (isGamificationLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin"></div>
+          <p className="text-slate-600 font-medium">Loading your progress...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!gamificationData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Welcome to Your Progress Journey!</h2>
+          <p className="text-slate-600 mb-4">Start logging meals to unlock your first achievements</p>
+          <Button className="bg-emerald-600 hover:bg-emerald-700">Log Your First Meal</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const xpToNextLevel = ((gamificationData.currentLevel) * 100) - gamificationData.totalXP;
+  const currentLevelXP = gamificationData.totalXP - ((gamificationData.currentLevel - 1) * 100);
 
   return (
-    <div className="p-6 bg-background min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center space-x-2">
-            <Calendar className="h-8 w-8 text-primary" />
-            <span>Daily Progress</span>
-          </h1>
-          <p className="text-muted-foreground">
-            Track your wellness journey with personalized insights and achievements
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header with Level and XP */}
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center space-x-3">
+            <Crown className="h-8 w-8 text-purple-600" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-purple-600 bg-clip-text text-transparent">
+              Level {gamificationData.currentLevel}
+            </h1>
+          </div>
+          <div className="max-w-md mx-auto space-y-2">
+            <div className="flex justify-between text-sm font-medium">
+              <span className="text-slate-600">{currentLevelXP} XP</span>
+              <span className="text-emerald-600">{xpToNextLevel} XP to next level</span>
+            </div>
+            <Progress 
+              value={(currentLevelXP / 100) * 100} 
+              className="h-3 bg-gradient-to-r from-emerald-200 to-purple-200" 
+            />
+          </div>
+          <div className="text-2xl font-bold text-emerald-600">
+            {gamificationData.totalXP.toLocaleString()} Total XP
+          </div>
         </div>
 
-        {/* Daily Wellness Score */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Target className="h-5 w-5 text-primary" />
-              <span>Today's Wellness Score</span>
-            </CardTitle>
-            <CardDescription>Your overall health score based on today's activities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center space-x-8">
-              <div className="relative w-32 h-32">
-                <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 128 128">
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="48"
-                    stroke="currentColor"
-                    strokeWidth="8"
-                    fill="none"
-                    className="text-gray-200"
-                  />
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="48"
-                    stroke="currentColor"
-                    strokeWidth="8"
-                    fill="none"
-                    strokeDasharray={`${2 * Math.PI * 48}`}
-                    strokeDashoffset={`${2 * Math.PI * 48 * (1 - todayStats.wellnessScore / 100)}`}
-                    className={`transition-all duration-1000 ${
-                      todayStats.wellnessScore >= 80 ? 'text-green-500' :
-                      todayStats.wellnessScore >= 60 ? 'text-yellow-500' :
-                      todayStats.wellnessScore >= 40 ? 'text-orange-500' : 'text-red-500'
-                    }`}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold">{todayStats.wellnessScore}</div>
-                    <div className="text-sm text-muted-foreground">Score</div>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Flame className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="text-2xl font-bold text-slate-800">{gamificationData.currentStreak}</div>
+              <div className="text-sm text-slate-600">Day Streak</div>
+              <div className="text-xs text-orange-600 mt-1">Best: {gamificationData.longestStreak} days</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Trophy className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="text-2xl font-bold text-slate-800">{gamificationData.stats.totalMealsLogged}</div>
+              <div className="text-sm text-slate-600">Meals Logged</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Star className="h-6 w-6 text-purple-600" />
+              </div>
+              <div className="text-2xl font-bold text-slate-800">{gamificationData.stats.avgNutritionScore}/100</div>
+              <div className="text-sm text-slate-600">Avg Score</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Award className="h-6 w-6 text-pink-600" />
+              </div>
+              <div className="text-2xl font-bold text-slate-800">{gamificationData.badges.length}</div>
+              <div className="text-sm text-slate-600">Badges Earned</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Daily Quests */}
+          <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-slate-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center space-x-2">
+                <Target className="h-5 w-5 text-emerald-600" />
+                <CardTitle className="text-lg font-bold text-slate-900">Daily Quests</CardTitle>
+              </div>
+              <CardDescription>Complete daily challenges to earn XP</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {gamificationData.dailyQuests.map((quest) => (
+                <div 
+                  key={quest.id} 
+                  className={`p-4 rounded-lg border ${
+                    quest.completed 
+                      ? 'bg-emerald-50 border-emerald-200' 
+                      : 'bg-slate-50 border-slate-200'
+                  } transition-all duration-300`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-slate-800">{quest.title}</h3>
+                    {quest.completed && <CheckCircle className="h-5 w-5 text-emerald-600" />}
+                  </div>
+                  <p className="text-sm text-slate-600 mb-3">{quest.description}</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">{quest.progress}/{quest.target}</span>
+                      <span className="text-emerald-600 font-medium">+{quest.xpReward} XP</span>
+                    </div>
+                    <Progress 
+                      value={(quest.progress / quest.target) * 100} 
+                      className="h-2"
+                    />
                   </div>
                 </div>
-              </div>
-              <div className="space-y-4">
-                <div className={`text-5xl font-bold ${
-                  todayStats.wellnessScore >= 80 ? 'text-green-600' :
-                  todayStats.wellnessScore >= 60 ? 'text-yellow-600' :
-                  todayStats.wellnessScore >= 40 ? 'text-orange-600' : 'text-red-600'
-                }`}>
-                  {todayStats.wellnessScore >= 80 ? 'A' :
-                   todayStats.wellnessScore >= 60 ? 'B' :
-                   todayStats.wellnessScore >= 40 ? 'C' : 'D'}
-                </div>
-                <p className="text-sm text-muted-foreground max-w-xs">
-                  {todayStats.wellnessScore >= 80 ? '🌟 Outstanding wellness today!' :
-                   todayStats.wellnessScore >= 60 ? '👍 Good progress, keep it up!' :
-                   todayStats.wellnessScore >= 40 ? '⚠️ Room for improvement' :
-                   '❌ Focus on healthier choices'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Progress Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Calorie Progress */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Calorie Intake</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>{todayStats.totalCalories} consumed</span>
-                  <span>{todayStats.targetCalories} target</span>
-                </div>
-                <Progress 
-                  value={(todayStats.totalCalories / todayStats.targetCalories) * 100} 
-                  className="h-3"
-                />
-                <div className="text-xs text-muted-foreground">
-                  {todayStats.targetCalories - todayStats.totalCalories > 0 ? 
-                    `${todayStats.targetCalories - todayStats.totalCalories} calories remaining` :
-                    `${todayStats.totalCalories - todayStats.targetCalories} calories over target`
-                  }
-                </div>
-              </div>
+              ))}
             </CardContent>
           </Card>
 
-          {/* Water Intake */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center space-x-2">
-                <Droplets className="h-4 w-4" />
-                <span>Water Intake</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>{waterIntake} glasses</span>
-                  <span>{todayStats.targetWater} target</span>
-                </div>
-                <Progress 
-                  value={(waterIntake / todayStats.targetWater) * 100} 
-                  className="h-3"
-                />
-                <div className="flex space-x-2 mt-3">
-                  <Button size="sm" variant="outline" onClick={removeWaterGlass}>-</Button>
-                  <Button size="sm" variant="outline" onClick={addWaterGlass}>+</Button>
-                </div>
+          {/* Badges Collection */}
+          <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-slate-200">
+            <CardHeader className="pb-4">
+              <div className="flex items-center space-x-2">
+                <Award className="h-5 w-5 text-purple-600" />
+                <CardTitle className="text-lg font-bold text-slate-900">Achievement Badges</CardTitle>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Meals Logged */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Meals Logged</CardTitle>
+              <CardDescription>Your collection of earned achievements</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="text-2xl font-bold">{todayStats.mealsLogged}</div>
-                <div className="text-sm text-muted-foreground">meals today</div>
-                <div className="flex space-x-1 mt-2">
-                  {[1, 2, 3].map((meal) => (
+              {gamificationData.badges.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {gamificationData.badges.map((badge) => (
                     <div 
-                      key={meal}
-                      className={`w-3 h-3 rounded-full ${
-                        meal <= todayStats.mealsLogged ? 'bg-primary' : 'bg-gray-200'
-                      }`}
-                    />
+                      key={badge.id}
+                      className={`p-4 rounded-lg border ${getTierColor(badge.tier)} hover:shadow-md transition-all duration-300`}
+                    >
+                      <div className="flex items-center space-x-3 mb-2">
+                        {getTierIcon(badge.tier)}
+                        <span className="text-2xl">{badge.icon}</span>
+                      </div>
+                      <h3 className="font-semibold text-slate-800 mb-1">{badge.name}</h3>
+                      <p className="text-xs text-slate-600 mb-2">{badge.description}</p>
+                      <Badge className={`text-xs ${getTierColor(badge.tier)}`}>
+                        {badge.tier.toUpperCase()}
+                      </Badge>
+                    </div>
                   ))}
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Star className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-500 mb-4">No badges earned yet</p>
+                  <Button variant="outline" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50">
+                    Start Your Journey
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Achievements */}
-        <Card className="mb-8">
+        {/* Water Tracking */}
+        <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Award className="h-5 w-5 text-yellow-500" />
-              <span>Achievement Badges</span>
-            </CardTitle>
-            <CardDescription>Unlock badges by maintaining healthy habits</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {badges.map((badge) => (
-                <div 
-                  key={badge.id}
-                  className={`p-4 rounded-lg border text-center transition-all ${
-                    badge.unlocked 
-                      ? 'bg-yellow-50 border-yellow-200 text-yellow-800' 
-                      : 'bg-gray-50 border-gray-200 text-gray-400'
-                  }`}
-                >
-                  <div className={`mx-auto mb-2 ${badge.unlocked ? 'text-yellow-600' : 'text-gray-300'}`}>
-                    {badge.icon}
-                  </div>
-                  <div className="font-medium text-sm">{badge.name}</div>
-                  <div className="text-xs mt-1">{badge.description}</div>
-                  {badge.unlocked && badge.unlockedDate && (
-                    <div className="text-xs text-muted-foreground mt-2">
-                      Unlocked {new Date(badge.unlockedDate).toLocaleDateString()}
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="flex items-center space-x-2">
+              <Droplets className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-lg font-bold text-slate-900">Hydration Tracking</CardTitle>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Today's Achievements */}
-        {todayStats.achievements.length > 0 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span>Today's Achievements</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {todayStats.achievements.map((achievement, index) => (
-                  <div key={index} className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-green-800 font-medium">{achievement}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Weekly Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-blue-500" />
-              <span>7-Day Trend</span>
-            </CardTitle>
-            <CardDescription>Your wellness progress over the past week</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {weekData.map((day, index) => (
-                <div key={day.date} className="flex items-center space-x-4 p-3 rounded-lg bg-muted/30">
-                  <div className="text-sm font-medium w-20">
-                    {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Wellness Score</span>
-                      <span className="font-medium">{day.wellnessScore}/100</span>
-                    </div>
-                    <Progress value={day.wellnessScore} className="h-2" />
-                  </div>
-                  <div className="flex space-x-2">
-                    {day.achievements.map((achievement, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        ✓
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-slate-700 font-medium">Daily Water Goal: 8 glasses</span>
+              <span className="text-blue-600 font-bold">{waterIntake}/8 glasses</span>
+            </div>
+            <Progress value={(waterIntake / 8) * 100} className="mb-4 h-3" />
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setWaterIntake(Math.max(0, waterIntake - 1))}
+                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                -
+              </Button>
+              <span className="text-blue-600 font-bold text-lg px-4">{waterIntake}</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setWaterIntake(Math.min(12, waterIntake + 1))}
+                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                +
+              </Button>
             </div>
           </CardContent>
         </Card>

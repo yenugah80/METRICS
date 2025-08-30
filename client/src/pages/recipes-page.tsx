@@ -426,32 +426,6 @@ export default function RecipesPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="explore" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Explore World Cuisines
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {cuisines.map((cuisine) => (
-                  <Card key={cuisine.key} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleCuisineSelect(cuisine.key)}>
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold">{cuisine.name}</h4>
-                      <p className="text-sm text-muted-foreground mt-2">{cuisine.description}</p>
-                      <div className="mt-3">
-                        <p className="text-xs font-medium text-muted-foreground">Popular Dishes:</p>
-                        <p className="text-sm">{cuisine.popularDishes.slice(0, 3).join(', ')}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
       </div>
       

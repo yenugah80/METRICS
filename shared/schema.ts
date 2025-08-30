@@ -319,6 +319,138 @@ export const recipes = pgTable("recipes", {
   difficultyIdx: index("recipes_difficulty_idx").on(table.difficulty),
 }));
 
+// Shopping Lists table
+export const shoppingLists = pgTable("shopping_lists", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  name: varchar("name").notNull(),
+  description: text("description"),
+  
+  // Shopping list metadata
+  isCompleted: boolean("is_completed").default(false),
+  totalItems: integer("total_items").default(0),
+  completedItems: integer("completed_items").default(0),
+  
+  // Organization
+  category: varchar("category"), // grocery, recipes, health
+  priority: varchar("priority").default('medium'), // high, medium, low
+  
+  // Sharing and collaboration
+  isShared: boolean("is_shared").default(false),
+  sharedWith: jsonb("shared_with").$type<string[]>().default([]),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("shopping_lists_user_id_idx").on(table.userId),
+  categoryIdx: index("shopping_lists_category_idx").on(table.category),
+  priorityIdx: index("shopping_lists_priority_idx").on(table.priority),
+}));
+
+// Shopping List Items table
+export const shoppingListItems = pgTable("shopping_list_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shoppingListId: varchar("shopping_list_id").references(() => shoppingLists.id, { onDelete: 'cascade' }).notNull(),
+  foodId: varchar("food_id").references(() => foods.id),
+  
+  // Item details
+  name: varchar("name").notNull(),
+  quantity: real("quantity").notNull(),
+  unit: varchar("unit").notNull(),
+  
+  // Custom details
+  brand: varchar("brand"),
+  notes: text("notes"),
+  estimatedPrice: real("estimated_price"),
+  
+  // Status
+  isCompleted: boolean("is_completed").default(false),
+  isPriority: boolean("is_priority").default(false),
+  
+  // Organization
+  category: varchar("category"), // produce, dairy, meat, etc.
+  aisle: varchar("aisle"),
+  
+  // AI-generated metadata
+  addedVia: varchar("added_via").default('manual'), // manual, recipe, ai_suggestion
+  confidence: real("confidence"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  listIdIdx: index("shopping_list_items_list_id_idx").on(table.shoppingListId),
+  foodIdIdx: index("shopping_list_items_food_id_idx").on(table.foodId),
+  categoryIdx: index("shopping_list_items_category_idx").on(table.category),
+}));
+
+// Gamification: User Points and Achievements
+export const userPoints = pgTable("user_points", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  // Points tracking
+  totalPoints: integer("total_points").default(0),
+  currentLevel: integer("current_level").default(1),
+  pointsToNextLevel: integer("points_to_next_level").default(100),
+  
+  // Weekly/Monthly goals
+  weeklyPoints: integer("weekly_points").default(0),
+  monthlyPoints: integer("monthly_points").default(0),
+  
+  // Streaks
+  currentStreak: integer("current_streak").default(0),
+  longestStreak: integer("longest_streak").default(0),
+  
+  // Rankings
+  weeklyRank: integer("weekly_rank"),
+  overallRank: integer("overall_rank"),
+  
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("user_points_user_id_idx").on(table.userId),
+  totalPointsIdx: index("user_points_total_idx").on(table.totalPoints),
+}));
+
+// Achievements table
+export const achievements = pgTable("achievements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  name: varchar("name").notNull(),
+  description: text("description"),
+  icon: varchar("icon"),
+  category: varchar("category"), // nutrition, consistency, exploration, social
+  
+  // Requirements
+  pointsRequired: integer("points_required"),
+  conditionType: varchar("condition_type"), // streak, meals_logged, recipes_tried
+  conditionValue: integer("condition_value"),
+  
+  // Rewards
+  pointsReward: integer("points_reward").default(0),
+  badgeColor: varchar("badge_color").default('blue'),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  categoryIdx: index("achievements_category_idx").on(table.category),
+  conditionIdx: index("achievements_condition_idx").on(table.conditionType),
+}));
+
+// User Achievements (junction table)
+export const userAchievements = pgTable("user_achievements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  achievementId: varchar("achievement_id").references(() => achievements.id).notNull(),
+  
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+  isDisplayed: boolean("is_displayed").default(true),
+}, (table) => ({
+  userIdIdx: index("user_achievements_user_id_idx").on(table.userId),
+  achievementIdIdx: index("user_achievements_achievement_id_idx").on(table.achievementId),
+  unlockedIdx: index("user_achievements_unlocked_idx").on(table.unlockedAt),
+}));
+
 // System metrics for health monitoring
 export const systemMetrics = pgTable("system_metrics", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -342,12 +474,52 @@ export const systemMetrics = pgTable("system_metrics", {
 }));
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   meals: many(meals),
   goals: many(userGoals),
   dailyNutrition: many(dailyNutrition),
   activities: many(activities),
   recipes: many(recipes),
+  shoppingLists: many(shoppingLists),
+  points: one(userPoints),
+  achievements: many(userAchievements),
+}));
+
+export const shoppingListsRelations = relations(shoppingLists, ({ one, many }) => ({
+  user: one(users, {
+    fields: [shoppingLists.userId],
+    references: [users.id],
+  }),
+  items: many(shoppingListItems),
+}));
+
+export const shoppingListItemsRelations = relations(shoppingListItems, ({ one }) => ({
+  shoppingList: one(shoppingLists, {
+    fields: [shoppingListItems.shoppingListId],
+    references: [shoppingLists.id],
+  }),
+  food: one(foods, {
+    fields: [shoppingListItems.foodId],
+    references: [foods.id],
+  }),
+}));
+
+export const userPointsRelations = relations(userPoints, ({ one }) => ({
+  user: one(users, {
+    fields: [userPoints.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
+  user: one(users, {
+    fields: [userAchievements.userId],
+    references: [users.id],
+  }),
+  achievement: one(achievements, {
+    fields: [userAchievements.achievementId],
+    references: [achievements.id],
+  }),
 }));
 
 export const mealsRelations = relations(meals, ({ one, many }) => ({
@@ -420,3 +592,13 @@ export type Recipe = typeof recipes.$inferSelect;
 export type InsertRecipe = typeof recipes.$inferInsert;
 export type SystemMetric = typeof systemMetrics.$inferSelect;
 export type InsertSystemMetric = typeof systemMetrics.$inferInsert;
+export type ShoppingList = typeof shoppingLists.$inferSelect;
+export type InsertShoppingList = typeof shoppingLists.$inferInsert;
+export type ShoppingListItem = typeof shoppingListItems.$inferSelect;
+export type InsertShoppingListItem = typeof shoppingListItems.$inferInsert;
+export type UserPoints = typeof userPoints.$inferSelect;
+export type InsertUserPoints = typeof userPoints.$inferInsert;
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = typeof achievements.$inferInsert;
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = typeof userAchievements.$inferInsert;

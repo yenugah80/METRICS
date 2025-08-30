@@ -425,21 +425,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const goalsAchieved = 2; // Example: protein and calories met
       const totalGoals = 4; // calories, protein, carbs, fat
       
-      // Get user activity streak (simplified)
-      const currentStreak = Math.floor(Math.random() * 14) + 1; // Placeholder
-      const longestStreak = Math.max(currentStreak, Math.floor(Math.random() * 30) + 1);
+      // Get real user activity streak from database
+      const userStreak = await storage.getUserActivityStreak(userId);
+      const currentStreak = userStreak || 0;
+      const longestStreak = Math.max(currentStreak, await storage.getUserLongestStreak(userId) || 0);
       
-      // Generate some sample AI usage stats
+      // Get real AI usage stats from database
+      const userActivities = await storage.getActivitiesForUser(userId, 1) || [];
+      const todayActivities = userActivities.filter((activity: any) => {
+        const activityDate = new Date(activity.createdAt || activity.timestamp);
+        const today = new Date();
+        return activityDate.toDateString() === today.toDateString();
+      });
+      
+      // Count different activity types for today
+      const analysesToday = todayActivities.filter((a: any) => a.activityType?.includes('analysis') || a.type === 'meal').length;
+      const voiceLogsToday = todayActivities.filter((a: any) => a.activityType?.includes('voice')).length;
+      const recipesGenerated = todayActivities.filter((a: any) => a.activityType?.includes('recipe')).length;
+      const scansToday = todayActivities.filter((a: any) => a.activityType?.includes('scan')).length;
+      
+      // Calculate sustainability stats from recent meals
+      const recentMeals = await storage.getRecentMeals(userId, 10) || [];
+      const sustainabilityStats = {
+        foodsScored: recentMeals.filter((meal: any) => meal.sustainabilityScore).length,
+        avgCO2Score: recentMeals.length > 0 ? 
+          (recentMeals.reduce((sum: number, meal: any) => sum + (meal.sustainabilityScore || 0), 0) / recentMeals.length / 10).toFixed(1) : 
+          '5.0',
+        avgWaterScore: recentMeals.length > 0 ? 
+          (recentMeals.reduce((sum: number, meal: any) => sum + ((meal.sustainabilityScore || 0) * 0.8), 0) / recentMeals.length / 10).toFixed(1) : 
+          '4.5'
+      };
+
       const aiStats = {
-        analysesToday: Math.floor(Math.random() * 10) + 1,
-        voiceLogsToday: Math.floor(Math.random() * 5),
-        recipesGenerated: Math.floor(Math.random() * 3),
-        scansToday: Math.floor(Math.random() * 8) + 1,
-        sustainabilityStats: {
-          foodsScored: Math.floor(Math.random() * 15) + 5,
-          avgCO2Score: (Math.random() * 5 + 3).toFixed(1),
-          avgWaterScore: (Math.random() * 5 + 4).toFixed(1)
-        }
+        analysesToday,
+        voiceLogsToday,
+        recipesGenerated,
+        scansToday,
+        sustainabilityStats
       };
       
       const dashboardData = {
@@ -531,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           uptime: 99.9
         },
         users: {
-          activeNow: Math.floor(Math.random() * 50) + 10
+          activeNow: await storage.getActiveUserCount() || 1
         }
       };
       
@@ -567,25 +589,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
       
-      // Add some sample system activities
-      const now = new Date();
-      activities.push({
-        id: 'goal-achievement',
-        type: 'achievement',
-        title: 'Daily protein goal achieved!',
-        description: 'Reached 80g protein target',
-        timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-        icon: 'Target'
-      });
-      
-      activities.push({
-        id: 'system-backup',
-        type: 'system',
-        title: 'Daily data sync completed',
-        description: 'All nutrition data backed up',
-        timestamp: new Date(now.getTime() - 4 * 60 * 60 * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-        icon: 'Shield'
-      });
+      // Get real user activities from database
+      try {
+        const userActivities = await storage.getActivitiesForUser(userId, 10) || [];
+        userActivities.forEach((activity: any) => {
+          const activityTime = new Date(activity.createdAt || activity.timestamp);
+          activities.push({
+            id: activity.id || `activity-${activities.length}`,
+            type: activity.activityType || activity.type || 'system',
+            title: activity.title || 'Activity',
+            description: activity.description || '',
+            timestamp: activityTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            icon: activity.icon || 'Activity'
+          });
+        });
+      } catch (error) {
+        console.log('No user activities found, using meal data only');
+      }
       
       res.json(activities.slice(0, 8));
     } catch (error) {
@@ -1620,7 +1640,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Save analyzed meal to database  
   app.post("/api/meals/save", verifyJWT, async (req: any, res) => {
     try {
-      // Use authenticated user ID instead of demo user
       const userId = req.user.id;
       const { name, mealType, imageUrl, foods, nutrition } = req.body;
 
@@ -1628,71 +1647,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing required meal data" });
       }
 
-      // Create meal
-      const mealData = {
-        userId,
-        name,
+      // Transform the frontend data format to match the AI analysis format expected by saveMealFromAI
+      const aiAnalysis = {
+        mealName: name,
         mealType: mealType || 'lunch',
+        description: `Meal logged via photo analysis at ${new Date().toLocaleString()}`,
         imageUrl,
-        source: 'photo',
-        confidence: (foods.reduce((sum: number, food: any) => sum + food.confidence, 0) / foods.length || 0.8).toString()
+        nutrition: {
+          calories: nutrition.total_calories || nutrition.health?.calories || 0,
+          protein: nutrition.total_protein || nutrition.health?.macronutrients?.protein || 0,
+          carbs: nutrition.total_carbs || nutrition.health?.macronutrients?.carbs || 0,
+          fat: nutrition.total_fat || nutrition.health?.macronutrients?.fat || 0,
+          fiber: nutrition.detailed_nutrition?.fiber || nutrition.health?.macronutrients?.fiber || 0,
+          sodium: nutrition.detailed_nutrition?.sodium || 0,
+        },
+        nutritionScore: nutrition.nutrition_score?.score || nutrition.health?.nutrition_score || 70,
+        sustainabilityScore: nutrition.sustainability?.eco_score || nutrition.sustainability_score?.overall_score || 60,
+        confidence: foods.reduce((sum: number, food: any) => sum + (food.confidence || 0.8), 0) / foods.length,
+        foodItems: foods.map((food: any) => ({
+          name: food.name,
+          quantity: food.quantity || 1,
+          unit: food.unit || 'serving',
+          gramsEquivalent: food.gramsEquivalent || 100,
+          calories: food.calories || food.calories_per_serving || 0,
+          protein: food.protein || 0,
+          carbs: food.carbs || 0,
+          fat: food.fat || 0,
+          fiber: food.fiber || 0,
+          sodium: food.sodium || 0,
+          confidence: food.confidence || 0.8,
+        }))
       };
 
-      const meal = await storage.createMeal(mealData);
-
-      // Add meal items
-      for (const food of foods) {
-        await storage.createMealItem({
-          mealId: meal.id,
-          name: food.name,
-          quantity: food.quantity.toString(),
-          unit: food.unit,
-          confidence: food.confidence?.toString() || "0.8"
-        });
-      }
-
-      // Add nutrition data
-      await storage.createMealNutrition({
-        mealId: meal.id,
-        calories: nutrition.total_calories,
-        protein: nutrition.total_protein.toString(),
-        carbs: nutrition.total_carbs.toString(),
-        fat: nutrition.total_fat.toString(),
-        fiber: nutrition.detailed_nutrition?.fiber?.toString() || null,
-        vitaminC: nutrition.detailed_nutrition?.vitamin_c?.toString() || null
-      });
-
-      // Update daily aggregates
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      // Get current daily totals
-      const todaysMeals = await storage.getMealsForDate(userId, today);
-      let totalCalories = 0;
-      let totalProtein = 0;
-      let totalCarbs = 0;
-      let totalFat = 0;
-      
-      for (const mealRecord of todaysMeals) {
-        const mealNutrition = await storage.getMealNutrition(mealRecord.id);
-        if (mealNutrition) {
-          totalCalories += mealNutrition.calories || 0;
-          totalProtein += parseFloat(mealNutrition.protein || "0");
-          totalCarbs += parseFloat(mealNutrition.carbs || "0");
-          totalFat += parseFloat(mealNutrition.fat || "0");
-        }
-      }
-      
-      // Update daily aggregate
-      await storage.upsertDailyAggregate(userId, today, {
-        totalCalories,
-        totalProtein: totalProtein.toString(),
-        totalCarbs: totalCarbs.toString(),
-        totalFat: totalFat.toString(),
-        mealCount: todaysMeals.length,
-        averageNutritionScore: nutrition.nutrition_score?.score || 0,
-        averageNutritionGrade: nutrition.nutrition_score?.grade || "C"
-      });
+      // Use the comprehensive saveMealFromAI method
+      const meal = await storage.saveMealFromAI(userId, aiAnalysis);
 
       console.log("Meal saved successfully:", meal.id);
       res.json({ success: true, mealId: meal.id });
@@ -1728,6 +1716,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching recent meals:", error);
       res.status(500).json({ error: "Failed to fetch recent meals" });
+    }
+  });
+
+  // === GAMIFICATION ENDPOINTS ===
+  
+  // Get user's gamification profile (XP, level, badges, quests)
+  app.get('/api/gamification/profile', verifyJWT, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Get user stats from database
+      const userMeals = await storage.getMealsByUserId(userId, 1000) || [];
+      const userRecipes = await storage.getUserRecipes(userId) || [];
+      
+      // Calculate user stats
+      const totalMealsLogged = userMeals.length;
+      const recipesGenerated = userRecipes.length;
+      const currentStreak = await storage.getUserActivityStreak(userId);
+      const longestStreak = await storage.getUserLongestStreak(userId);
+      
+      // Calculate average nutrition score
+      const mealsWithScores = userMeals.filter((meal: any) => meal.nutritionScore);
+      const avgNutritionScore = mealsWithScores.length > 0 
+        ? mealsWithScores.reduce((sum: number, meal: any) => sum + meal.nutritionScore, 0) / mealsWithScores.length
+        : 0;
+        
+      // Calculate XP and level
+      const baseXP = totalMealsLogged * 10 + recipesGenerated * 25 + currentStreak * 5;
+      const totalXP = Math.max(baseXP, 0);
+      const currentLevel = Math.floor(totalXP / 100) + 1;
+      
+      // Generate badges based on achievements
+      const badges = [];
+      if (totalMealsLogged >= 1) badges.push({ id: 'first_meal', name: 'First Bite', description: 'Log your first meal', icon: '🍽️', tier: 'bronze', unlockedAt: new Date() });
+      if (totalMealsLogged >= 10) badges.push({ id: 'meals_10', name: 'Getting Started', description: 'Log 10 meals', icon: '📝', tier: 'bronze', unlockedAt: new Date() });
+      if (totalMealsLogged >= 50) badges.push({ id: 'meals_50', name: 'Consistent Logger', description: 'Log 50 meals', icon: '📊', tier: 'silver', unlockedAt: new Date() });
+      if (currentStreak >= 3) badges.push({ id: 'streak_3', name: 'On a Roll', description: '3-day logging streak', icon: '🔥', tier: 'bronze', unlockedAt: new Date() });
+      if (currentStreak >= 7) badges.push({ id: 'streak_7', name: 'Week Warrior', description: '7-day logging streak', icon: '🗓️', tier: 'silver', unlockedAt: new Date() });
+      if (recipesGenerated >= 1) badges.push({ id: 'first_recipe', name: 'Chef Beginner', description: 'Generate your first recipe', icon: '👨‍🍳', tier: 'bronze', unlockedAt: new Date() });
+      if (avgNutritionScore >= 85) badges.push({ id: 'nutrition_pro', name: 'Nutrition Pro', description: 'Maintain 85+ average score', icon: '🥇', tier: 'gold', unlockedAt: new Date() });
+      
+      // Generate daily quests
+      const today = new Date();
+      const todayMeals = userMeals.filter((meal: any) => {
+        const mealDate = new Date(meal.createdAt);
+        return mealDate.toDateString() === today.toDateString();
+      });
+      
+      const dailyQuests = [
+        {
+          id: 'daily_meals',
+          type: 'log_meals',
+          title: 'Daily Nutrition',
+          description: 'Log 3 meals today',
+          target: 3,
+          progress: todayMeals.length,
+          xpReward: 30,
+          completed: todayMeals.length >= 3
+        },
+        {
+          id: 'nutrition_score',
+          type: 'nutrition_score',
+          title: 'Healthy Choices',
+          description: 'Achieve 75+ nutrition score',
+          target: 75,
+          progress: Math.round(avgNutritionScore),
+          xpReward: 40,
+          completed: avgNutritionScore >= 75
+        }
+      ];
+      
+      const gamificationProfile = {
+        userId,
+        totalXP,
+        currentLevel,
+        currentStreak,
+        longestStreak,
+        badges,
+        dailyQuests,
+        stats: {
+          totalMealsLogged,
+          recipesGenerated,
+          avgNutritionScore: Math.round(avgNutritionScore),
+          voiceInputsUsed: 0
+        }
+      };
+      
+      res.json(gamificationProfile);
+    } catch (error) {
+      console.error('Error fetching gamification profile:', error);
+      res.status(500).json({ error: 'Failed to fetch gamification profile' });
+    }
+  });
+
+  // Award XP for user actions
+  app.post('/api/gamification/award-xp', verifyJWT, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { eventType, xpAmount, reason } = req.body;
+      
+      // Record XP award in activities log
+      await storage.logActivity({
+        userId,
+        activityType: 'xp_awarded',
+        title: `+${xpAmount} XP Earned`,
+        description: reason || `Earned ${xpAmount} XP for ${eventType}`,
+        metadata: { eventType, xpAmount }
+      });
+      
+      res.json({ success: true, xpAwarded: xpAmount });
+    } catch (error) {
+      console.error('Error awarding XP:', error);
+      res.status(500).json({ error: 'Failed to award XP' });
     }
   });
 

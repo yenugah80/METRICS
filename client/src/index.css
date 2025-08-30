@@ -29,17 +29,17 @@
   --neutral-50: hsl(0, 0%, 98%);
   --neutral-100: hsl(0, 0%, 96%);
   
-  /* System Colors */
-  --background: hsl(0, 0%, 100%); /* pure white */
+  /* System Colors - Enhanced Light Pastels */
+  --background: hsl(220, 30%, 99%); /* soft pastel white */
   --foreground: var(--neutral-900);
-  --card: hsl(0, 0%, 100%);
+  --card: hsl(220, 40%, 98%); /* slightly tinted pastel card */
   --card-foreground: var(--neutral-900);
-  --popover: hsl(0, 0%, 100%);
+  --popover: hsl(220, 40%, 98%);
   --popover-foreground: var(--neutral-900);
-  --muted: var(--neutral-100);
+  --muted: hsl(220, 30%, 96%); /* softer muted background */
   --muted-foreground: var(--neutral-600);
-  --border: hsl(0, 0%, 90%);
-  --input: var(--neutral-100);
+  --border: hsl(220, 20%, 88%); /* warmer border */
+  --input: hsl(220, 35%, 97%); /* tinted input background */
   --ring: var(--primary);
   
   /* Success & Status */

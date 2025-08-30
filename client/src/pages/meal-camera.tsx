@@ -459,15 +459,15 @@ export default function MealCamera() {
   };
 
   return (
-    <div className="p-6 bg-background min-h-screen">
+    <div className="p-6 bg-gradient-to-br from-blue-50/40 via-indigo-50/30 to-purple-50/40 min-h-screen">
       <div className="max-w-4xl mx-auto">
         {/* Demo Banner */}
         {isDemo && (
-          <div className="mb-6 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg p-4">
+          <div className="mb-6 bg-gradient-to-r from-emerald-100/80 to-teal-100/80 backdrop-blur-sm border border-emerald-200/50 rounded-2xl p-4 shadow-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="bg-emerald-100 p-2 rounded-full">
-                  <Sparkles className="h-5 w-5 text-emerald-600" />
+                <div className="bg-gradient-to-br from-emerald-400 to-teal-500 p-2 rounded-xl shadow-md">
+                  <Sparkles className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-emerald-800">You're in Demo Mode!</h3>
@@ -725,13 +725,7 @@ export default function MealCamera() {
               {analysis ? (
                 <MVPAnalysisResults 
                   analysis={analysis}
-                  onSaveMeal={() => {
-                    // TODO: Implement save meal functionality
-                    toast({
-                      title: "Feature Coming Soon",
-                      description: "Meal saving will be available in the next update!",
-                    });
-                  }}
+                  onSaveMeal={handleSaveMeal}
                   onNewAnalysis={() => {
                     setSelectedImage(null);
                     setAnalysis(null);

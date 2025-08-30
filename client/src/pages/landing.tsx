@@ -438,9 +438,6 @@ export default function Landing() {
         {/* Integration Capabilities */}
         <IntegrationsGrid />
         
-        {/* Database Trust Banner */}
-        <BigDatabaseBanner />
-        
         {/* Blog Expert Content */}
         <BlogTeasers />
         

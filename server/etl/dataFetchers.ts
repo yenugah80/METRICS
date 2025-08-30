@@ -1,5 +1,4 @@
 import { db } from "../db";
-import { ingredients, nutritionData, etlJobs, discoveryQueue } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 
 interface USDAFoodItem {
@@ -37,9 +36,9 @@ export class USDAFetcher {
   private baseUrl = "https://api.nal.usda.gov/fdc/v1";
 
   constructor() {
-    this.apiKey = process.env.USDA_API_KEY!;
+    this.apiKey = process.env.USDA_API_KEY || '';
     if (!this.apiKey) {
-      throw new Error("USDA_API_KEY environment variable is required");
+      console.warn("USDA_API_KEY not configured - USDA fetcher disabled");
     }
   }
 

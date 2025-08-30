@@ -52,18 +52,18 @@ export default function VoiceAssistantPage() {
   }
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/40 via-indigo-50/30 to-purple-50/40 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 px-6 py-3 rounded-full text-sm font-medium mb-6 shadow-lg backdrop-blur-sm border border-emerald-200/50">
             <Sparkles className="w-4 h-4" />
             AI-Powered Voice Assistant
           </div>
-          <h1 className="text-[32px] font-semibold text-neutral-900 mb-4">
+          <h1 className="text-[32px] font-bold bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent mb-4">
             Talk to Nutri, Your Personal Nutrition Coach
           </h1>
-          <p className="text-neutral-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed text-lg">
             Have natural conversations about nutrition, get meal recommendations, understand food labels, 
             and receive personalized health advice through voice interactions.
           </p>
@@ -81,8 +81,8 @@ export default function VoiceAssistantPage() {
 
         {/* Features Overview */}
         <div className="mt-12 grid md:grid-cols-3 gap-6">
-          <div className="ios-card p-6 text-center group cursor-pointer">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white mx-auto mb-4 group-hover:scale-105 transition-all duration-200">
+          <div className="bg-gradient-to-br from-white/80 to-emerald-50/60 backdrop-blur-xl border border-white/30 shadow-xl rounded-2xl p-6 text-center group cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 flex items-center justify-center text-white mx-auto mb-4 group-hover:scale-105 transition-all duration-200 shadow-lg">
               <Brain className="w-6 h-6" />
             </div>
             <h3 className="font-semibold text-neutral-900 mb-2">Smart Nutrition Analysis</h3>

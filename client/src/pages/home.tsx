@@ -81,13 +81,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-border">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-50/90 via-indigo-50/90 to-purple-50/90 backdrop-blur-xl border-b border-white/20 shadow-lg">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <Apple className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+              <Apple className="w-5 h-5 text-white drop-shadow-sm" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">Dashboard</h1>
           </div>
           <div className="flex items-center space-x-2">
             {user?.isPremium && (
@@ -110,19 +110,19 @@ export default function HomePage() {
       </header>
 
       {/* Navigation Tabs */}
-      <nav className="bg-white/60 backdrop-blur-lg border-b border-border sticky top-16 z-40">
+      <nav className="bg-gradient-to-r from-slate-50/80 via-blue-50/80 to-indigo-50/80 backdrop-blur-xl border-b border-white/30 sticky top-16 z-40 shadow-sm">
         <div className="flex items-center justify-center">
           <Tabs defaultValue="today" className="m-3">
-            <TabsList className="bg-muted/10 rounded-lg p-1">
-              <TabsTrigger value="today" className="bg-white rounded-md shadow-sm" data-testid="tab-today">
+            <TabsList className="bg-white/40 backdrop-blur-sm rounded-xl p-1 shadow-lg border border-white/20">
+              <TabsTrigger value="today" className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg shadow-md data-[state=active]:shadow-lg" data-testid="tab-today">
                 Today
               </TabsTrigger>
-              <TabsTrigger value="history" className="text-muted-foreground" data-testid="tab-history">
+              <TabsTrigger value="history" className="text-slate-600 hover:text-slate-800 hover:bg-white/50 rounded-lg transition-all" data-testid="tab-history">
                 History
               </TabsTrigger>
-              <TabsTrigger value="premium" className="text-secondary relative" data-testid="tab-premium">
+              <TabsTrigger value="premium" className="text-slate-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all relative" data-testid="tab-premium">
                 Premium
-                <Crown className="w-3 h-3 ml-1 text-premium" />
+                <Crown className="w-3 h-3 ml-1 text-amber-500" />
               </TabsTrigger>
             </TabsList>
           </Tabs>
