@@ -117,48 +117,152 @@ export default function AuthPage() {
               <p className="text-blue-300 text-lg font-medium opacity-80">Evidence-based results</p>
             </div>
 
-            {/* Simple trust elements - less intense */}
-            <div className="space-y-8">
-              <div className="text-center space-y-4">
-                <div className="flex items-center justify-center space-x-6 text-white/70">
-                  <div className="flex items-center space-x-2">
-                    <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <span className="text-sm">USDA Verified</span>
+            {/* Core Value Pillars */}
+            <div className="space-y-6 mb-8">
+              <div className="flex items-center space-x-4 p-4 rounded-xl" style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{
+                  background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2))',
+                  border: '1px solid rgba(34, 197, 94, 0.3)'
+                }}>
+                  <svg className="w-6 h-6 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">USDA Certified Data</h3>
+                  <p className="text-sm text-blue-200">Government-grade nutrition database</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4 p-4 rounded-xl" style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2))',
+                  border: '1px solid rgba(59, 130, 246, 0.3)'
+                }}>
+                  <svg className="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">Medical-Grade Engine</h3>
+                  <p className="text-sm text-blue-200">Clinical condition intelligence</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4 p-4 rounded-xl" style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{
+                  background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(147, 51, 234, 0.2))',
+                  border: '1px solid rgba(168, 85, 247, 0.3)'
+                }}>
+                  <svg className="w-6 h-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">Real-Time Analysis</h3>
+                  <p className="text-sm text-blue-200">Instant nutrition intelligence</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Competitive Comparison Card */}
+            <div className="rounded-2xl p-6 mb-8" style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06))',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+            }}>
+              <h3 className="text-lg font-bold text-white mb-6 text-center">Why Choose Professional Intelligence?</h3>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-red-300 flex items-center">
+                      <span className="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
+                      Basic Apps
+                    </h4>
+                    <ul className="space-y-2 text-white/70 text-xs">
+                      <li className="flex items-start">
+                        <span className="text-red-400 mr-2">×</span>
+                        Crowdsourced estimates
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-red-400 mr-2">×</span>
+                        Single scores only
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-red-400 mr-2">×</span>
+                        Generic advice
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-red-400 mr-2">×</span>
+                        Hidden uncertainty
+                      </li>
+                    </ul>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                    </svg>
-                    <span className="text-sm">Medical Grade</span>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-emerald-300 flex items-center">
+                      <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
+                      MyFoodMatrics
+                    </h4>
+                    <ul className="space-y-2 text-white/90 text-xs">
+                      <li className="flex items-start">
+                        <span className="text-emerald-400 mr-2">✓</span>
+                        USDA primary data
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-emerald-400 mr-2">✓</span>
+                        Score + drivers + sources
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-emerald-400 mr-2">✓</span>
+                        Condition-aware guidance
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-emerald-400 mr-2">✓</span>
+                        Confidence transparency
+                      </li>
+                    </ul>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Security Footer */}
-            <div className="mt-8 text-center">
+            {/* Trust & Compliance Footer */}
+            <div className="text-center">
               <div className="flex justify-center items-center space-x-6 text-xs text-white/60">
                 <span className="flex items-center">
                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 0L15 5v5c0 5-5 10-5 10S0 15 0 10V5l5-5z"/>
                   </svg>
-                  SOC 2 Certified
+                  SOC 2
                 </span>
                 <span>•</span>
                 <span className="flex items-center">
                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z"/>
                   </svg>
-                  256-bit Encryption
+                  256-bit
                 </span>
                 <span>•</span>
                 <span className="flex items-center">
                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                   </svg>
-                  HIPAA Ready
+                  HIPAA
                 </span>
               </div>
             </div>
