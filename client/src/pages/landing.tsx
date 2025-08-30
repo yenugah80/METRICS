@@ -211,44 +211,84 @@ export default function Landing() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
-            {/* Instant Photo Analysis - Enhanced */}
-            <Card className="feature-card-hero border-0 rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-500 to-emerald-500 text-white relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-black/40 group-hover:from-black/10 group-hover:to-black/30 transition-all duration-500"></div>
+            {/* Instant Photo Analysis - Premium Light Design */}
+            <Card className="border-0 rounded-3xl overflow-hidden relative group" style={{ 
+              background: 'var(--gradient-light-premium)', 
+              boxShadow: 'var(--glow-light-premium)',
+              backdropFilter: 'blur(25px)',
+              border: '2px solid rgba(255, 255, 255, 0.6)'
+            }}>
+              <div className="absolute inset-0 transition-all duration-500" style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(200, 230, 255, 0.15) 100%)'
+              }}></div>
               <CardContent className="p-12 relative z-10">
                 <div className="mb-8">
-                  <Badge className="mb-6 bg-white/20 text-white border-white/30 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide backdrop-blur-sm">
+                  <Badge className="mb-6 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide" style={{
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 248, 255, 0.9) 100%)',
+                    color: 'hsl(210, 100%, 40%)',
+                    border: '1px solid rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(15px)',
+                    boxShadow: '0 8px 32px rgba(200, 220, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
+                  }}>
                     COMPUTER VISION AI
                   </Badge>
-                  <h3 className="text-4xl font-bold mb-6 text-white">
+                  <h3 className="text-4xl font-bold mb-6" style={{ 
+                    background: 'linear-gradient(135deg, hsl(220, 100%, 25%) 0%, hsl(200, 90%, 35%) 50%, hsl(180, 80%, 40%) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    textShadow: '0 2px 4px rgba(200, 220, 255, 0.3)'
+                  }}>
                     3-Second Food
                     <br />
                     Recognition
                   </h3>
-                  <p className="text-lg leading-relaxed mb-8 text-white/90">
-                    <strong>No more guessing.</strong> Our military-grade computer vision analyzes your meal with the precision of a professional nutritionist. 
+                  <p className="text-lg leading-relaxed mb-8" style={{ color: 'hsl(210, 60%, 35%)' }}>
+                    <strong style={{ color: 'hsl(200, 80%, 30%)' }}>No more guessing.</strong> Our military-grade computer vision analyzes your meal with the precision of a professional nutritionist. 
                     Instant identification of every ingredient, accurate portions, and comprehensive nutritional breakdown.
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-6 pt-8 border-t border-white/20">
+                <div className="grid grid-cols-3 gap-6 pt-8" style={{ borderTop: '1px solid rgba(200, 220, 255, 0.5)' }}>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-2">⚡</div>
-                    <div className="text-sm text-white/80 font-medium">&lt; 3 seconds</div>
+                    <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center group-hover:scale-110 transition-all duration-300" style={{ 
+                      background: 'var(--gradient-warning)', 
+                      boxShadow: 'var(--glow-warning)' 
+                    }}>
+                      <Zap className="w-7 h-7 text-white drop-shadow-lg" />
+                    </div>
+                    <div className="text-sm font-bold" style={{ color: 'hsl(210, 70%, 40%)' }}>&lt; 3 seconds</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-2">🎯</div>
-                    <div className="text-sm text-white/80 font-medium">99% accuracy</div>
+                    <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center group-hover:scale-110 transition-all duration-300" style={{ 
+                      background: 'var(--gradient-success)', 
+                      boxShadow: 'var(--glow-success)' 
+                    }}>
+                      <Beaker className="w-7 h-7 text-white drop-shadow-lg" />
+                    </div>
+                    <div className="text-sm font-bold" style={{ color: 'hsl(210, 70%, 40%)' }}>99% accuracy</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-2">🌐</div>
-                    <div className="text-sm text-white/80 font-medium">Global cuisines</div>
+                    <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center group-hover:scale-110 transition-all duration-300" style={{ 
+                      background: 'var(--gradient-secondary)', 
+                      boxShadow: 'var(--glow-secondary)' 
+                    }}>
+                      <Globe className="w-7 h-7 text-white drop-shadow-lg" />
+                    </div>
+                    <div className="text-sm font-bold" style={{ color: 'hsl(210, 70%, 40%)' }}>Global cuisines</div>
                   </div>
                 </div>
                 
                 <Button 
-                  className="w-full mt-8 bg-white text-indigo-600 hover:bg-white/90 font-semibold py-4 rounded-2xl"
+                  className="w-full mt-8 font-bold py-4 rounded-2xl border-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
                   onClick={() => navigate('/camera')}
                   data-testid="button-try-camera"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(220, 100%, 60%) 0%, hsl(200, 90%, 65%) 50%, hsl(180, 80%, 70%) 100%)',
+                    color: 'white',
+                    boxShadow: '0 12px 40px hsla(200, 90%, 60%, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4)',
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
+                  }}
                 >
                   Try Photo Analysis Now
                 </Button>
