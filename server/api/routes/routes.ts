@@ -209,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             price_data: {
               currency: 'usd',
               product_data: {
-                name: 'MyFoodMatrics Premium',
+                name: 'Premium Subscription',
                 description: 'Unlimited AI recipe generation, advanced nutrition insights, and premium features',
               },
               unit_amount: 699, // $6.99/month

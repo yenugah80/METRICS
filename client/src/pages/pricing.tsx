@@ -245,7 +245,7 @@ export default function PricingPage() {
               Ready to get started?
             </h2>
             <p className="text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-              Join thousands who trust MyFoodMatrics for their nutrition journey.
+              Join thousands who trust our platform for their nutrition journey.
             </p>
             <div className="flex gap-4 justify-center">
               <Button

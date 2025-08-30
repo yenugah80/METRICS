@@ -291,7 +291,7 @@ export default function Landing() {
               </div>
 
               <p className="text-white/60 text-sm mt-6">
-                Join 50,000+ users who trust MyFoodMatrics for their nutrition intelligence
+                Join 50,000+ users who trust our platform for their nutrition intelligence
               </p>
             </CardContent>
           </Card>
@@ -302,15 +302,7 @@ export default function Landing() {
       <footer className="border-t border-blue-200/30 bg-gradient-to-r from-purple-50/30 to-pink-50/30 mt-32 relative z-10">
         <div className="container mx-auto px-6 py-16">
           <div className="text-center">
-            <h3 className="professional-heading text-2xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              MyFoodMatrics
-            </h3>
-            <p className="body-text text-blue-600/70 mb-8">
-              Professional nutrition intelligence for optimal health outcomes.
-            </p>
-            <p className="text-sm text-blue-500/60">
-              © 2025 MyFoodMatrics. All rights reserved.
-            </p>
+            {/* Footer content removed */}
           </div>
         </div>
       </footer>

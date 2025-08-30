@@ -58,7 +58,7 @@ const SubscribeForm = () => {
     } else {
       toast({
         title: "Welcome to Premium!",
-        description: "You are now subscribed to MyFoodMatrics Premium!",
+        description: "You are now subscribed to Premium!",
       });
       navigate("/");
     }
@@ -215,7 +215,7 @@ export default function Subscribe() {
         <Card className="bg-gradient-to-br from-secondary via-secondary to-primary card-shadow border-0 rounded-2xl text-white mb-6" data-testid="premium-overview">
           <CardContent className="p-8 text-center">
             <Crown className="w-16 h-16 mx-auto mb-4 text-premium" />
-            <h2 className="text-2xl font-bold mb-2">MyFoodMatrics Premium</h2>
+            <h2 className="text-2xl font-bold mb-2">Premium Subscription</h2>
             <p className="text-white/90 mb-6">
               Unlock advanced nutrition insights, unlimited recipes, and personalized coaching
             </p>

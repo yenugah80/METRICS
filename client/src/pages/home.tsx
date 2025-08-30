@@ -87,7 +87,7 @@ export default function HomePage() {
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
               <Apple className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">MyFoodMatrics</h1>
+            <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
           </div>
           <div className="flex items-center space-x-2">
             {user?.isPremium && (

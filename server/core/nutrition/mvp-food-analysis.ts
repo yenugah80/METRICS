@@ -96,7 +96,7 @@ export class MVPFoodAnalysis {
         messages: [
           {
             role: "system",
-            content: `You are MyFoodMatrics' expert food analyst. Analyze food images for safety, health, and sustainability.
+            content: `You are an expert food analyst. Analyze food images for safety, health, and sustainability.
 
 CRITICAL: Always respond with valid JSON in this exact format:
 {

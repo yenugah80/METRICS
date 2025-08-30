@@ -103,10 +103,10 @@ export default function AuthPage() {
               <span className="text-white font-bold text-xl">M</span>
             </div>
             <h1 className="professional-heading text-3xl lg:text-4xl font-bold mb-4">
-              Welcome to MyFoodMatrics
+              Welcome Back
             </h1>
             <p className="body-text text-lg">
-              Professional nutrition intelligence platform
+              Your nutrition dashboard
             </p>
           </div>
 

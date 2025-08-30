@@ -160,7 +160,7 @@ export class ProductionOptimizations {
   }
 
   static logStartupInfo(config: ProductionConfig): void {
-    logger.info('🚀 MyFoodMatrics Production Server Starting', {
+    logger.info('🚀 Production Server Starting', {
       nodeEnv: config.nodeEnv,
       port: config.port,
       timestamp: new Date().toISOString(),

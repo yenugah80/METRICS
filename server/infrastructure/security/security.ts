@@ -1,6 +1,6 @@
 /**
  * Security Middleware and Utilities
- * Comprehensive security hardening for MyFoodMatrics
+ * Comprehensive security hardening for the application
  */
 
 import helmet from 'helmet';
