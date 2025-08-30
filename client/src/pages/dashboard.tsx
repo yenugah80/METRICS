@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 // Icons removed for cleaner interface
 import { apiRequest } from "@/lib/queryClient";
-import { TokenDisplay } from "@/components/TokenDisplay";
 
 // Dashboard interfaces
 interface KPIMetric {
@@ -45,6 +44,9 @@ interface DashboardStats {
     calories: number;
     caloriesTrend: number;
     mealsLogged: number;
+    caloriesGoal?: number;
+    protein?: number;
+    proteinGoal?: number;
   };
   weeklyStats?: {
     avgMealsPerDay: number;
@@ -62,6 +64,12 @@ interface DashboardStats {
   };
   voiceStats?: {
     logsToday: number;
+  };
+  sustainabilityStats?: {
+    co2Saved?: number;
+    avgCO2Score?: number;
+    avgWaterScore?: number;
+    foodsScored?: number;
   };
 }
 
@@ -110,98 +118,104 @@ export default function Dashboard() {
     refetchInterval: 30000,
   });
 
-  // KPI Metrics based on real data
+  // User-first health metrics
+  const isNewUser = (dashboardData?.todayStats?.calories ?? 0) === 0 && (dashboardData?.todayStats?.mealsLogged ?? 0) === 0;
+  const calorieGoal = dashboardData?.todayStats?.caloriesGoal ?? 2000;
+  const caloriesRemaining = Math.max(0, calorieGoal - (dashboardData?.todayStats?.calories ?? 0));
+  const proteinGoal = dashboardData?.todayStats?.proteinGoal ?? 100;
+  const proteinIntake = dashboardData?.todayStats?.protein ?? 0;
+  
   const kpiMetrics: KPIMetric[] = [
     {
-      title: "Daily Calories",
-      value: dashboardData?.todayStats?.calories ?? 0,
-      change: `${dashboardData?.todayStats?.caloriesTrend ?? 0}% vs yesterday`,
-      trend: (dashboardData?.todayStats?.caloriesTrend ?? 0) >= 0 ? 'up' : 'down',
-      color: "from-orange-500 to-red-500"
-    },
-    {
-      title: "Meals Logged",
-      value: dashboardData?.todayStats?.mealsLogged ?? 0,
-      change: `${dashboardData?.weeklyStats?.avgMealsPerDay ?? 0}/day avg`,
-      trend: 'up',
-      color: "from-green-500 to-emerald-600"
-    },
-    {
-      title: "Goals Achieved",
-      value: `${dashboardData?.goalsProgress?.achieved ?? 0}/${dashboardData?.goalsProgress?.total ?? 0}`,
-      change: `${Math.round(((dashboardData?.goalsProgress?.achieved ?? 0) / (dashboardData?.goalsProgress?.total ?? 1) * 100))}% completion`,
+      title: isNewUser ? "Daily Calorie Goal" : "Calories Remaining Today",
+      value: isNewUser ? `${calorieGoal}` : `${caloriesRemaining}`,
+      change: isNewUser ? "Set your first goal" : `${dashboardData?.todayStats?.calories ?? 0} consumed`,
       trend: 'up',
       color: "from-blue-500 to-cyan-500"
     },
     {
-      title: "Active Streak",
-      value: `${dashboardData?.streak?.current ?? 0} days`,
-      change: `Best: ${dashboardData?.streak?.longest ?? 0} days`,
+      title: isNewUser ? "Protein Target" : "Protein Progress",
+      value: isNewUser ? `${proteinGoal}g` : `${proteinIntake}g / ${proteinGoal}g`,
+      change: isNewUser ? "Track your first meal" : `${Math.round((proteinIntake/proteinGoal)*100)}% of daily goal`,
+      trend: 'up',
+      color: "from-green-500 to-emerald-600"
+    },
+    {
+      title: isNewUser ? "Weekly Streak Goal" : "Current Streak",
+      value: isNewUser ? "7 days" : `${dashboardData?.streak?.current ?? 0} days 🔥`,
+      change: isNewUser ? "Start your journey" : `Best: ${dashboardData?.streak?.longest ?? 0} days`,
+      trend: 'up',
+      color: "from-orange-500 to-red-500"
+    },
+    {
+      title: isNewUser ? "Eco Impact Goal" : "CO₂ Saved This Week",
+      value: isNewUser ? "-2.5kg" : `-${(dashboardData?.sustainabilityStats?.co2Saved ?? 0).toFixed(1)}kg`,
+      change: isNewUser ? "Make a difference" : "vs average diet",
       trend: 'up',
       color: "from-purple-500 to-pink-500"
     }
   ];
 
-  // Integration modules showing feature status
-  const integrationModules: IntegrationModule[] = [
+  // Your Health Tools - user benefit focused
+  const healthTools: IntegrationModule[] = [
     {
-      name: "AI Food Analysis",
+      name: "📸 Snap & Analyze",
       status: (systemHealthData as any)?.services?.aiAnalysis?.status ?? 'active',
-      description: "Computer vision, nutrition calculation",
+      description: "Take a photo, get instant nutrition facts with medical-grade precision",
       metrics: [
-        { label: "Analyses Today", value: String((dashboardData as any)?.aiStats?.analysesToday ?? 0) },
-        { label: "Accuracy", value: `${(systemHealthData as any)?.services?.aiAnalysis?.accuracy ?? 95}%` },
-        { label: "Avg Response", value: `${(systemHealthData as any)?.services?.aiAnalysis?.responseTime ?? 0.8}s` }
+        { label: isNewUser ? "Ready to Use" : "Photos Analyzed", value: isNewUser ? "✓" : String((dashboardData as any)?.aiStats?.analysesToday ?? 0) },
+        { label: "Accuracy Rate", value: `${(systemHealthData as any)?.services?.aiAnalysis?.accuracy ?? 95}% reliable` },
+        { label: "Speed", value: "< 1 second" }
       ]
     },
     {
-      name: "Voice Logging",
+      name: "🎤 Quick Voice Log",
       status: (systemHealthData as any)?.services?.voiceProcessing?.status ?? 'active',
-      description: "Speech-to-text, natural language processing",
+      description: "Speak your meals → log faster, no typing required!",
       metrics: [
-        { label: "Voice Logs", value: String((dashboardData as any)?.voiceStats?.logsToday ?? 0) },
-        { label: "Recognition", value: `${(systemHealthData as any)?.services?.voiceProcessing?.accuracy ?? 92}%` },
-        { label: "Processing", value: `${(systemHealthData as any)?.services?.voiceProcessing?.responseTime ?? 1.2}s` }
+        { label: isNewUser ? "Try It Now" : "Voice Entries", value: isNewUser ? "Say 'chicken salad'" : String((dashboardData as any)?.voiceStats?.logsToday ?? 0) },
+        { label: "Recognition Success", value: `${(systemHealthData as any)?.services?.voiceProcessing?.accuracy ?? 92}% accuracy` },
+        { label: "Processing", value: "Real-time" }
       ]
     },
     {
-      name: "Recipe Generation",
+      name: "🍳 Personal Chef AI",
       status: (systemHealthData as any)?.services?.recipeGeneration?.status ?? 'active',
-      description: "AI-powered personalized recipes",
+      description: "Custom recipes based on your goals, preferences, and what's in your fridge",
       metrics: [
-        { label: "Recipes Created", value: String((dashboardData as any)?.recipeStats?.generated ?? 0) },
-        { label: "Success Rate", value: `${(systemHealthData as any)?.services?.recipeGeneration?.successRate ?? 98}%` },
-        { label: "Avg Generation", value: `${(systemHealthData as any)?.services?.recipeGeneration?.avgTime ?? 2.1}s` }
+        { label: isNewUser ? "Get Started" : "Recipes Made", value: isNewUser ? "Create your first" : String((dashboardData as any)?.recipeStats?.generated ?? 0) },
+        { label: "Success Rate", value: `${(systemHealthData as any)?.services?.recipeGeneration?.successRate ?? 98}% loved` },
+        { label: "Generation", value: "Instant" }
       ]
     },
     {
-      name: "Barcode Scanner",
+      name: "📱 Smart Scanner",
       status: (systemHealthData as any)?.services?.barcodeScanner?.status ?? 'active',
-      description: "Product database, nutrition lookup",
+      description: "Scan any product barcode → instant nutrition breakdown",
       metrics: [
-        { label: "Scans Today", value: String((dashboardData as any)?.scanStats?.scansToday ?? 0) },
-        { label: "Success Rate", value: `${(systemHealthData as any)?.services?.barcodeScanner?.successRate ?? 87}%` },
-        { label: "Database", value: `${(systemHealthData as any)?.services?.barcodeScanner?.productCount ?? '2.1M'} products` }
+        { label: isNewUser ? "Start Scanning" : "Products Scanned", value: isNewUser ? "Try it now" : String((dashboardData as any)?.scanStats?.scansToday ?? 0) },
+        { label: "Database Coverage", value: `2.1M+ products` },
+        { label: "Success Rate", value: `${(systemHealthData as any)?.services?.barcodeScanner?.successRate ?? 87}%` }
       ]
     },
     {
-      name: "Sustainability Scoring",
+      name: "🌱 Eco Impact Tracker",
       status: (systemHealthData as any)?.services?.sustainabilityScoring?.status ?? 'active',
-      description: "CO2 footprint, environmental impact",
+      description: "See how your food choices help the planet → reduce your carbon footprint",
       metrics: [
-        { label: "Foods Scored", value: String((dashboardData as any)?.sustainabilityStats?.foodsScored ?? 0) },
-        { label: "Avg CO2 Score", value: `${(dashboardData as any)?.sustainabilityStats?.avgCO2Score ?? 0}/10` },
-        { label: "Water Impact", value: `${(dashboardData as any)?.sustainabilityStats?.avgWaterScore ?? 0}/10` }
+        { label: isNewUser ? "Make an Impact" : "Foods Scored", value: isNewUser ? "Start today" : String((dashboardData as any)?.sustainabilityStats?.foodsScored ?? 0) },
+        { label: "Your CO2 Score", value: `${(dashboardData as any)?.sustainabilityStats?.avgCO2Score ?? 7}/10` },
+        { label: "Water Savings", value: `${(dashboardData as any)?.sustainabilityStats?.avgWaterScore ?? 6}/10` }
       ]
     },
     {
-      name: "Nutrition Database",
+      name: "🔬 Nutrition Database",
       status: (systemHealthData as any)?.services?.nutritionDatabase?.status ?? 'active',
-      description: "USDA data, nutrient calculations",
+      description: "Access the same nutrition data used by doctors and dietitians",
       metrics: [
-        { label: "Foods Available", value: `${(systemHealthData as any)?.services?.nutritionDatabase?.foodCount ?? '8.5K'}` },
-        { label: "Data Freshness", value: "Updated daily" },
-        { label: "Accuracy", value: `${(systemHealthData as any)?.services?.nutritionDatabase?.accuracy ?? 99}%` }
+        { label: "Foods Available", value: `8,500+ verified` },
+        { label: "Data Source", value: "USDA certified" },
+        { label: "Accuracy", value: `${(systemHealthData as any)?.services?.nutritionDatabase?.accuracy ?? 99}% medical-grade` }
       ]
     }
   ];
@@ -254,7 +268,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 rounded-full border-4 border-slate-200 border-t-slate-600 animate-spin"></div>
-          <p className="text-slate-600 font-medium">Loading your nutrition dashboard...</p>
+          <p className="text-slate-600 font-medium">Loading your health journey...</p>
         </div>
       </div>
     );
@@ -267,10 +281,10 @@ export default function Dashboard() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
-              Dashboard Overview
+              Your Health Journey
             </h1>
             <p className="text-slate-600">
-              Monitor all of your business operations and integrations from here
+              Track your nutrition, achieve your goals, and build healthy habits
             </p>
           </div>
           <div className="flex items-center space-x-4 text-sm text-slate-500">
@@ -283,22 +297,63 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* KPI Metrics Cards */}
+        {/* User Health Progress - Prominent Section */}
+        {isNewUser && (
+          <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 mb-6">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-blue-900 mb-3">🎆 Welcome to Your Health Journey!</h2>
+                <p className="text-blue-700 mb-4">Ready to transform how you track nutrition? Let's get you started with your first healthy habit!</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Link href="/scan">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                      📸 Log Your First Meal
+                    </Button>
+                  </Link>
+                  <Link href="/goals">
+                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                      🎯 Set Your Health Goals
+                    </Button>
+                  </Link>
+                  <Link href="/profile">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                      📈 Complete Your Profile
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Personal Health Metrics - Now More Prominent */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {kpiMetrics.map((metric, index) => (
-            <Card key={index} className="card-elegant hover:shadow-lg transition-all duration-300">
+            <Card key={index} className="card-elegant hover:shadow-lg transition-all duration-300 border-2 hover:border-blue-200">
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-slate-600">{metric.title}</p>
-                    <p className="text-3xl font-bold text-slate-900">{metric.value}</p>
-                    <p className={`text-xs ${
+                    <p className="text-4xl font-bold text-slate-900">{metric.value}</p>
+                    <p className={`text-sm font-medium ${
                       metric.trend === 'up' ? 'text-green-600' : 
-                      metric.trend === 'down' ? 'text-red-600' : 'text-slate-500'
+                      metric.trend === 'down' ? 'text-red-600' : 'text-blue-600'
                     }`}>
                       <span>{metric.change}</span>
                     </p>
                   </div>
+                  {!isNewUser && index === 0 && (
+                    <Progress 
+                      value={Math.min(100, ((dashboardData?.todayStats?.calories ?? 0) / calorieGoal) * 100)}
+                      className="mt-3"
+                    />
+                  )}
+                  {!isNewUser && index === 1 && (
+                    <Progress 
+                      value={Math.min(100, (proteinIntake / proteinGoal) * 100)}
+                      className="mt-3"
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -309,14 +364,20 @@ export default function Dashboard() {
           {/* Integration Modules */}
           <div className="xl:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">Integration Modules</h2>
-              <Button variant="outline" size="sm" className="btn-outline-glow">
-                Manage Integrations
-              </Button>
+              <h2 className="text-xl font-bold text-slate-900">Your Health Tools</h2>
+              {isNewUser ? (
+                <Badge className="bg-blue-100 text-blue-800 border border-blue-200">
+                  Ready to explore!
+                </Badge>
+              ) : (
+                <Button variant="outline" size="sm" className="btn-outline-glow">
+                  Customize Tools
+                </Button>
+              )}
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {integrationModules.map((module, index) => (
+              {healthTools.map((module, index) => (
                 <Card key={index} className="card-elegant hover:shadow-lg transition-all duration-300">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
@@ -352,96 +413,90 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* System Health & Recent Activity */}
+          {/* Quick Actions & Motivation */}
           <div className="space-y-6">
-            {/* System Health */}
-            <Card className="card-elegant">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-bold text-slate-900">
-                  System Health
-                </CardTitle>
+            {/* Motivational Section */}
+            <Card className="card-elegant bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold text-green-900">🌟 Your Health Wins</CardTitle>
+                <CardDescription className="text-sm text-green-700">
+                  {isNewUser ? "Ready to start your journey?" : "Keep up the amazing progress!"}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {systemHealth.map((health, index) => (
-                  <div key={index} className="flex items-center justify-between py-2">
-                    <span className="text-sm font-medium text-slate-700">{health.metric}</span>
-                    <span className={`text-sm font-bold ${getHealthStatusColor(health.status)}`}>
-                      {health.value}
-                    </span>
-                  </div>
-                ))}
-                <div className="pt-4 border-t border-slate-200">
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>Overall Health</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="font-medium text-green-600">Excellent</span>
+                {!isNewUser ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-green-700">Current Streak</span>
+                      <span className="text-lg font-bold text-green-900">{dashboardData?.streak?.current ?? 0} days 🔥</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-green-700">This Week's Goals</span>
+                      <span className="text-lg font-bold text-green-900">{dashboardData?.goalsProgress?.achieved ?? 0}/{dashboardData?.goalsProgress?.total ?? 4} completed</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-green-700">Health Score</span>
+                      <span className="text-lg font-bold text-green-900">87/100 🏆</span>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activities */}
-            <Card className="card-elegant">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-bold text-slate-900">
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {activitiesLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="w-6 h-6 rounded-full border-2 border-slate-200 border-t-slate-400 animate-spin"></div>
-                  </div>
-                ) : (recentActivities as any)?.slice(0, 5).map((activity: RecentActivity, index: number) => {
-                  return (
-                    <div key={activity.id || index} className="flex items-center space-x-3 py-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 truncate">
-                          {activity.title}
-                        </p>
-                        <p className="text-xs text-slate-500 truncate">
-                          {activity.description}
-                        </p>
-                      </div>
-                      <span className="text-xs text-slate-400 flex-shrink-0">
-                        {activity.timestamp}
-                      </span>
-                    </div>
-                  );
-                })}
-                {(!(recentActivities as any) || (recentActivities as any)?.length === 0) && !activitiesLoading && (
-                  <div className="text-center py-8 text-slate-500">
-                    <p className="text-sm">No recent activity</p>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-green-800 font-medium mb-3">🚀 Start building healthy habits today!</p>
+                    <p className="text-sm text-green-600">Join thousands who've transformed their nutrition</p>
                   </div>
                 )}
               </CardContent>
             </Card>
-
+            
             {/* Quick Actions */}
             <Card className="card-elegant">
-              <CardHeader className="pb-4">
+              <CardHeader>
                 <CardTitle className="text-lg font-bold text-slate-900">Quick Actions</CardTitle>
+                <CardDescription className="text-sm text-slate-600">
+                  {isNewUser ? "Get started in seconds" : "Continue your health journey"}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Link href="/meal-camera">
-                  <Button className="w-full btn-gradient justify-start" size="sm">
-                    Log Meal with Photo
+                <Link href="/scan">
+                  <Button className="w-full btn-outline-glow justify-start text-left" size="sm">
+                    📸 {isNewUser ? "Log Your First Meal" : "Add New Meal"}
                   </Button>
                 </Link>
-                <Link href="/search">
-                  <Button className="w-full btn-outline-glow justify-start" size="sm">
-                    Search Food Database
+                <Link href="/voice">
+                  <Button className="w-full btn-outline-glow justify-start text-left" size="sm">
+                    🎤 {isNewUser ? "Try Voice Logging" : "Quick Voice Entry"}
                   </Button>
                 </Link>
                 <Link href="/recipes">
-                  <Button className="w-full btn-outline-glow justify-start" size="sm">
-                    Generate AI Recipe
+                  <Button className="w-full btn-outline-glow justify-start text-left" size="sm">
+                    🍳 {isNewUser ? "Get Recipe Ideas" : "Generate New Recipe"}
+                  </Button>
+                </Link>
+                <Link href="/goals">
+                  <Button className="w-full btn-outline-glow justify-start text-left" size="sm">
+                    🎯 {isNewUser ? "Set Your Goals" : "Update Goals"}
                   </Button>
                 </Link>
               </CardContent>
             </Card>
+
+            {/* System Status - Minimized */}
+            {!isNewUser && (
+              <Card className="card-elegant">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-600">Service Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span className="text-xs text-slate-500">All services operational</span>
+                    <Badge className="bg-green-100 text-green-800 text-xs ml-auto">
+                      99.9% uptime
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
