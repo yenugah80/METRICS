@@ -1,7 +1,7 @@
 /**
  * MVP Food Analysis Service
  * Production-ready AI analysis for safety, health, and sustainability
- * "Snap and see if your meal is safe, healthy, and planet-friendly"
+ * "Instant meal analysis: safety alerts, nutrition scores, and environmental impact"
  */
 
 import OpenAI from "openai";

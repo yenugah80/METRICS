@@ -15,15 +15,15 @@ export default function Landing() {
           
           <div className="mx-auto w-[min(1100px,92%)] pt-24 pb-16 text-center">
             <p className="text-[13px] font-medium tracking-wide text-emerald-700/80 mb-4">
-              The first nutrition app that checks everything
+              Revolutionary AI-powered nutrition intelligence
             </p>
             
             <h1 className="mt-4 text-[44px] md:text-[56px] font-semibold leading-[1.05] tracking-[-0.02em] text-neutral-900 mb-6">
-              Snap, and see if this meal is safe, healthy, AND planet-friendly
+              Instant meal analysis: safety alerts, nutrition scores, and environmental impact
             </h1>
             
             <p className="mx-auto mt-4 max-w-[720px] text-[18px] leading-7 text-neutral-600 mb-8">
-              Get instant analysis with <strong>safety alerts</strong>, <strong>health scoring</strong>, and <strong>sustainability impact</strong> — all with clarity and action built in.
+              Professional-grade AI delivers <strong>instant safety alerts</strong>, <strong>precision nutrition scoring</strong>, and <strong>comprehensive sustainability metrics</strong> — with actionable insights you can trust.
             </p>
 
             {/* Single Strong CTA */}
@@ -98,8 +98,8 @@ export default function Landing() {
                     Analysis
                   </h3>
                   <p className="body-text text-lg leading-relaxed mb-8 text-gray-700">
-                    Simply snap a photo of your meal and get comprehensive analysis in seconds. Our AI identifies ingredients, 
-                    checks for allergens, evaluates nutritional value, and calculates environmental impact.
+                    Revolutionary computer vision technology instantly analyzes your meal with professional-grade accuracy. 
+                    Advanced AI delivers comprehensive safety, nutrition, and sustainability insights in under 3 seconds.
                   </p>
                 </div>
                 
@@ -133,8 +133,8 @@ export default function Landing() {
                     Recommendations
                   </h3>
                   <p className="body-text text-lg leading-relaxed mb-8 text-gray-700">
-                    Get clear explanations for every score and specific actions you can take. 
-                    Discover safer alternatives, healthier swaps, and more sustainable choices.
+                    Intelligent recommendations powered by machine learning provide personalized guidance. 
+                    Discover optimal food swaps, health improvements, and eco-friendly alternatives tailored to your goals.
                   </p>
                 </div>
                 
@@ -299,11 +299,11 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-blue-200/30 bg-gradient-to-r from-purple-50/30 to-pink-50/30 mt-32 relative z-10">
-        <div className="container mx-auto px-6 py-16">
-          <div className="text-center">
-            {/* Footer content removed */}
-          </div>
+      <footer className="border-t border-blue-200/30 bg-gradient-to-r from-purple-50/30 to-pink-50/30 mt-16 py-8 relative z-10">
+        <div className="container mx-auto px-6 text-center">
+          <p className="text-sm text-blue-500/60">
+            AI-powered nutrition intelligence platform
+          </p>
         </div>
       </footer>
     </div>
