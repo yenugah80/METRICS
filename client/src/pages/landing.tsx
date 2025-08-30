@@ -235,63 +235,62 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Professional Premium CTA */}
+        {/* Premium Subscription Card */}
         <div className="mt-24 mb-16">
-          <Card className="border-0 rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-indigo-700 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 opacity-30"></div>
-            <CardContent className="p-16 text-center relative z-10">
-              <Badge className="mb-8 bg-white/20 text-white border-white/30 px-8 py-3 text-sm rounded-full font-bold tracking-wide backdrop-blur-sm">
+          <Card className="border-0 rounded-3xl shadow-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-indigo-700 max-w-5xl mx-auto">
+            <CardContent className="p-12 text-center">
+              <Badge className="mb-6 bg-white/20 text-white border-white/30 px-6 py-2 text-sm rounded-full font-bold">
                 UNLOCK PREMIUM FEATURES
               </Badge>
               
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white leading-tight">
+              <h2 className="text-4xl font-bold mb-4 text-white">
                 Transform Your Nutrition Journey
               </h2>
               
-              <p className="text-xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
-                Unlimited analyses, priority speed, and advanced insights. 
-                Get voice logging, detailed sustainability metrics, and personalized AI recommendations.
+              <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+                Unlimited analyses, priority speed, and advanced insights. Get voice logging,
+                detailed sustainability metrics, and personalized AI recommendations.
               </p>
 
-              <div className="grid md:grid-cols-3 gap-8 mb-12 max-w-4xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-6 mb-8">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                    <div className="w-6 h-6 bg-white rounded-full"></div>
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <div className="w-4 h-4 bg-white rounded-full"></div>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Unlimited Analysis</h3>
+                  <h3 className="font-semibold text-white mb-1">Unlimited Analysis</h3>
                   <p className="text-white/80 text-sm">No daily limits on food recognition</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                    <div className="w-6 h-6 bg-white rounded-full"></div>
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <div className="w-4 h-4 bg-white rounded-full"></div>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Voice Logging</h3>
+                  <h3 className="font-semibold text-white mb-1">Voice Logging</h3>
                   <p className="text-white/80 text-sm">Hands-free nutrition tracking</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                    <div className="w-6 h-6 bg-white rounded-full"></div>
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <div className="w-4 h-4 bg-white rounded-full"></div>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Advanced Insights</h3>
+                  <h3 className="font-semibold text-white mb-1">Advanced Insights</h3>
                   <p className="text-white/80 text-sm">Real-time health correlations</p>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <button 
-                  className="rounded-2xl py-4 px-12 text-white font-bold text-lg bg-white/90 hover:bg-white border border-white/20 transform hover:scale-[1.02] transition-all duration-300 shadow-xl backdrop-blur"
+                <Button 
+                  className="rounded-2xl py-4 px-8 text-lg font-bold bg-white hover:bg-white/90 text-purple-700"
                   onClick={() => navigate('/auth')}
                   data-testid="button-start-premium"
                 >
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-700">Start 7-Day Free Trial</span>
-                </button>
+                  Start 7-Day Free Trial
+                </Button>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-white mb-1">$6.99<span className="text-lg font-normal text-white/80">/month</span></div>
+                  <div className="text-2xl font-bold text-white">$6.99<span className="text-base font-normal text-white/80">/month</span></div>
                   <div className="text-white/70 text-sm">Cancel anytime • No commitment</div>
                 </div>
               </div>
 
-              <p className="text-white/60 text-sm mt-8">
+              <p className="text-white/60 text-sm mt-6">
                 Join 50,000+ users who trust MyFoodMatrics for their nutrition intelligence
               </p>
             </CardContent>
