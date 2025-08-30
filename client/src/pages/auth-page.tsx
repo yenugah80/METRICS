@@ -338,10 +338,10 @@ export default function AuthPage() {
                 WebkitTextFillColor: 'transparent',
                 letterSpacing: '-0.025em'
               }}>
-                {activeTab === "signin" ? "Welcome Back" : "Create Account"}
+                {activeTab === "signin" ? "Welcome Back" : "Join MyFoodMatrics"}
               </h1>
               <p className="text-slate-600 font-medium">
-                {activeTab === "signin" ? "Access your nutrition dashboard" : "Start your nutrition journey"}
+                {activeTab === "signin" ? "Access your nutrition dashboard" : "Start your professional nutrition journey"}
               </p>
             </div>
 
@@ -503,9 +503,9 @@ export default function AuthPage() {
                     {/* Sign Up Tab */}
                     <TabsContent value="signup" className="space-y-6 mt-8">
                       <div className="text-center">
-                        <CardTitle className="text-xl font-bold text-slate-800 mb-2">Create Your Account</CardTitle>
+                        <CardTitle className="text-xl font-bold text-slate-800 mb-2">Join MyFoodMatrics</CardTitle>
                         <CardDescription className="text-slate-600 font-medium">
-                          Start your nutrition journey
+                          Create your professional account
                         </CardDescription>
                       </div>
 
