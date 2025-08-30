@@ -104,13 +104,10 @@ export default function AuthPage() {
                 <span className="text-white font-bold text-xl">M</span>
               </div>
               <h2 className="text-3xl font-bold mb-4">Professional Nutrition Intelligence</h2>
-              <p className="text-lg text-white/90 mb-8">
-                Advanced artificial intelligence technology providing comprehensive nutritional analysis and personalized health insights.
-              </p>
               
               {/* Comparison Table */}
-              <div className="bg-white/10 rounded-xl p-6 mb-8 backdrop-blur-sm">
-                <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
+                <div className="grid grid-cols-2 gap-6 text-sm">
                   <div>
                     <h4 className="font-bold text-white/80 mb-3">Generic app</h4>
                     <ul className="space-y-2 text-white/70">
@@ -135,37 +132,8 @@ export default function AuthPage() {
               </div>
             </div>
 
-            {/* Key Points */}
+            {/* Key Points - clean section */}
             <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <div className="text-white font-bold">🔒</div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white mb-1">USDA FDC Direct Access</h3>
-                  <p className="text-sm text-white/80">Government database integration, not crowdsourced estimates like other apps.</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <div className="text-white font-bold">🧠</div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white mb-1">Medical Rule Engine</h3>
-                  <p className="text-sm text-white/80">Built-in PCOS, diabetes intelligence beyond basic nutrition tracking.</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <div className="text-white font-bold">⚡</div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white mb-1">Peer-Reviewed Data</h3>
-                  <p className="text-sm text-white/80">Environmental impact from scientific research, not generic calculations.</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>

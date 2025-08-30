@@ -150,64 +150,39 @@ export default function Landing() {
               <h2 className="text-3xl font-bold text-neutral-900 mb-4">
                 What makes us different from every other nutrition app
               </h2>
-              <p className="text-lg text-neutral-600 mb-8">
+              <p className="text-lg text-neutral-600">
                 Scientific rigor and data accuracy others can't match
               </p>
-              
-              <div className="max-w-2xl mx-auto space-y-3 text-left">
-                <div className="flex items-center space-x-3 text-neutral-700">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                  <span className="font-medium">Scan a meal now → See your score, drivers, and greener swaps in 10 seconds.</span>
-                </div>
-                <div className="flex items-center space-x-3 text-neutral-700">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0"></div>
-                  <span className="font-medium">Make one tiny tweak → Watch kcal, sodium, and CO₂ drop live.</span>
-                </div>
-                <div className="flex items-center space-x-3 text-neutral-700">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
-                  <span className="font-medium">Set your health profile → Get PCOS/diabetes-smart guidance instantly.</span>
-                </div>
-              </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="feature-card-primary text-center p-6 group">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className="feature-card-primary text-center p-8 group">
                 <CardContent className="p-0 relative z-10">
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-primary)', boxShadow: 'var(--glow-primary)' }}>
-                    <Shield className="w-8 h-8 text-white drop-shadow-lg" />
-                  </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">USDA FDC Primary Data</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Direct government database access, not crowdsourced estimates like competitors</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="feature-card-primary text-center p-6 group">
-                <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-success)', boxShadow: 'var(--glow-success)' }}>
-                    <Beaker className="w-8 h-8 text-white drop-shadow-lg" />
-                  </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">Peer-Reviewed LCA Data</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Scientific environmental impact from published research, not generic estimates</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="feature-card-primary text-center p-6 group">
-                <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-warning)', boxShadow: 'var(--glow-warning)' }}>
                     <Zap className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">FDA/EFSA Compliance</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Regulatory-grade allergen detection, not basic keyword matching</p>
+                  <h3 className="font-bold text-neutral-900 mb-3">Scan a meal now</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">See your score, drivers, and greener swaps in 10 seconds</p>
                 </CardContent>
               </Card>
               
-              <Card className="feature-card-primary text-center p-6 group">
+              <Card className="feature-card-primary text-center p-8 group">
                 <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-secondary)', boxShadow: 'var(--glow-secondary)' }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-success)', boxShadow: 'var(--glow-success)' }}>
                     <Globe className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">Medical Rule Engine</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Built-in health condition intelligence for PCOS, diabetes, not generic advice</p>
+                  <h3 className="font-bold text-neutral-900 mb-3">Make one tiny tweak</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Watch kcal, sodium, and CO₂ drop live</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="feature-card-primary text-center p-8 group">
+                <CardContent className="p-0 relative z-10">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-warning)', boxShadow: 'var(--glow-warning)' }}>
+                    <Beaker className="w-8 h-8 text-white drop-shadow-lg" />
+                  </div>
+                  <h3 className="font-bold text-neutral-900 mb-3">Set your health profile</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Get PCOS/diabetes-smart guidance instantly</p>
                 </CardContent>
               </Card>
             </div>
