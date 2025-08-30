@@ -765,6 +765,7 @@ export default function MealCamera() {
                   </CardContent>
                 </Card>
               )}
+            </div>
           </div>
         )}
 
