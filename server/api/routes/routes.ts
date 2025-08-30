@@ -585,6 +585,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // MVP Food Analysis - Production Ready
+  app.post('/api/meals/analyze-mvp', verifyJWT, async (req: any, res) => {
+    try {
+      const { imageBase64, foodDescription } = req.body;
+      
+      if (!imageBase64 && !foodDescription) {
+        return res.status(400).json({ message: "Image or food description required" });
+      }
+
+      // Import the MVP food analysis service
+      const { mvpFoodAnalysis } = await import("../../core/nutrition/mvp-food-analysis");
+      
+      let analysis;
+      if (imageBase64) {
+        analysis = await mvpFoodAnalysis.analyzeFoodImage(imageBase64);
+      } else {
+        analysis = await mvpFoodAnalysis.analyzeFoodByText(foodDescription);
+      }
+      
+      // Get analysis summary for quick display
+      const summary = mvpFoodAnalysis.getAnalysisSummary(analysis);
+      
+      res.json({
+        success: true,
+        analysis,
+        summary
+      });
+    } catch (error) {
+      console.error("Error in MVP food analysis:", error);
+      res.status(500).json({ message: "Failed to analyze food" });
+    }
+  });
+
   // Meal logging routes
   app.post('/api/meals/analyze-image-old', verifyJWT, async (req: any, res) => {
     try {

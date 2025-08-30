@@ -10,12 +10,13 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils, Type, Mic, Crown, Sparkles, Info, Database, Target, X } from "lucide-react";
+import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils, Type, Mic, Crown, Sparkles, Info, Database, Target, X, Shield, Heart, Globe } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import VoiceLogger from "@/components/VoiceLogger";
 import { SustainabilityCard } from "@/components/SustainabilityCard";
 import { AllergenAlert } from "@/components/AllergenAlert";
 import { TokenDisplay } from "@/components/TokenDisplay";
+import MVPAnalysisResults from "@/components/MVPAnalysisResults";
 
 interface AnalyzedFood {
   name: string;
@@ -25,6 +26,66 @@ interface AnalyzedFood {
   calories?: number;
   protein?: number;
   source?: string;
+}
+
+interface MVPAnalysisResult {
+  foods: AnalyzedFood[];
+  safety: {
+    overall_safety: 'safe' | 'caution' | 'warning';
+    allergen_alerts: Array<{
+      allergen: string;
+      severity: 'mild' | 'moderate' | 'severe';
+      foods_containing: string[];
+      description: string;
+    }>;
+    food_safety_score: number;
+    safety_recommendations: string[];
+  };
+  health: {
+    nutrition_score: number;
+    health_grade: 'A' | 'B' | 'C' | 'D' | 'F';
+    calories: number;
+    macronutrients: {
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    };
+    health_benefits: string[];
+    health_concerns: string[];
+    improvement_suggestions: string[];
+  };
+  sustainability: {
+    eco_score: number;
+    eco_grade: 'A' | 'B' | 'C' | 'D' | 'F';
+    carbon_footprint: 'low' | 'medium' | 'high';
+    water_usage: 'low' | 'medium' | 'high';
+    sustainability_tips: string[];
+    eco_friendly_alternatives: string[];
+  };
+  recommendations: {
+    safer_alternatives: Array<{
+      original_food: string;
+      alternative: string;
+      reason: string;
+      benefit_score: number;
+    }>;
+    healthier_swaps: Array<{
+      original_food: string;
+      alternative: string;
+      reason: string;
+      benefit_score: number;
+    }>;
+    eco_friendly_options: Array<{
+      original_food: string;
+      alternative: string;
+      reason: string;
+      benefit_score: number;
+    }>;
+    general_tips: string[];
+  };
+  confidence: number;
+  analysis_timestamp: string;
 }
 
 interface NutritionAnalysis {
@@ -103,7 +164,8 @@ interface NutritionAnalysis {
 
 export default function MealCamera() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<NutritionAnalysis | null>(null);
+  const [analysis, setAnalysis] = useState<MVPAnalysisResult | null>(null);
+  const [legacyAnalysis, setLegacyAnalysis] = useState<NutritionAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -134,12 +196,12 @@ export default function MealCamera() {
     
     setIsAnalyzing(true);
     try {
-      const response = await apiRequest("POST", "/api/meals/analyze-text", { text: textInput });
+      const response = await apiRequest("POST", "/api/meals/analyze-mvp", { foodDescription: textInput });
       const data = await response.json();
-      setAnalysis(data);
+      setAnalysis(data.analysis);
       toast({
         title: "Meal analyzed successfully!",
-        description: `Found ${data.foods.length} food items with ${data.total_calories} total calories.`,
+        description: `Analysis complete with safety, health, and sustainability insights!`,
       });
     } catch (error: any) {
       toast({
@@ -169,12 +231,12 @@ export default function MealCamera() {
     
     setIsAnalyzing(true);
     try {
-      const response = await apiRequest("POST", "/api/meals/analyze-voice", { audioText: transcript });
+      const response = await apiRequest("POST", "/api/meals/analyze-mvp", { foodDescription: transcript });
       const data = await response.json();
-      setAnalysis(data);
+      setAnalysis(data.analysis);
       toast({
         title: "Voice input analyzed!",
-        description: `Found ${data.foods.length} food items with ${data.total_calories} total calories.`,
+        description: `Analysis complete with safety, health, and sustainability insights!`,
       });
     } catch (error: any) {
       toast({
@@ -189,14 +251,14 @@ export default function MealCamera() {
 
   const analyzeMutation = useMutation({
     mutationFn: async (imageBase64: string) => {
-      const response = await apiRequest("POST", "/api/meals/analyze-image", { imageBase64 });
+      const response = await apiRequest("POST", "/api/meals/analyze-mvp", { imageBase64 });
       return response.json();
     },
-    onSuccess: (data: NutritionAnalysis) => {
-      setAnalysis(data);
+    onSuccess: (data: any) => {
+      setAnalysis(data.analysis);
       toast({
         title: "Meal analyzed successfully!",
-        description: `Found ${data.foods.length} food items with ${data.total_calories} total calories.`,
+        description: "Analysis complete with safety, health, and sustainability insights!",
       });
     },
     onError: (error: Error) => {
@@ -656,34 +718,121 @@ export default function MealCamera() {
               </CardContent>
             </Card>
 
-            {/* Analysis Results */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  {analyzeMutation.isPending && <Loader2 className="h-5 w-5 animate-spin" />}
-                  {analysis && <CheckCircle className="h-5 w-5 text-green-600" />}
-                  {analyzeMutation.isError && <AlertCircle className="h-5 w-5 text-red-600" />}
-                  <span>Food Analysis</span>
-                </CardTitle>
-                <CardDescription>
-                  {analyzeMutation.isPending && "Analyzing your meal..."}
-                  {analysis && "Analysis complete!"}
-                  {analyzeMutation.isError && "Analysis failed"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {analyzeMutation.isPending && (
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Identifying food items...</span>
-                    </div>
-                    <Progress value={33} className="h-2" />
-                    <div className="flex items-center space-x-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Computing nutrition and health insights...</span>
-                    </div>
-                  </div>
+            {/* MVP Analysis Results */}
+            <div className="xl:col-span-1">
+              {analysis ? (
+                <MVPAnalysisResults 
+                  analysis={analysis}
+                  onSaveMeal={() => {
+                    // TODO: Implement save meal functionality
+                    toast({
+                      title: "Feature Coming Soon",
+                      description: "Meal saving will be available in the next update!",
+                    });
+                  }}
+                  onNewAnalysis={() => {
+                    setSelectedImage(null);
+                    setAnalysis(null);
+                  }}
+                />
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      {analyzeMutation.isPending && <Loader2 className="h-5 w-5 animate-spin" />}
+                      {!analysis && !analyzeMutation.isPending && <Database className="h-5 w-5 text-muted-foreground" />}
+                      <span>Waiting for Analysis</span>
+                    </CardTitle>
+                    <CardDescription>
+                      {analyzeMutation.isPending && "Analyzing your meal for safety, health, and sustainability..."}
+                      {!analysis && !analyzeMutation.isPending && "Upload an image to get instant analysis"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="text-center py-8">
+                    {analyzeMutation.isPending ? (
+                      <div className="space-y-3">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                        <p className="text-muted-foreground">Analyzing your meal...</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <Database className="h-8 w-8 mx-auto text-muted-foreground" />
+                        <p className="text-muted-foreground">Analysis results will appear here</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+          </div>
+        )}
+
+        {/* Error state for failed analysis */}
+        {analyzeMutation.isError && selectedImage && (
+          <Card className="border-red-200">
+            <CardContent className="text-center py-8">
+              <AlertCircle className="h-8 w-8 mx-auto mb-3 text-red-600" />
+              <p className="text-red-600 font-medium">Analysis Failed</p>
+              <p className="text-muted-foreground text-sm mb-4">Please try again or upload a different image</p>
+              <Button
+                onClick={() => {
+                  if (selectedImage) {
+                    const base64 = selectedImage.split(",")[1];
+                    analyzeMutation.mutate(base64);
+                  }
+                }}
+                variant="outline"
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                Retry Analysis
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tips for Better Analysis */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tips for Better Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-start space-x-2">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                <div>
+                  <div className="font-medium">Good Lighting</div>
+                  <div className="text-muted-foreground">Take photos in bright, natural light for accurate analysis</div>
+                </div>
+              </div>
+              <div className="flex items-start space-x-2">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                <div>
+                  <div className="font-medium">Clear View</div>
+                  <div className="text-muted-foreground">Ensure all foods are visible and unobstructed</div>
+                </div>
+              </div>
+              <div className="flex items-start space-x-2">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                <div>
+                  <div className="font-medium">Close Focus</div>
+                  <div className="text-muted-foreground">Fill the frame with your meal for best results</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Disclaimer */}
+        {analysis && (
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">
+              AI analysis provides estimated insights. Always consult healthcare professionals for dietary advice.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
                 )}
 
                 {analysis && (

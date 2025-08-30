@@ -15,153 +15,141 @@ export default function Landing() {
           
           <div className="mx-auto w-[min(1100px,92%)] pt-24 pb-16 text-center">
             <p className="text-[13px] font-medium tracking-wide text-emerald-700/80 mb-4">
-              Master your nutrition with AI-powered precision
+              The first nutrition app that checks everything
             </p>
             
             <h1 className="mt-4 text-[44px] md:text-[56px] font-semibold leading-[1.05] tracking-[-0.02em] text-neutral-900 mb-6">
-              Stop relying on guesswork
+              Snap, and see if this meal is safe, healthy, AND planet-friendly
             </h1>
             
-            <p className="mx-auto mt-4 max-w-[720px] text-[18px] leading-7 text-neutral-600 mb-6">
-              MyFoodMatrics delivers <strong>99.7% accurate</strong> food analysis backed by a database of <strong>2M+ items</strong>
+            <p className="mx-auto mt-4 max-w-[720px] text-[18px] leading-7 text-neutral-600 mb-8">
+              Get instant analysis with <strong>safety alerts</strong>, <strong>health scoring</strong>, and <strong>sustainability impact</strong> — all with clarity and action built in.
             </p>
 
-            <p className="mx-auto mt-4 max-w-[720px] text-[16px] leading-7 text-neutral-600 mb-6">
-              Understand how your meals impact your health, energy, and goals with AI that works in real time.
-            </p>
-
-            <p className="mx-auto mt-4 max-w-[720px] text-[16px] leading-7 text-neutral-600 mb-8">
-              Every meal matters. Get nutrition breakdowns and environmental impact scores to make smarter choices.
-            </p>
-
-            {/* Glowing Gradient Action Buttons */}
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4 mb-16">
+            {/* Single Strong CTA */}
+            <div className="mt-8 flex justify-center mb-16">
               <button
-                className="rounded-full px-8 py-4 text-[15px] font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transform hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-xl"
-                onClick={() => navigate('/auth')}
-                data-testid="button-journey-cta"
+                className="rounded-full px-12 py-5 text-[17px] font-semibold text-white bg-gradient-to-r from-indigo-600 to-emerald-600 hover:from-indigo-700 hover:to-emerald-700 transform hover:scale-[1.02] transition-all duration-300 shadow-xl hover:shadow-2xl"
+                onClick={() => navigate('/camera')}
+                data-testid="button-main-cta"
               >
-                Begin Your Journey
-              </button>
-              <button
-                className="rounded-full px-8 py-4 text-[15px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transform hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg"
-                onClick={() => navigate('/demo')}
-                data-testid="button-demo"
-              >
-                View Demonstration
+                🍽️ Try It Now - Snap Your Meal
               </button>
             </div>
+
+            <p className="text-[14px] text-neutral-500 mb-8">
+              No signup required • Instant results • Free to try
+            </p>
 
           </div>
         </section>
 
-        {/* Trust Metrics - Clean Design */}
+        {/* Trust Metrics - MVP Focus */}
         <section className="mb-24">
           <div className="mx-auto w-[min(1100px,92%)]">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div className="ios-card p-8 cursor-pointer group">
                 <div className="text-center">
-                  <div className="text-[36px] font-semibold text-neutral-900 mb-2">99.7%</div>
-                  <div className="text-[14px] font-medium text-neutral-600">Accuracy Rate</div>
-                  <div className="mt-2 text-[12px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Industry-leading precision</div>
+                  <div className="text-[32px] font-semibold text-red-600 mb-2">🚨 Safety</div>
+                  <div className="text-[14px] font-medium text-neutral-600">Allergen Detection</div>
+                  <div className="mt-2 text-[12px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Instant allergy and safety alerts</div>
                 </div>
               </div>
               <div className="ios-card p-8 cursor-pointer group">
                 <div className="text-center">
-                  <div className="text-[36px] font-semibold text-neutral-900 mb-2">2M+</div>
-                  <div className="text-[14px] font-medium text-neutral-600">Food Database</div>
-                  <div className="mt-2 text-[12px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Comprehensive food library</div>
+                  <div className="text-[32px] font-semibold text-green-600 mb-2">💚 Health</div>
+                  <div className="text-[14px] font-medium text-neutral-600">Nutrition Scoring</div>
+                  <div className="mt-2 text-[12px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Real-time health impact analysis</div>
                 </div>
               </div>
               <div className="ios-card p-8 cursor-pointer group">
                 <div className="text-center">
-                  <div className="text-[36px] font-semibold text-neutral-900 mb-2">&lt; 2s</div>
-                  <div className="text-[14px] font-medium text-neutral-600">Analysis Time</div>
-                  <div className="mt-2 text-[12px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Lightning-fast results</div>
+                  <div className="text-[32px] font-semibold text-blue-600 mb-2">🌍 Planet</div>
+                  <div className="text-[14px] font-medium text-neutral-600">Eco Impact</div>
+                  <div className="mt-2 text-[12px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Carbon and sustainability metrics</div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Features Section - Clean Design */}
+        {/* Features Section - MVP Focus */}
         <div className="mb-32">
           <div className="text-center mb-20">
             <h2 className="professional-heading text-4xl lg:text-5xl font-bold mb-6 text-neutral-900">
-              Comprehensive Nutrition Intelligence
+              Everything you need to know about your meal
             </h2>
             <p className="body-text text-xl max-w-3xl mx-auto text-neutral-600">
-              Advanced technologies working in harmony to provide unprecedented insight into your nutritional intake and health trajectory.
+              Snap a photo and get instant analysis of safety, health, and environmental impact — with clear explanations and actionable insights.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
-            {/* AI-Powered Food Recognition */}
+            {/* Instant Photo Analysis */}
             <Card className="feature-card-hero border-0 rounded-3xl overflow-hidden">
               <CardContent className="p-12">
                 <div className="mb-8">
-                  <Badge className="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-indigo-200 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide">
-                    PRIMARY TECHNOLOGY
+                  <Badge className="mb-6 bg-gradient-to-r from-indigo-50 to-emerald-50 text-indigo-700 border-indigo-200 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide">
+                    SNAP & ANALYZE
                   </Badge>
-                  <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    Artificial Intelligence
+                  <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-transparent">
+                    Instant Food
                     <br />
-                    Food Recognition
+                    Analysis
                   </h3>
                   <p className="body-text text-lg leading-relaxed mb-8 text-gray-700">
-                    Revolutionary computer vision technology that instantly identifies food items, estimates portion sizes, 
-                    and calculates precise nutritional data. Our proprietary algorithms analyze texture, color, and shape 
-                    to deliver unparalleled accuracy in nutritional assessment.
+                    Simply snap a photo of your meal and get comprehensive analysis in seconds. Our AI identifies ingredients, 
+                    checks for allergens, evaluates nutritional value, and calculates environmental impact.
                   </p>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-black mb-2">99.7%</div>
-                    <div className="text-sm text-gray-600 font-medium">Recognition Accuracy</div>
+                    <div className="text-lg font-bold text-red-600 mb-2">🚨</div>
+                    <div className="text-sm text-gray-600 font-medium">Safety Alerts</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-black mb-2">Instant</div>
-                    <div className="text-sm text-gray-600 font-medium">Processing Speed</div>
+                    <div className="text-lg font-bold text-green-600 mb-2">💚</div>
+                    <div className="text-sm text-gray-600 font-medium">Health Score</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-black mb-2">2M+</div>
-                    <div className="text-sm text-gray-600 font-medium">Food Database</div>
+                    <div className="text-lg font-bold text-blue-600 mb-2">🌍</div>
+                    <div className="text-sm text-gray-600 font-medium">Eco Impact</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Personalized Recommendations */}
+            {/* Smart Recommendations */}
             <Card className="feature-card-hero border-0 rounded-3xl overflow-hidden">
               <CardContent className="p-12">
                 <div className="mb-8">
-                  <Badge className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border-purple-200 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide">
-                    MACHINE LEARNING
+                  <Badge className="mb-6 bg-gradient-to-r from-emerald-50 to-blue-50 text-emerald-700 border-emerald-200 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide">
+                    SMART INSIGHTS
                   </Badge>
-                  <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    Personalized Meal
+                  <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                    Actionable
                     <br />
                     Recommendations
                   </h3>
                   <p className="body-text text-lg leading-relaxed mb-8 text-gray-700">
-                    Advanced machine learning algorithms analyze your dietary preferences, nutritional requirements, 
-                    and health objectives to provide customized meal suggestions that align with your lifestyle and goals.
+                    Get clear explanations for every score and specific actions you can take. 
+                    Discover safer alternatives, healthier swaps, and more sustainable choices.
                   </p>
                 </div>
                 
                 <div className="space-y-4 pt-8 border-t border-gray-200">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Dietary Preferences</span>
-                    <span className="text-sm font-bold text-black">Adaptive Learning</span>
+                    <span className="text-sm text-gray-600">Alternative Foods</span>
+                    <span className="text-sm font-bold text-emerald-600">Suggested</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Nutritional Goals</span>
-                    <span className="text-sm font-bold text-black">Precision Targeting</span>
+                    <span className="text-sm text-gray-600">Health Improvements</span>
+                    <span className="text-sm font-bold text-green-600">Explained</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Health Objectives</span>
-                    <span className="text-sm font-bold text-black">Intelligent Optimization</span>
+                    <span className="text-sm text-gray-600">Eco-Friendly Options</span>
+                    <span className="text-sm font-bold text-blue-600">Identified</span>
                   </div>
                 </div>
               </CardContent>
