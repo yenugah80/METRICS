@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Request, Response, NextFunction } from "express";
 import { db } from "../database/db";
-import { users, authProviders, refreshTokens, passkeys } from "../../../shared/schema";
+import { users } from "../../../shared/schema";
 import { eq, and, isNull } from "drizzle-orm";
 
 export interface JWTPayload {
@@ -183,14 +183,7 @@ export class AuthService {
       password: hashedPassword,
     }).returning();
 
-    // Create auth provider record
-    if (provider !== "email" || providerId) {
-      await db.insert(authProviders).values({
-        userId: user.id,
-        provider,
-        providerId: providerId || user.email,
-      });
-    }
+    // Note: Auth provider tracking removed for simplified production schema
 
     return user;
   }
@@ -205,23 +198,10 @@ export class AuthService {
     return user || null;
   }
 
-  // Find user by provider
+  // Find user by provider (simplified for production)
   async findUserByProvider(provider: string, providerId: string): Promise<any> {
-    const [authProvider] = await db
-      .select({
-        user: users,
-        provider: authProviders,
-      })
-      .from(authProviders)
-      .innerJoin(users, eq(authProviders.userId, users.id))
-      .where(
-        and(
-          eq(authProviders.provider, provider),
-          eq(authProviders.providerId, providerId)
-        )
-      );
-
-    return authProvider?.user || null;
+    // For now, fallback to email-based lookup
+    return this.findUserByEmail(providerId);
   }
 
   // Update last login

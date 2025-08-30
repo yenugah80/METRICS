@@ -12,6 +12,7 @@ import AuthPage from "@/pages/auth-page";
 import SearchPage from "@/pages/search";
 import VoiceAssistantPage from "@/pages/voice-assistant";
 import VoiceLoggingPage from "@/pages/voice-logging";
+import ProductionDashboard from "@/pages/production-dashboard";
 import FeaturesPage from "@/pages/features";
 import PricingPage from "@/pages/pricing";
 import NotFound from "@/pages/not-found";
@@ -51,9 +52,7 @@ function App() {
                 <Route path="/pricing" component={PricingPage} />
                 <Route path="/dashboard">
                   <ProtectedRoute>
-                    <SafeLazyWrapper message="Loading dashboard...">
-                      <LazyDashboard />
-                    </SafeLazyWrapper>
+                    <ProductionDashboard />
                   </ProtectedRoute>
                 </Route>
                 <Route path="/search">

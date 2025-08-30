@@ -17,6 +17,7 @@ import { nutritionService as legacyNutritionService } from "./nutritionApi";
 // import { etlSystem } from "./etl";
 import authRoutes from "../../infrastructure/auth/authRoutes";
 import { parseVoiceFoodInput } from './voice-logging';
+import { registerProductionRoutes } from './productionRoutes';
 import { analyzeFoodInput, type FoodAnalysisInput } from "../../core/nutrition/food-analysis-pipeline";
 import { generateRecipe, type RecipeGenerationInput } from "../../core/recipes/recipe-generation-v2";
 import { calculateNutritionScore, type NutritionInput } from "../../core/nutrition/nutrition-scoring";
@@ -191,6 +192,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Voice food parsing endpoint
   app.post('/api/voice-food-parsing', verifyJWT, parseVoiceFoodInput);
+
+  // Register production routes with real database functionality
+  await registerProductionRoutes(app);
 
   // Premium upgrade endpoint
   app.post('/api/upgrade-premium', verifyJWT, async (req: AuthenticatedRequest, res) => {

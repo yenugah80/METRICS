@@ -35,7 +35,7 @@ import {
   type InsertSystemMetric,
 } from '../../../shared/schema';
 
-export interface IStorage {
+export interface IProductionStorage {
   // User management
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -89,7 +89,7 @@ export interface IStorage {
   getSystemHealth(): Promise<any>;
 }
 
-export class DatabaseStorage implements IStorage {
+export class ProductionStorage implements IProductionStorage {
   
   // User management
   async getUser(id: string): Promise<User | undefined> {
@@ -566,4 +566,4 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Export the production storage instance
-export const storage = new DatabaseStorage();
+export const productionStorage = new ProductionStorage();
