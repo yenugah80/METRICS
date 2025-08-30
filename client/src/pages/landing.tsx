@@ -150,9 +150,24 @@ export default function Landing() {
               <h2 className="text-3xl font-bold text-neutral-900 mb-4">
                 What makes us different from every other nutrition app
               </h2>
-              <p className="text-lg text-neutral-600">
+              <p className="text-lg text-neutral-600 mb-8">
                 Scientific rigor and data accuracy others can't match
               </p>
+              
+              <div className="max-w-2xl mx-auto space-y-3 text-left">
+                <div className="flex items-center space-x-3 text-neutral-700">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                  <span className="font-medium">Scan a meal now → See your score, drivers, and greener swaps in 10 seconds.</span>
+                </div>
+                <div className="flex items-center space-x-3 text-neutral-700">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0"></div>
+                  <span className="font-medium">Make one tiny tweak → Watch kcal, sodium, and CO₂ drop live.</span>
+                </div>
+                <div className="flex items-center space-x-3 text-neutral-700">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
+                  <span className="font-medium">Set your health profile → Get PCOS/diabetes-smart guidance instantly.</span>
+                </div>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

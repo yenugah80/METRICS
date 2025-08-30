@@ -1,0 +1,50 @@
+Why MyFoodMatrics is different
+1) No-Guess Guarantee™
+
+If something’s unknown, we say so—with reasons and warnings—instead of “filling in.” You’ll see sources, versions, and confidence on every number.
+Outcome: trustable results, not pretty guesses.
+
+2) Deterministic-first, AI-second
+
+We lead with USDA FDC + verified barcodes and only use AI for reasoning (e.g., recipe breakdown), never for inventing nutrients.
+Outcome: lab-grade accuracy with AI convenience.
+
+3) Explainability on tap
+
+Every score (nutrition, diet, eco) shows top drivers (“+ high protein”, “– sodium density”) and a clear audit trail.
+Outcome: you know why a food is good/bad for you—so changes stick.
+
+4) Portion truth with uncertainty bands
+
+Vision + depth + density models estimate grams and show ± ranges you can adjust.
+Outcome: portion control that’s transparent and fixable in one tap.
+
+5) Condition-aware guidance (not one-size-fits-all)
+
+A medical rule engine adapts to PCOS, diabetes, hypertension, CKD, GERD, pregnancy, etc.
+Outcome: advice that fits your health, not a generic template.
+
+6) Ingredient-level eco impact (with deltas)
+
+Peer-reviewed LCA (GHG, water, land) at ingredient level + greener swap impact (“–0.3 kg CO₂e if you…”)
+Outcome: eat for health + planet with measurable tradeoffs.
+
+7) Mixed-plate intelligence
+
+We detect multiple foods on one plate, expand likely ingredients for sauces/marinades, and keep probabilities when unsure.
+Outcome: real-world plates, not barcode-only meals.
+
+8) Real-time, streaming results
+
+Detections land in ~1–2s; macros/micros, safety, diet, eco, score and swaps stream in as they’re ready.
+Outcome: instant feedback that keeps you logging.
+
+9) Taste-preserving swaps
+
+A trained flavor-similarity graph suggests alternatives that keep cuisine vibes (e.g., tandoori → herb-yogurt tweaks), with quantified kcal/sodium/CO₂ deltas.
+Outcome: changes you’ll actually keep eating.
+
+10) Private by design
+
+On-device pre-detection for speed and privacy, encrypted storage, configurable retention, no data brokerage.
+Outcome: your plate stays your business.

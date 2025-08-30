@@ -107,6 +107,32 @@ export default function AuthPage() {
               <p className="text-lg text-white/90 mb-8">
                 Advanced artificial intelligence technology providing comprehensive nutritional analysis and personalized health insights.
               </p>
+              
+              {/* Comparison Table */}
+              <div className="bg-white/10 rounded-xl p-6 mb-8 backdrop-blur-sm">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h4 className="font-bold text-white/80 mb-3">Generic app</h4>
+                    <ul className="space-y-2 text-white/70">
+                      <li>• Crowdsourced or averaged nutrition</li>
+                      <li>• Single number, no explanation</li>
+                      <li>• One-dish or barcode only</li>
+                      <li>• Generic tips ("eat less salt")</li>
+                      <li>• Hides uncertainty</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white mb-3">MyFoodMatrics</h4>
+                    <ul className="space-y-2 text-white/90">
+                      <li>• USDA primary + verified barcodes</li>
+                      <li>• Drivers + sources on every score</li>
+                      <li>• Mixed-plate + sauce intelligence</li>
+                      <li>• Condition-aware, quantified tweaks</li>
+                      <li>• Confidence ranges & user control</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Key Points */}
