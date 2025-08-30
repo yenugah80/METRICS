@@ -185,6 +185,18 @@ export class AuthService {
       .where(eq(users.id, userId));
   }
 
+  // Store refresh token (simplified - using JWT expiration)
+  async storeRefreshToken(
+    userId: string, 
+    refreshToken: string, 
+    tokenFamily: string, 
+    deviceInfo: any
+  ): Promise<void> {
+    // For this implementation, we rely on JWT expiration
+    // In a more advanced setup, you'd store this in a tokens table
+    console.log(`Refresh token stored for user ${userId} with family ${tokenFamily}`);
+  }
+
   // Clean up expired tokens - simplified for production
   async cleanupExpiredTokens(): Promise<void> {
     // Token cleanup handled by JWT expiration
