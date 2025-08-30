@@ -4,8 +4,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../logging/logger';
-import { secureErrorResponse } from '../security/security';
+import { logger } from '../../infrastructure/monitoring/logging/logger';
+import { secureErrorResponse } from '../../infrastructure/security/security';
 
 export interface AppError extends Error {
   statusCode?: number;

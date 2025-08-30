@@ -5,8 +5,8 @@
 
 import { Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { logger, PerformanceMonitor } from '../logging/logger';
-import * as schema from '../../shared/schema';
+import { logger, PerformanceMonitor } from '../monitoring/logging/logger';
+import * as schema from '../../../shared/schema';
 import { eq, and, desc, asc, sql } from 'drizzle-orm';
 
 // Enhanced database configuration

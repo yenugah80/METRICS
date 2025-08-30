@@ -1,0 +1,49 @@
+Here are a few key pointers that one should keep in mind before working on your mobile app
+
+Concept Proofing
+Before you start developing your app, it is always advisable that you do some market research. This will help you in understanding requirements well in prior. Analyze what your competitors are doing, what are their pros and cons. Repeating mistakes can be avoided market research is carefully done. Making a clone will not take you anywhere. Uniqueness is the ultimate key.
+
+‍
+
+Define your target audience
+A well-defined target audience can help both the technical and business side of your app. Even if you have an innovative idea, your app cannot guarantee success without identifying your target audience. A user-centric approach comes from knowing your target audience. While identifying your target audience, you should focus on “A Group of people.” That group of people needs to share similar demographics, interests, and problems, etc. Once you know about your target audience, you can plan the design, development, and marketing accordingly.
+
+‍
+
+Identify a minimally, viable solution set.
+“A minimum viable product, or MVP, is that version of the new product which allows a team to collect the maximum amount of validated learning about the customer with the least efforts” — Eric Ries. 
+
+The benefits of MVP are that it releases a product to the market in a quick time and tests the idea with real users before going into the product’s full development. MVP helps you to avoid the development of products that customers do not want, besides, allowing you to validate an idea for your product without having to build the entire product.
+
+‍
+
+Look and feel (UI & UX)
+Transforming your idea into a mobile screen is an art and the most critical part of the mobile app development process. The User Interface (UI) i.e. the look & User Experience (UX) i.e. the feel, commonly referred to as UI/ UX accountable for your app success. No matter how appealing/ important your content is, if your UI/UX is not able to influence your end-users, then nobody can stop it from falling. A bad UI/UX can lead to a quick uninstall. So make sure you handle UI/UX very well.
+
+ 
+
+Check out our mobile app analytics tool.
+
+‍
+
+Security
+The amount of personal info kept on mobile devices these days is huge. Thus, the need for mobile app security has become inevitable. While collecting any sensitive user data, you must assure that you have a robust security system in place. Securing mobile apps from external threats like malware and other digital frauds that risk critical personal and financial information from hackers is your key responsibility. User’s data is a critical & valuable asset, and you should have a proper process to collect, handle, store and manage any possible security threats.
+
+‍
+
+Testing
+A good testing plan can address the majority of the problems that an app could face. This also decreases the go-to-market time and ensures user retention. With a proper testing plan in place, you can assure a bug-free, crash-free and smooth experience for your customers.
+
+‍
+
+Promoting The App
+There is no point in building an app for your business if you are not focusing on how to market it and make it available to potential users. Your app’s reach will depend on how successful your marketing strategy is, which includes branding, PR, pre-launch efforts, and outreach. You should start making the noise well in advance before the launch. A creative/marketing agency can help you with this.
+
+‍
+
+App Analytics to Track App Metrics
+App Analytics gives details of an application’s usage/performance/behavior by extracting real-time analysis from things like heatmaps, session replays, and funnel analyses. App Analytics is important for the continuous enhancement of the app as it gathers useful business reports. App Analytics also provides user engagement metrics, such as no of sessions, no of active devices, etc. With app metrics, you can also monitor the impact of app changes and updates, such as modifying the user payment experience and analyzing which changes grow user engagement.
+
+‍
+
+As we all know the customer is the king and the queen for any business. One should make sure the ease of use and quality of the mobile app meets customer expectations. Keep tracking your app metrics and improvise your app till it serves the purpose. End of the day, your app is the asset that will help you in reaching out to your customers and meeting your specific business needs. Let’s all make it worth it.
