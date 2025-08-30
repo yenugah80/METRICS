@@ -116,8 +116,8 @@ export default function AuthPage() {
                   <div className="text-white font-bold">🔒</div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white mb-1">Enterprise Security</h3>
-                  <p className="text-sm text-white/80">Multi-factor authentication with enterprise-grade encryption and compliance standards.</p>
+                  <h3 className="font-semibold text-white mb-1">USDA FDC Direct Access</h3>
+                  <p className="text-sm text-white/80">Government database integration, not crowdsourced estimates like other apps.</p>
                 </div>
               </div>
               
@@ -126,8 +126,8 @@ export default function AuthPage() {
                   <div className="text-white font-bold">🧠</div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white mb-1">AI-Powered Analysis</h3>
-                  <p className="text-sm text-white/80">Revolutionary computer vision and machine learning for precise nutritional assessment.</p>
+                  <h3 className="font-semibold text-white mb-1">Medical Rule Engine</h3>
+                  <p className="text-sm text-white/80">Built-in PCOS, diabetes intelligence beyond basic nutrition tracking.</p>
                 </div>
               </div>
               
@@ -136,8 +136,8 @@ export default function AuthPage() {
                   <div className="text-white font-bold">⚡</div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white mb-1">Instant Results</h3>
-                  <p className="text-sm text-white/80">Real-time food recognition and nutritional analysis in under 3 seconds.</p>
+                  <h3 className="font-semibold text-white mb-1">Peer-Reviewed Data</h3>
+                  <p className="text-sm text-white/80">Environmental impact from scientific research, not generic calculations.</p>
                 </div>
               </div>
             </div>
