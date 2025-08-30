@@ -5,6 +5,8 @@ MyFoodMatrics is an AI-powered nutrition tracking application that revolutionize
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Preferred design aesthetic: Professional, trustworthy gradients with soft blue/teal color palette (similar to health/fitness apps).
+UI/UX preference: Clean, premium glassmorphism with subtle professional glow effects rather than vibrant cosmic colors.
 
 # System Architecture
 
@@ -50,6 +52,25 @@ The server follows a **REST API pattern** using Express.js with:
 - **Nutrition Calculation**: Intelligent macro/micronutrient estimation from food descriptions
 - **Recipe Generation**: Personalized recipe creation based on dietary preferences
 - **Text Processing**: Voice-to-text transcription and natural language food logging
+
+## Authoritative Data Sources & Requirements
+
+**Nutrition Data** (Hierarchical Priority):
+- **Primary**: USDA FDC (Food Data Central) - core nutrition database
+- **Secondary**: Open Food Facts - branded product labels and barcodes
+- **Tertiary**: Regional databases as add-ons for local foods
+
+**Allergen & Health Rules**:
+- **FDA/EFSA** allergen lists for regulatory compliance
+- **Internal rule engine** for health conditions (PCOS, diabetes, low-sodium, etc.)
+
+**Environmental Impact**:
+- **Peer-reviewed LCA factors** (GHG emissions, water usage, land use) keyed by ingredient
+- **Regional overrides** where available for geographical accuracy
+
+**Portion & Density Models**:
+- **Cooked/raw density tables** for accurate volume-to-weight conversions
+- **Utensil/plate reference library** for portion size estimation from images
 
 ## External Dependencies
 

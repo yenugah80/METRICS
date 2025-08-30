@@ -75,7 +75,7 @@ export default function Landing() {
               <Card className="glow-card-hero group">
                 <CardContent className="p-8 relative z-10">
                   <div className="text-center">
-                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500" style={{ background: 'var(--gradient-sunset)', boxShadow: 'var(--glow-sunset)' }}>
+                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500" style={{ background: 'var(--gradient-warning)', boxShadow: 'var(--glow-warning)' }}>
                       <AlertTriangle className="w-8 h-8 text-white drop-shadow-lg" />
                     </div>
                     <h3 className="text-xl font-bold text-neutral-900 mb-4">Unreliable Food Data</h3>
@@ -98,7 +98,7 @@ export default function Landing() {
               <Card className="glow-card-hero group">
                 <CardContent className="p-8 relative z-10">
                   <div className="text-center">
-                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500" style={{ background: 'var(--gradient-cosmic)', boxShadow: 'var(--glow-cosmic)' }}>
+                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500" style={{ background: 'var(--gradient-info)', boxShadow: 'var(--glow-info)' }}>
                       <Clock className="w-8 h-8 text-white drop-shadow-lg" />
                     </div>
                     <h3 className="text-xl font-bold text-neutral-900 mb-4">Tedious Manual Entry</h3>
@@ -121,7 +121,7 @@ export default function Landing() {
               <Card className="glow-card-hero group">
                 <CardContent className="p-8 relative z-10">
                   <div className="text-center">
-                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500" style={{ background: 'var(--gradient-aurora)', boxShadow: 'var(--glow-aurora)' }}>
+                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500" style={{ background: 'var(--gradient-primary)', boxShadow: 'var(--glow-primary)' }}>
                       <HelpCircle className="w-8 h-8 text-white drop-shadow-lg" />
                     </div>
                     <h3 className="text-xl font-bold text-neutral-900 mb-4">No Personal Context</h3>
@@ -158,7 +158,7 @@ export default function Landing() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card className="feature-card-primary text-center p-6 group">
                 <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-ocean)', boxShadow: 'var(--glow-ocean)' }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-primary)', boxShadow: 'var(--glow-primary)' }}>
                     <Shield className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
                   <h3 className="font-bold text-neutral-900 mb-3">Enterprise Security</h3>
@@ -168,7 +168,7 @@ export default function Landing() {
               
               <Card className="feature-card-primary text-center p-6 group">
                 <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-forest)', boxShadow: 'var(--glow-forest)' }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-success)', boxShadow: 'var(--glow-success)' }}>
                     <Beaker className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
                   <h3 className="font-bold text-neutral-900 mb-3">Lab-Tested Accuracy</h3>
@@ -178,7 +178,7 @@ export default function Landing() {
               
               <Card className="feature-card-primary text-center p-6 group">
                 <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-neon)', boxShadow: 'var(--glow-aurora)' }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-warning)', boxShadow: 'var(--glow-warning)' }}>
                     <Zap className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
                   <h3 className="font-bold text-neutral-900 mb-3">Lightning Fast</h3>
@@ -188,7 +188,7 @@ export default function Landing() {
               
               <Card className="feature-card-primary text-center p-6 group">
                 <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-cosmic)', boxShadow: 'var(--glow-cosmic)' }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-secondary)', boxShadow: 'var(--glow-secondary)' }}>
                     <Globe className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
                   <h3 className="font-bold text-neutral-900 mb-3">Global Recognition</h3>
