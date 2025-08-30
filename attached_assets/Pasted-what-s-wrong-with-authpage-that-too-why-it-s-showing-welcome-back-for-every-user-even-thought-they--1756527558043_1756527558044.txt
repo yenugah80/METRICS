@@ -1,0 +1,255 @@
+what's wrong with authpage? that too why it's showing welcome back for every user even thought they are first time? and what's the error that i'm facing with create account and signin when i'm already having login details? also please fix everything by making it flexible easy to use.
+
+donot break the code structure inside my app as what i'm holding now the below are to my landing page for information to new users on why the should trust our app. so please tweak necessary changes all according to my app features like food nalysis Discover optimal food swaps, health improvements, and eco-friendly alternatives tailored to your goals., chef ai for Recipes (generation & management) trained for all the whole world cusines from opensource informations and give the user as per their request in friendly, positive, conversational human written tone, llm should responsive, voice logging, smart nutrional scores, eco tracking and suggestions based on it, beautiful dashboard and gamification with progress details , actionable food recommendations as you are focusing mor on safety and not dealing with competitive features as we are having now. diet compatibility based on user profile like their health details(e.g., pcos,pcod, and for fitness freaks) give strategic recommendations based on their food intake and make their lifestyle flexible, allergen detection, detects all the allergies and ask the user first time for are there any particular food llergy and then suggestion with if the food consists of that item or not and if it's suggestable to take it or not, be strategic, be energetic, don't be so boring, mdon't make too intensive, be clear with our vision, make this page fully production ready, use computer vision and mchine learning techniques inside it and give accurate responses in nutrional information and insights
+snap/upload/text/voice foodStores food scanned in dashboard, enqueues AI Job, parses foods → matches Food/Barcode → Voice → text (browser + server fallback)
+
+Barcode lookup (OpenFoodFacts) --> make it as per our database donot break backend now
+
+// app/api/recipes/generate/route.ts
+import OpenAI from "openai"; import { NextResponse } from "next/server"; import { db } from "@/server/db";
+export async function POST(req:Request){
+const { title, ingredients, servings, rules } = await req.json();
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+const res = await client.responses.create({ model: 'gpt-4o-mini', input: [{ role:'user', content:[{ type:'input_text', text:Create a recipe titled ${title}. Use ingredients: ${ingredients.join(', ')}. Obey rules: ${rules}. Return JSON {summary, steps[], gramsPerIngredient{}} }] }] });
+const data = /* parse JSON */ { summary:"", steps:[""], gramsPerIngredient:{} };
+const r = await db.recipe.create({ data: { userId:'sessionUserId', title, summary:data.summary, steps:data.steps.join('\n'), servings } });
+for (const [label, grams] of Object.entries(data.gramsPerIngredient)){
+const food = await resolveOrCreateFood(label);
+await db.recipeIngredient.create({ data: { recipeId: r.id, foodId: food.id, grams: grams as any } });
+}
+return NextResponse.json({ ok:true, id:r.id });
+}
+
+// app/api/foods/barcode/[code]/route.ts
+import { NextResponse } from "next/server";
+import { db } from "@/server/db";
+
+const BASE = process.env.OPENFOODFACTS_BASE!;
+
+export async function GET(_: Request, { params }: { params: { code: string } }) {
+const code = params.code;
+const cached = await db.barcodeProduct.findUnique({ where: { code } });
+if (cached && Date.now() - cached.lastSyncedAt.getTime() < 1000 * 60 * 60 * 24 * 14) {
+return NextResponse.json(cached);
+}
+const r = await fetch(${BASE}/api/v3/product/${code}.json);
+if (!r.ok) return NextResponse.json({ ok: false }, { status: 404 });
+const json = await r.json();
+const prod = json.product ?? {};
+const rec = await db.barcodeProduct.upsert({
+where: { code },
+update: {
+json,
+productName: prod.product_name ?? null,
+brands: prod.brands ?? null,
+ecoScore: prod.ecoscore_grade ?? null,
+imageUrl: prod.image_url ?? null,
+lastSyncedAt: new Date(),
+},
+create: {
+code,
+json,
+productName: prod.product_name ?? null,
+brands: prod.brands ?? null,
+ecoScore: prod.ecoscore_grade ?? null,
+imageUrl: prod.image_url ?? null,
+},
+});
+return NextResponse.json(rec);
+}
+
+const logos = ["fitbit","apple","garmin","strava","withings","healthconnect","oura","mapmyrun","samsung","polar"];
+export default function IntegrationsGrid() {
+return (
+<section className="mx-auto max-w-6xl px-4 py-14">
+<div className="rounded-3xl bg-zinc-900 text-white p-8 md:p-10 grid md:grid-cols-[1fr_auto] gap-8 items-center">
+<div>
+<div className="text-sm/6 opacity-70">35+ apps and devices</div>
+<h3 className="mt-1 text-3xl font-extrabold">Sync steps, weight, workouts & more</h3>
+</div>
+<div className="grid grid-cols-5 gap-3 md:gap-4">
+{logos.map(l => (
+<div key={l} className="aspect-square rounded-xl bg-white/10 grid place-items-center text-xs uppercase">{l}</div>
+))}
+</div>
+</div>
+</section>
+);
+}
+
+export default function BigDatabaseBanner() {
+return (
+<section className="bg-blue-600 text-white">
+<div className="mx-auto max-w-6xl px-4 py-18 text-center">
+<h3 className="text-4xl md:text-5xl font-extrabold">your food, our 99% accurate information </h3>
+<p className="mt-2 text-lg opacity-90">Track over 20 million global foods (barcodes + dishes)</p>
+</div>
+</section>
+);
+}
+
+export default function OnboardingCTA() {
+return (
+<section id="get-started" className="relative overflow-hidden">
+<div className="absolute inset-0 -z-10 bg-gradient-to-r from-blue-600 to-blue-500" />
+<div className="mx-auto max-w-6xl px-4 py-16 grid md:grid-cols-2 gap-10 items-center text-white">
+<div>
+<p className="uppercase text-xs/5 tracking-wider opacity-80">Get Started</p>
+<h3 className="text-4xl font-extrabold">Starting is the hard part. We make it easy.</h3>
+<p className="mt-3 opacity-90">Answer a few questions and we’ll tailor your goals, diet rules, and swap preferences.</p>
+<div className="mt-6">
+<a className="rounded-full bg-white text-blue-700 px-6 py-3 font-semibold shadow hover:opacity-95" href="/quiz">Take the quiz</a>
+</div>
+</div>
+<div className="rounded-2xl bg-white/10 p-6 ring-1 ring-white/20">Goal selector preview</div>
+</div>
+</section>
+);
+}
+
+"use client";
+import { useState } from "react";
+
+const faqs = [
+{ q: "Is MyFoodMatrics free?", a: "Yes—try core logging and analysis free. Premium unlocks unlimited analysis and advanced rules." },
+{ q: "What can I track besides calories?", a: "Allergens, diet compatibility, macronutrients, key micros, and eco impact." },
+{ q: "Do I need an API key?", a: "No. Local demo works without a key. Enable AI later with one toggle." },
+];
+
+export default function FAQ() {
+const [open, setOpen] = useState<number | null>(0);
+return (
+<section className="mx-auto max-w-4xl px-4 py-16">
+<h3 className="text-center text-3xl font-extrabold">Q&A</h3>
+<div className="mt-8 space-y-3">
+{faqs.map((f, i) => (
+<div key={i} className="rounded-2xl border">
+<button className="w-full text-left p-5 font-medium flex items-center justify-between" onClick={() => setOpen(open===i ? null : i)}>
+{f.q} <span>{open===i ? "–" : "+"}</span>
+</button>
+{open===i && <div className="px-5 pb-5 text-gray-600">{f.a}</div>}
+</div>
+))}
+</div>
+</section>
+);
+}
+"use client";
+import { useState } from "react";
+
+const faqs = [
+{ q: "Is MyFoodMatrics free?", a: "Yes—try core logging and analysis free. Premium unlocks unlimited analysis and advanced rules." },
+{ q: "What can I track besides calories?", a: "Allergens, diet compatibility, macronutrients, key micros, and eco impact." },
+{ q: "Do I need an API key?", a: "No. Local demo works without a key. Enable AI later with one toggle." },
+];
+
+export default function FAQ() {
+const [open, setOpen] = useState<number | null>(0);
+return (
+<section className="mx-auto max-w-4xl px-4 py-16">
+<h3 className="text-center text-3xl font-extrabold">Q&A</h3>
+<div className="mt-8 space-y-3">
+{faqs.map((f, i) => (
+<div key={i} className="rounded-2xl border">
+<button className="w-full text-left p-5 font-medium flex items-center justify-between" onClick={() => setOpen(open===i ? null : i)}>
+{f.q} <span>{open===i ? "–" : "+"}</span>
+</button>
+{open===i && <div className="px-5 pb-5 text-gray-600">{f.a}</div>}
+</div>
+))}
+</div>
+</section>
+);
+}
+const posts = [
+{ title: "Essential Guide to Food Logging", blurb: "Accurate logs unlock better insights and swaps." },
+{ title: "11 Things You’ll Learn Using MyFoodMatrics", blurb: "From allergen safety to eco-lighter habits." },
+];
+export default function BlogTeasers() {
+return (
+<section className="mx-auto max-w-6xl px-4 py-16">
+<h3 className="text-3xl font-extrabold">From our experts</h3>
+<div className="mt-6 grid md:grid-cols-2 gap-6">
+{posts.map(p => (
+<article key={p.title} className="rounded-2xl border overflow-hidden">
+<div className="h-40 bg-gray-100" />
+<div className="p-5">
+<h4 className="text-lg font-semibold">{p.title}</h4>
+<p className="mt-1 text-gray-600 text-sm">{p.blurb}</p>
+<a className="mt-3 inline-block text-blue-700 font-medium" href="#">Read more →</a>
+</div>
+</article>
+))}
+</div>
+</section>
+);
+}
+export default function FooterSlim() {
+return (
+<footer className="bg-zinc-900 text-white">
+<div className="mx-auto max-w-6xl px-4 py-14 grid md:grid-cols-4 gap-8">
+<div>
+<div className="text-xl font-bold">myfoodmatrics</div>
+<p className="mt-2 text-sm/6 text-white/70">Nutrition tracking for real life.</p>
+<a href="#get-started" className="mt-4 inline-block rounded-full bg-white text-zinc-900 px-5 py-2 font-semibold">Start today</a>
+</div>
+<nav>
+<div className="font-semibold">Products</div>
+<ul className="mt-2 space-y-1 text-sm/6 text-white/80">
+<li><a href="#">Exercise</a></li>
+<li><a href="#">Apps</a></li>
+<li><a href="#">Premium</a></li>
+</ul>
+</nav>
+<nav>
+<div className="font-semibold">Resources</div>
+<ul className="mt-2 space-y-1 text-sm/6 text-white/80">
+<li><a href="#">Blog</a></li>
+<li><a href="#">Community</a></li>
+<li><a href="#">Support</a></li>
+</ul>
+</nav>
+<nav>
+<div className="font-semibold">Company</div>
+<ul className="mt-2 space-y-1 text-sm/6 text-white/80">
+<li><a href="#">About</a></li>
+<li><a href="#">Careers</a></li>
+<li><a href="#">Press</a></li>
+</ul>
+</nav>
+</div>
+<div className="border-t border-white/10">
+<div className="mx-auto max-w-6xl px-4 py-6 text-xs text-white/70">
+© {new Date().getFullYear()} MyFoodMatrics, Inc. • Privacy • Terms
+</div>
+</div>
+</footer>
+);
+}
+Max width max-w-6xl and big vertical rhythm: py-16 / py-20 between sections.
+
+Bold display typography: text-4xl/6xl for hero; font-extrabold for headlines.
+
+Rounded/soft UI: cards rounded-2xl, shadows on device mock, subtle ring-1.
+
+Large hero split: grid with copy left, device mock right.
+
+Dark social-proof stripe just under hero.
+
+1-2-3 step layout with giant numerals and alternating images (you can add images later).
+
+Integrations block: dark card with a grid of platform badges.
+
+Press/As seen in: grayscale logo row with generous spacing.
+
+FAQ: accordion with thick rounded containers.
+
+Footer: dark, four columns, strong CTA button.
+
+All components are color-neutral; change gradient tokens to your brand if desired.
+
+Replace placeholder images with real app insights by taking screenshots.
+
+Wire the CTA buttons to your quiz/onboarding route.
+
+If you already have Tailwind, nothing else to install. If not, add Tailwind.

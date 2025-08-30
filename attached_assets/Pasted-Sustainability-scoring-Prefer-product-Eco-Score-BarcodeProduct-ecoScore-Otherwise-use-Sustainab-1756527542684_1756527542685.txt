@@ -1,0 +1,72 @@
+Sustainability scoring
+
+Prefer product Eco‑Score (BarcodeProduct.ecoScore).
+
+Otherwise use SustainabilityFactor per food (CO₂e, water, land).
+
+Meal eco grade: median of item grades if available, else grade by total CO₂e thresholds (tunable).
+
+Store factors with source string for audit.
+
+SQL view example (optional):
+
+CREATE OR REPLACE VIEW meal_impact AS
+SELECT m.id AS meal_id,
+  SUM( (sf.co2eKgPerKg * (mi.grams/1000.0)) ) AS co2e_kg,
+  SUM( (sf.waterLPerKg * (mi.grams/1000.0)) ) AS water_l
+FROM "Meal" m
+JOIN "MealItem" mi ON mi."mealId"=m.id
+LEFT JOIN "SustainabilityFactor" sf ON sf."foodId"=mi."foodId"
+GROUP BY m.id;
+11) System health & performance
+// server/metrics.ts
+import { db } from "@/server/db";
+export async function recordMetric(name:string, value:number, labels?:any){
+  await db.systemMetric.create({ data: { name, value: value as any, labels } });
+}
+
+Periodic cron (serverless CRON or worker) to write: queue depth, average job time, API latency (p95), DB pool saturation.
+
+12) Frontend (production dashboard pages)
+
+/dashboard — weekly chart (kcal, protein, eco, safety warnings), quick actions, goals widget.
+
+/scan — camera/upload, barcode, voice. Shows analysis → save.
+
+/meals — list, filters, drill‑down meal detail.
+
+/recipes — list, generate, edit; nutrition for recipe.
+
+/goals — set targets; streaks.
+
+/settings — profile, allergens, diet rules, devices.
+
+Use server actions + React Query (or SWR) for responsive UI.
+
+13) Rate limits & security
+
+Upload limits: <5 MB images, <30 s audio.
+
+AuthZ: all meal/goal/activity CRUD filtered by userId.
+
+PII: store minimal; images auto‑purge after N days.
+
+Secrets: server‑only; never NEXT_PUBLIC_* for keys.
+
+Abuse: per‑IP + per‑user rate limiter on /api/meal/analyze, /api/voice/transcribe.
+
+14) Test matrix (no mocks in prod)
+
+Unit tests for compute & scoring.
+
+Integration tests hitting OpenFoodFacts sandbox and OpenAI with minimal images.
+
+E2E smoke: sign‑in → scan photo → meal saved → dashboard updates.
+
+Wiring notes
+
+Replace sessionUserId with actual session user via auth() in handlers.
+
+Implement upsertFoods, resolveOrCreateFood, upsertFoodByBarcode in a server/foods.ts module (synonym mapping, fuzzy match, barcode import, USDA merge).
+
+Build a foods seeder to preload core staples from USDA FDC.
