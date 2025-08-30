@@ -4,10 +4,8 @@
  */
 
 import { storage } from './storage';
-import OpenAI from 'openai';
+import { OpenAIManager } from '../../integrations/openai/openai-manager';
 import { calculateNutritionScore } from './nutrition-scoring';
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export interface UserPreferences {
   dietPreferences: string[]; // ['keto', 'vegan', 'mediterranean', 'paleo']

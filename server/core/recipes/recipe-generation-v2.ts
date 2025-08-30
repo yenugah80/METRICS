@@ -4,9 +4,7 @@
  */
 
 import crypto from 'crypto';
-import OpenAI from 'openai';
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import { OpenAIManager } from '../../integrations/openai/openai-manager';
 
 export interface RecipeGenerationInput {
   ingredients: string[];

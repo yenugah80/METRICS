@@ -11,11 +11,12 @@ import { verifyJWT, type AuthenticatedRequest } from "../../infrastructure/auth/
 import { ObjectStorageService, ObjectNotFoundError } from "../../integrations/storage/objectStorage";
 import { ObjectPermission } from "../../integrations/storage/objectAcl";
 import * as aiService from "../../integrations/openai/openai";
-import OpenAI from "openai";
+import { OpenAIManager } from "../../integrations/openai/openai-manager";
 import { nutritionService } from "../../core/nutrition/deterministicNutrition";
 import { nutritionService as legacyNutritionService } from "./nutritionApi";
 // import { etlSystem } from "./etl";
 import authRoutes from "../../infrastructure/auth/authRoutes";
+import { parseVoiceFoodInput } from './voice-logging';
 import { analyzeFoodInput, type FoodAnalysisInput } from "../../core/nutrition/food-analysis-pipeline";
 import { generateRecipe, type RecipeGenerationInput } from "../../core/recipes/recipe-generation-v2";
 import { calculateNutritionScore, type NutritionInput } from "../../core/nutrition/nutrition-scoring";
@@ -50,11 +51,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-08-27.basil",
 });
 
-// OpenAI setup
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('Missing required OpenAI API key');
-}
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// OpenAI is now lazily loaded via OpenAIManager when needed
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // SECURITY & PERFORMANCE MIDDLEWARE
@@ -163,6 +160,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { role: 'user', content: message }
       ];
 
+      if (!OpenAIManager.isAvailable()) {
+        return res.status(503).json({ error: 'Voice assistant is temporarily unavailable. AI services are not configured.' });
+      }
+      
+      const openai = await OpenAIManager.getInstance();
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini', // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
         messages,
@@ -186,6 +188,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json(secureErrorResponse(error, req));
     }
   });
+
+  // Voice food parsing endpoint
+  app.post('/api/voice-food-parsing', verifyJWT, parseVoiceFoodInput);
 
   // Premium upgrade endpoint
   app.post('/api/upgrade-premium', verifyJWT, async (req: AuthenticatedRequest, res) => {

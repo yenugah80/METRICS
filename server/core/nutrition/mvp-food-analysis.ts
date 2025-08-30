@@ -4,10 +4,7 @@
  * "Instant meal analysis: safety alerts, nutrition scores, and environmental impact"
  */
 
-import OpenAI from "openai";
-
-// Initialize OpenAI with the API key
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import { OpenAIManager } from '../../integrations/openai/openai-manager';
 
 export interface FoodAnalysisResult {
   // Core Analysis
@@ -90,6 +87,11 @@ export class MVPFoodAnalysis {
    */
   async analyzeFoodImage(imageBase64: string): Promise<FoodAnalysisResult> {
     try {
+      if (!OpenAIManager.isAvailable()) {
+        throw new Error('AI analysis is not available. Please configure OpenAI API key.');
+      }
+
+      const openai = await OpenAIManager.getInstance();
       // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini", 

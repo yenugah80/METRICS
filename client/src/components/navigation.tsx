@@ -14,7 +14,7 @@ export default function Navigation() {
   const mobileNavLinks = [
     { href: "/dashboard", label: "Home", icon: Home, requiresAuth: true },
     { href: "/camera", label: "Scan", icon: Camera, requiresAuth: true },
-    { href: "/voice-assistant", label: "Voice", icon: Mic, requiresAuth: true },
+    { href: "/voice-logging", label: "Voice", icon: Mic, requiresAuth: true },
     { href: "/recipes", label: "Recipes", icon: ChefHat, requiresAuth: true },
     { href: "/profile", label: "Profile", icon: User, requiresAuth: true },
   ];

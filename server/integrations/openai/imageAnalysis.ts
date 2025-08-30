@@ -1,6 +1,4 @@
-import OpenAI from "openai";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import { OpenAIManager } from './openai-manager';
 
 export interface AnalyzedFood {
   name: string;
@@ -35,6 +33,11 @@ ${dietEntries}
       dietCompatibilitySection = '';
     }
 
+    if (!OpenAIManager.isAvailable()) {
+      throw new Error('AI analysis is not available. Please configure OpenAI API key.');
+    }
+
+    const openai = await OpenAIManager.getInstance();
     // Single API call for both food identification AND nutrition calculation
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -136,6 +139,7 @@ export async function estimateNutrition(foods: AnalyzedFood[]): Promise<any> {
   }
 
   try {
+    const openai = await OpenAIManager.getInstance();
     // Use GPT-4o mini for comprehensive nutrition analysis
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",

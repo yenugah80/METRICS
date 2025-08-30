@@ -3,10 +3,8 @@
  * Real-world recipe generation using authentic culinary data
  */
 
-import OpenAI from 'openai';
+import { OpenAIManager } from '../../integrations/openai/openai-manager';
 import { searchFoodInDatabase } from '../nutrition/comprehensive-food-database';
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export interface ChatbotMessage {
   role: 'user' | 'assistant' | 'system';

@@ -11,6 +11,7 @@ import Landing from "@/pages/landing";
 import AuthPage from "@/pages/auth-page";
 import SearchPage from "@/pages/search";
 import VoiceAssistantPage from "@/pages/voice-assistant";
+import VoiceLoggingPage from "@/pages/voice-logging";
 import FeaturesPage from "@/pages/features";
 import PricingPage from "@/pages/pricing";
 import NotFound from "@/pages/not-found";
@@ -67,6 +68,11 @@ function App() {
                   <SafeLazyWrapper message="Loading demo...">
                     <LazyMealCamera />
                   </SafeLazyWrapper>
+                </Route>
+                <Route path="/voice-logging">
+                  <ProtectedRoute>
+                    <VoiceLoggingPage />
+                  </ProtectedRoute>
                 </Route>
                 <Route path="/recipes">
                   <ProtectedRoute>

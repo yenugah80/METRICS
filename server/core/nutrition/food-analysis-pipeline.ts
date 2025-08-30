@@ -4,13 +4,10 @@
  */
 
 import crypto from 'crypto';
-import OpenAI from 'openai';
+import { OpenAIManager } from '../../integrations/openai/openai-manager';
 import { calculateNutritionScore, type NutritionInput } from './nutrition-scoring';
 import { checkDietCompatibility, type DietCompatibilityInput } from './diet-compatibility';
 import { searchFoodInDatabase, type FoodNutritionData } from './comprehensive-food-database';
-
-// Initialize OpenAI for OCR and voice processing
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export interface FoodAnalysisInput {
   type: 'image' | 'barcode' | 'text' | 'voice';
