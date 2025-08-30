@@ -143,15 +143,15 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Trust & Transparency Section */}
+        {/* Unique Scientific Advantages Section */}
         <section className="mb-24 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 py-16 rounded-3xl">
           <div className="mx-auto w-[min(1100px,92%)]">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-neutral-900 mb-4">
-                Why 50,000+ users trust MyFoodMatrics
+                What makes us different from every other nutrition app
               </h2>
               <p className="text-lg text-neutral-600">
-                Transparency and accuracy you can count on
+                Scientific rigor and data accuracy others can't match
               </p>
             </div>
             
@@ -161,8 +161,8 @@ export default function Landing() {
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-primary)', boxShadow: 'var(--glow-primary)' }}>
                     <Shield className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">Enterprise Security</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Bank-level encryption, GDPR compliant, your data stays private</p>
+                  <h3 className="font-bold text-neutral-900 mb-3">USDA FDC Primary Data</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Direct government database access, not crowdsourced estimates like competitors</p>
                 </CardContent>
               </Card>
               
@@ -171,8 +171,8 @@ export default function Landing() {
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-success)', boxShadow: 'var(--glow-success)' }}>
                     <Beaker className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">Lab-Tested Accuracy</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">99% precision validated against nutritionist analysis</p>
+                  <h3 className="font-bold text-neutral-900 mb-3">Peer-Reviewed LCA Data</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Scientific environmental impact from published research, not generic estimates</p>
                 </CardContent>
               </Card>
               
@@ -181,8 +181,8 @@ export default function Landing() {
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-warning)', boxShadow: 'var(--glow-warning)' }}>
                     <Zap className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">Lightning Fast</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Real-time analysis in under 3 seconds, no waiting</p>
+                  <h3 className="font-bold text-neutral-900 mb-3">FDA/EFSA Compliance</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Regulatory-grade allergen detection, not basic keyword matching</p>
                 </CardContent>
               </Card>
               
@@ -191,8 +191,8 @@ export default function Landing() {
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-secondary)', boxShadow: 'var(--glow-secondary)' }}>
                     <Globe className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">Global Recognition</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Understands cuisines from 195+ countries worldwide</p>
+                  <h3 className="font-bold text-neutral-900 mb-3">Medical Rule Engine</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Built-in health condition intelligence for PCOS, diabetes, not generic advice</p>
                 </CardContent>
               </Card>
             </div>
@@ -244,8 +244,8 @@ export default function Landing() {
                     Recognition
                   </h3>
                   <p className="text-lg leading-relaxed mb-8" style={{ color: 'hsl(210, 60%, 35%)' }}>
-                    <strong style={{ color: 'hsl(200, 80%, 30%)' }}>No more guessing.</strong> Our military-grade computer vision analyzes your meal with the precision of a professional nutritionist. 
-                    Instant identification of every ingredient, accurate portions, and comprehensive nutritional breakdown.
+                    <strong style={{ color: 'hsl(200, 80%, 30%)' }}>Unlike apps using generic databases,</strong> we cross-reference USDA FDC, Open Food Facts, and peer-reviewed research in real-time. 
+                    Professional-grade density tables and portion models ensure accuracy others simply can't achieve.
                   </p>
                 </div>
                 
