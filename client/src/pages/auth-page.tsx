@@ -98,176 +98,40 @@ export default function AuthPage() {
       <div className="grid lg:grid-cols-2 min-h-screen">
         {/* Left Panel - Creative Professional Design */}
         <div className="relative overflow-hidden flex items-center">
-          {/* Sophisticated Multi-Layer Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
-          <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/30 via-transparent to-indigo-900/20"></div>
+          {/* Trust-focused vertical gradient: Deep navy → royal blue → teal */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-800 to-teal-700"></div>
           
-          {/* Geometric Background Elements */}
-          <div className="absolute top-0 left-0 w-full h-full opacity-10">
-            <div className="absolute top-20 left-20 w-40 h-40 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 blur-3xl"></div>
-            <div className="absolute bottom-32 right-16 w-32 h-32 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 blur-2xl"></div>
-            <div className="absolute top-1/2 left-1/4 w-24 h-24 rounded-full bg-gradient-to-br from-teal-400 to-blue-400 blur-xl"></div>
+          {/* Subtle geometric elements - less intense */}
+          <div className="absolute top-0 left-0 w-full h-full opacity-5">
+            <div className="absolute top-32 right-24 w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-teal-400 blur-2xl"></div>
+            <div className="absolute bottom-40 left-20 w-20 h-20 rounded-full bg-gradient-to-br from-teal-400 to-blue-400 blur-xl"></div>
           </div>
-          
-          {/* Subtle Grid Pattern */}
-          <div 
-            className="absolute inset-0 opacity-5"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: '40px 40px'
-            }}
-          ></div>
 
           <div className="relative z-10 w-full max-w-lg mx-auto p-8 lg:p-12 text-white">
-            {/* Premium Brand Header */}
-            <div className="mb-12">
-              {/* Sophisticated Logo */}
-              <div className="flex items-center mb-8">
-                <div className="relative">
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{
-                    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(6, 182, 212, 0.8))',
-                    boxShadow: '0 8px 32px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)'
-                  }}>
-                    <span className="text-xl font-bold text-white drop-shadow-lg">M</span>
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-emerald-400 to-teal-400 shadow-lg"></div>
-                </div>
-                <div className="ml-4">
-                  <h1 className="text-2xl font-bold" style={{
-                    background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    letterSpacing: '-0.02em'
-                  }}>MyFoodMatrics</h1>
-                  <p className="text-sm text-blue-200 font-medium">Professional Nutrition Intelligence</p>
-                </div>
-              </div>
-
-              {/* Trust Indicators */}
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4 p-4 rounded-xl" style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
-                }}>
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{
-                    background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2))',
-                    border: '1px solid rgba(34, 197, 94, 0.3)'
-                  }}>
-                    <svg className="w-6 h-6 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white">USDA Certified Data</h3>
-                    <p className="text-sm text-blue-200">Government-grade nutrition database</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4 p-4 rounded-xl" style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
-                }}>
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{
-                    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2))',
-                    border: '1px solid rgba(59, 130, 246, 0.3)'
-                  }}>
-                    <svg className="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white">Medical-Grade Engine</h3>
-                    <p className="text-sm text-blue-200">Clinical condition intelligence</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4 p-4 rounded-xl" style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
-                }}>
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{
-                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(147, 51, 234, 0.2))',
-                    border: '1px solid rgba(168, 85, 247, 0.3)'
-                  }}>
-                    <svg className="w-6 h-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white">Real-Time Analysis</h3>
-                    <p className="text-sm text-blue-200">Instant nutrition intelligence</p>
-                  </div>
-                </div>
-              </div>
+            {/* Simplified Trust-focused Header */}
+            <div className="mb-16 text-center">
+              {/* Clean headline */}
+              <h1 className="text-4xl font-bold text-white mb-4" style={{
+                letterSpacing: '-0.02em'
+              }}>Trusted Nutrition Intelligence</h1>
+              <p className="text-blue-300 text-lg font-medium opacity-80">Evidence-based results</p>
             </div>
 
-            {/* Professional Comparison Card */}
-            <div className="rounded-2xl p-6" style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06))',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-            }}>
-              <h3 className="text-lg font-bold text-white mb-6 text-center">Why Choose Professional Intelligence?</h3>
-              
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-red-300 flex items-center">
-                      <span className="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
-                      Basic Apps
-                    </h4>
-                    <ul className="space-y-2 text-white/70 text-xs">
-                      <li className="flex items-start">
-                        <span className="text-red-400 mr-2">×</span>
-                        Crowdsourced estimates
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-red-400 mr-2">×</span>
-                        Single scores only
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-red-400 mr-2">×</span>
-                        Generic advice
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-red-400 mr-2">×</span>
-                        Hidden uncertainty
-                      </li>
-                    </ul>
+            {/* Simple trust elements - less intense */}
+            <div className="space-y-8">
+              <div className="text-center space-y-4">
+                <div className="flex items-center justify-center space-x-6 text-white/70">
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span className="text-sm">USDA Verified</span>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-emerald-300 flex items-center">
-                      <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
-                      MyFoodMatrics
-                    </h4>
-                    <ul className="space-y-2 text-white/90 text-xs">
-                      <li className="flex items-start">
-                        <span className="text-emerald-400 mr-2">✓</span>
-                        USDA primary data
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-emerald-400 mr-2">✓</span>
-                        Score + drivers + sources
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-emerald-400 mr-2">✓</span>
-                        Condition-aware guidance
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-emerald-400 mr-2">✓</span>
-                        Confidence transparency
-                      </li>
-                    </ul>
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                    <span className="text-sm">Medical Grade</span>
                   </div>
                 </div>
               </div>
