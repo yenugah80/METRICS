@@ -2,6 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
+import IntegrationsGrid from "@/components/landing/IntegrationsGrid";
+import BigDatabaseBanner from "@/components/landing/BigDatabaseBanner";
+import OnboardingCTA from "@/components/landing/OnboardingCTA";
+import FAQ from "@/components/landing/FAQ";
+import BlogTeasers from "@/components/landing/BlogTeasers";
+import FooterSlim from "@/components/landing/FooterSlim";
 
 export default function Landing() {
   const [, navigate] = useLocation();
@@ -298,14 +304,23 @@ export default function Landing() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-blue-200/30 bg-gradient-to-r from-purple-50/30 to-pink-50/30 mt-16 py-8 relative z-10">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-sm text-blue-500/60">
-            AI-powered nutrition intelligence platform
-          </p>
-        </div>
-      </footer>
+        {/* Integration Capabilities */}
+        <IntegrationsGrid />
+        
+        {/* Database Trust Banner */}
+        <BigDatabaseBanner />
+        
+        {/* Blog Expert Content */}
+        <BlogTeasers />
+        
+        {/* Frequently Asked Questions */}
+        <FAQ />
+        
+        {/* Onboarding Call to Action */}
+        <OnboardingCTA />
+        
+      {/* Professional Footer */}
+      <FooterSlim />
     </div>
   );
 }

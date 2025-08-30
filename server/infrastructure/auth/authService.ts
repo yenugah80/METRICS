@@ -78,14 +78,14 @@ export class AuthService {
         email: decoded.email,
         tokenFamily: decoded.tokenFamily,
         iat: decoded.iat,
-        exp: decoded.exp
+        exp: decoded.exp,
       };
     } catch (error) {
+      console.warn('JWT verification failed:', error.message);
       return null;
     }
   }
 
-  // Verify refresh token
   verifyRefreshToken(token: string): JWTPayload | null {
     try {
       const decoded = jwt.verify(token, JWT_REFRESH_SECRET) as any;
@@ -94,73 +94,49 @@ export class AuthService {
         email: decoded.email,
         tokenFamily: decoded.tokenFamily,
         iat: decoded.iat,
-        exp: decoded.exp
+        exp: decoded.exp,
       };
     } catch (error) {
+      console.warn('Refresh token verification failed:', error.message);
       return null;
     }
   }
 
-  // Hash password
+  // Password hashing
   async hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, 12);
+    const saltRounds = 12;
+    return await bcrypt.hash(password, saltRounds);
   }
 
-  // Compare password
   async comparePassword(password: string, hashedPassword: string): Promise<boolean> {
-    return bcrypt.compare(password, hashedPassword);
+    return await bcrypt.compare(password, hashedPassword);
   }
 
-  // Store refresh token in database
-  async storeRefreshToken(
-    userId: string, 
-    token: string, 
-    family: string, 
-    deviceInfo?: any
-  ): Promise<void> {
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days
-
-    await db.insert(refreshTokens).values({
-      userId,
-      token,
-      family,
-      deviceInfo,
-      expiresAt,
-    });
-  }
-
-  // Revoke refresh token family (security measure)
-  async revokeTokenFamily(family: string): Promise<void> {
-    await db.update(refreshTokens)
-      .set({ revokedAt: new Date() })
-      .where(eq(refreshTokens.family, family));
-  }
-
-  // Find valid refresh token
-  async findValidRefreshToken(token: string): Promise<any> {
-    const [tokenRecord] = await db
-      .select()
-      .from(refreshTokens)
-      .where(
-        and(
-          eq(refreshTokens.token, token),
-          isNull(refreshTokens.revokedAt)
-        )
-      );
-
-    if (!tokenRecord) return null;
+  // User authentication
+  async authenticateUser(email: string, password: string): Promise<any> {
+    const user = await this.findUserByEmail(email);
     
-    // Check if token is expired
-    if (new Date() > tokenRecord.expiresAt) {
-      await this.revokeTokenFamily(tokenRecord.family);
-      return null;
+    if (!user) {
+      throw new Error('User not found');
     }
 
-    return tokenRecord;
+    if (!user.password) {
+      throw new Error('Password authentication not available for this account');
+    }
+
+    const isValidPassword = await this.comparePassword(password, user.password);
+    
+    if (!isValidPassword) {
+      throw new Error('Invalid password');
+    }
+
+    // Update last login
+    await this.updateLastLogin(user.id);
+
+    return user;
   }
 
-  // Create or find user
+  // User creation
   async createUser(userData: {
     email: string;
     password?: string;
@@ -182,8 +158,6 @@ export class AuthService {
       ...userInfo,
       password: hashedPassword,
     }).returning();
-
-    // Note: Auth provider tracking removed for simplified production schema
 
     return user;
   }
@@ -211,45 +185,10 @@ export class AuthService {
       .where(eq(users.id, userId));
   }
 
-  // Clean up expired tokens
+  // Clean up expired tokens - simplified for production
   async cleanupExpiredTokens(): Promise<void> {
-    await db.delete(refreshTokens)
-      .where(eq(refreshTokens.expiresAt, new Date()));
-  }
-
-  // WebAuthn/Passkey support
-  async storePasskey(
-    userId: string,
-    credentialId: string,
-    publicKey: string,
-    deviceName?: string,
-    transports?: string[]
-  ): Promise<void> {
-    await db.insert(passkeys).values({
-      userId,
-      credentialId,
-      publicKey,
-      deviceName,
-      transports,
-    });
-  }
-
-  async findPasskey(credentialId: string): Promise<any> {
-    const [passkey] = await db
-      .select()
-      .from(passkeys)
-      .where(eq(passkeys.credentialId, credentialId));
-
-    return passkey || null;
-  }
-
-  async updatePasskeyCounter(credentialId: string, counter: number): Promise<void> {
-    await db.update(passkeys)
-      .set({ 
-        counter,
-        lastUsedAt: new Date()
-      })
-      .where(eq(passkeys.credentialId, credentialId));
+    // Token cleanup handled by JWT expiration
+    console.log('Token cleanup - using JWT expiration mechanism');
   }
 }
 
