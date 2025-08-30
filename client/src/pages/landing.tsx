@@ -33,14 +33,18 @@ export default function Landing() {
               <strong>Tired of unreliable nutrition apps?</strong> Our professional-grade AI delivers <strong>99% accurate analysis</strong>, <strong>instant allergen alerts</strong>, and <strong>real sustainability scores</strong> — because your health deserves precision, not guesswork.
             </p>
 
-            {/* Single Strong CTA */}
+            {/* Premium CTA with Glass Effect */}
             <div className="mt-8 flex justify-center mb-16">
               <button
-                className="rounded-full px-12 py-5 text-[17px] font-semibold text-white bg-gradient-to-r from-indigo-600 to-emerald-600 hover:from-indigo-700 hover:to-emerald-700 transform hover:scale-[1.02] transition-all duration-300 shadow-xl hover:shadow-2xl"
+                className="btn-premium group relative"
                 onClick={() => navigate('/camera')}
                 data-testid="button-main-cta"
               >
-                🍽️ Try It Now - Snap Your Meal
+                <span className="relative z-10 flex items-center gap-3">
+                  <span className="text-2xl group-hover:scale-110 transition-transform duration-300">📸</span>
+                  <span>Analyze Your Meal Instantly</span>
+                  <span className="text-lg group-hover:translate-x-1 transition-transform duration-300">→</span>
+                </span>
               </button>
             </div>
 
@@ -65,63 +69,69 @@ export default function Landing() {
           <div className="mx-auto w-[min(1100px,92%)]">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Problem 1: Inaccurate Food Data */}
-              <Card className="group hover:shadow-2xl transition-all duration-500 border-0 bg-gradient-to-br from-red-50 to-orange-50">
-                <CardContent className="p-8">
+              <Card className="glow-card-hero group">
+                <CardContent className="p-8 relative z-10">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <div className="text-white text-2xl">⚠️</div>
+                    <div className="w-16 h-16 bg-gradient-to-br from-red-500 via-orange-500 to-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500">
+                      <div className="text-white text-2xl drop-shadow-sm">⚠️</div>
                     </div>
-                    <h3 className="text-xl font-bold text-neutral-900 mb-3">Inaccurate Food Data</h3>
-                    <div className="text-sm text-neutral-600 mb-4 space-y-2">
-                      <p className="opacity-70">❌ Generic estimates</p>
-                      <p className="opacity-70">❌ Missing allergen info</p>
-                      <p className="opacity-70">❌ Outdated nutrition facts</p>
+                    <h3 className="text-xl font-bold text-neutral-900 mb-4">Unreliable Food Data</h3>
+                    <div className="text-sm text-neutral-600 mb-6 space-y-3">
+                      <p className="flex items-center justify-center gap-2 opacity-80"><span className="text-red-500">✗</span> Generic estimates</p>
+                      <p className="flex items-center justify-center gap-2 opacity-80"><span className="text-red-500">✗</span> Missing allergen info</p>
+                      <p className="flex items-center justify-center gap-2 opacity-80"><span className="text-red-500">✗</span> Outdated nutrition facts</p>
                     </div>
-                    <div className="border-t pt-4">
-                      <div className="text-emerald-600 font-bold mb-2">✅ Our Solution</div>
-                      <p className="text-sm text-neutral-700"><strong>99% accuracy</strong> using computer vision + 20M global food database</p>
+                    <div className="border-t border-neutral-200/50 pt-6">
+                      <div className="inline-flex items-center gap-2 text-emerald-600 font-bold mb-3 px-3 py-1 bg-emerald-50 rounded-full">
+                        <span className="text-emerald-500">✓</span> Our Solution
+                      </div>
+                      <p className="text-sm text-neutral-700 leading-relaxed"><strong className="text-emerald-600">99% accuracy</strong> using advanced computer vision + 20M global food database</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Problem 2: Time-Consuming Logging */}
-              <Card className="group hover:shadow-2xl transition-all duration-500 border-0 bg-gradient-to-br from-yellow-50 to-amber-50">
-                <CardContent className="p-8">
+              <Card className="glow-card-hero group">
+                <CardContent className="p-8 relative z-10">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <div className="text-white text-2xl">⏱️</div>
+                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 via-amber-500 to-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500">
+                      <div className="text-white text-2xl drop-shadow-sm">⏱️</div>
                     </div>
-                    <h3 className="text-xl font-bold text-neutral-900 mb-3">Tedious Manual Entry</h3>
-                    <div className="text-sm text-neutral-600 mb-4 space-y-2">
-                      <p className="opacity-70">❌ 5+ minutes per meal</p>
-                      <p className="opacity-70">❌ Complex portion guessing</p>
-                      <p className="opacity-70">❌ Database searching</p>
+                    <h3 className="text-xl font-bold text-neutral-900 mb-4">Tedious Manual Entry</h3>
+                    <div className="text-sm text-neutral-600 mb-6 space-y-3">
+                      <p className="flex items-center justify-center gap-2 opacity-80"><span className="text-red-500">✗</span> 5+ minutes per meal</p>
+                      <p className="flex items-center justify-center gap-2 opacity-80"><span className="text-red-500">✗</span> Complex portion guessing</p>
+                      <p className="flex items-center justify-center gap-2 opacity-80"><span className="text-red-500">✗</span> Database searching</p>
                     </div>
-                    <div className="border-t pt-4">
-                      <div className="text-emerald-600 font-bold mb-2">✅ Our Solution</div>
-                      <p className="text-sm text-neutral-700"><strong>3-second</strong> photo analysis + voice logging for hands-free tracking</p>
+                    <div className="border-t border-neutral-200/50 pt-6">
+                      <div className="inline-flex items-center gap-2 text-emerald-600 font-bold mb-3 px-3 py-1 bg-emerald-50 rounded-full">
+                        <span className="text-emerald-500">✓</span> Our Solution
+                      </div>
+                      <p className="text-sm text-neutral-700 leading-relaxed"><strong className="text-emerald-600">3-second</strong> photo analysis + voice logging for hands-free tracking</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Problem 3: No Health Context */}
-              <Card className="group hover:shadow-2xl transition-all duration-500 border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
-                <CardContent className="p-8">
+              <Card className="glow-card-hero group">
+                <CardContent className="p-8 relative z-10">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <div className="text-white text-2xl">🤷‍♀️</div>
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500">
+                      <div className="text-white text-2xl drop-shadow-sm">🤷‍♀️</div>
                     </div>
-                    <h3 className="text-xl font-bold text-neutral-900 mb-3">No Personal Context</h3>
-                    <div className="text-sm text-neutral-600 mb-4 space-y-2">
-                      <p className="opacity-70">❌ Generic recommendations</p>
-                      <p className="opacity-70">❌ Ignores health conditions</p>
-                      <p className="opacity-70">❌ No diet compatibility</p>
+                    <h3 className="text-xl font-bold text-neutral-900 mb-4">No Personal Context</h3>
+                    <div className="text-sm text-neutral-600 mb-6 space-y-3">
+                      <p className="flex items-center justify-center gap-2 opacity-80"><span className="text-red-500">✗</span> Generic recommendations</p>
+                      <p className="flex items-center justify-center gap-2 opacity-80"><span className="text-red-500">✗</span> Ignores health conditions</p>
+                      <p className="flex items-center justify-center gap-2 opacity-80"><span className="text-red-500">✗</span> No diet compatibility</p>
                     </div>
-                    <div className="border-t pt-4">
-                      <div className="text-emerald-600 font-bold mb-2">✅ Our Solution</div>
-                      <p className="text-sm text-neutral-700"><strong>Personalized insights</strong> for PCOS, fitness goals, allergies & lifestyle</p>
+                    <div className="border-t border-neutral-200/50 pt-6">
+                      <div className="inline-flex items-center gap-2 text-emerald-600 font-bold mb-3 px-3 py-1 bg-emerald-50 rounded-full">
+                        <span className="text-emerald-500">✓</span> Our Solution
+                      </div>
+                      <p className="text-sm text-neutral-700 leading-relaxed"><strong className="text-emerald-600">Personalized insights</strong> for PCOS, fitness goals, allergies & lifestyle</p>
                     </div>
                   </div>
                 </CardContent>
@@ -143,35 +153,43 @@ export default function Landing() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-0">
-                  <div className="text-3xl mb-3">🔒</div>
-                  <h3 className="font-bold text-neutral-900 mb-2">Enterprise Security</h3>
-                  <p className="text-sm text-neutral-600">Bank-level encryption, GDPR compliant, your data stays private</p>
+              <Card className="feature-card-primary text-center p-6 group">
+                <CardContent className="p-0 relative z-10">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                    <div className="text-white text-2xl drop-shadow-sm">🔒</div>
+                  </div>
+                  <h3 className="font-bold text-neutral-900 mb-3">Enterprise Security</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Bank-level encryption, GDPR compliant, your data stays private</p>
                 </CardContent>
               </Card>
               
-              <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-0">
-                  <div className="text-3xl mb-3">🧪</div>
-                  <h3 className="font-bold text-neutral-900 mb-2">Lab-Tested Accuracy</h3>
-                  <p className="text-sm text-neutral-600">99% precision validated against nutritionist analysis</p>
+              <Card className="feature-card-primary text-center p-6 group">
+                <CardContent className="p-0 relative z-10">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                    <div className="text-white text-2xl drop-shadow-sm">🧪</div>
+                  </div>
+                  <h3 className="font-bold text-neutral-900 mb-3">Lab-Tested Accuracy</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">99% precision validated against nutritionist analysis</p>
                 </CardContent>
               </Card>
               
-              <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-0">
-                  <div className="text-3xl mb-3">⚡</div>
-                  <h3 className="font-bold text-neutral-900 mb-2">Lightning Fast</h3>
-                  <p className="text-sm text-neutral-600">Real-time analysis in under 3 seconds, no waiting</p>
+              <Card className="feature-card-primary text-center p-6 group">
+                <CardContent className="p-0 relative z-10">
+                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                    <div className="text-white text-2xl drop-shadow-sm">⚡</div>
+                  </div>
+                  <h3 className="font-bold text-neutral-900 mb-3">Lightning Fast</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Real-time analysis in under 3 seconds, no waiting</p>
                 </CardContent>
               </Card>
               
-              <Card className="text-center p-6 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-0">
-                  <div className="text-3xl mb-3">🌍</div>
-                  <h3 className="font-bold text-neutral-900 mb-2">Global Recognition</h3>
-                  <p className="text-sm text-neutral-600">Understands cuisines from 195+ countries worldwide</p>
+              <Card className="feature-card-primary text-center p-6 group">
+                <CardContent className="p-0 relative z-10">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                    <div className="text-white text-2xl drop-shadow-sm">🌍</div>
+                  </div>
+                  <h3 className="font-bold text-neutral-900 mb-3">Global Recognition</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Understands cuisines from 195+ countries worldwide</p>
                 </CardContent>
               </Card>
             </div>
@@ -351,10 +369,11 @@ export default function Landing() {
 
         {/* Premium Subscription Card */}
         <div className="mt-24 mb-16">
-          <Card className="border-0 rounded-3xl shadow-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-indigo-700 max-w-5xl mx-auto">
-            <CardContent className="p-12 text-center">
-              <Badge className="mb-6 bg-white/20 text-white border-white/30 px-6 py-2 text-sm rounded-full font-bold">
-                UNLOCK PREMIUM FEATURES
+          <Card className="border-0 rounded-3xl shadow-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-700 max-w-5xl mx-auto relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-black/20"></div>
+            <CardContent className="p-12 text-center relative z-10">
+              <Badge className="mb-6 bg-white/25 text-white border-white/40 px-8 py-3 text-sm rounded-full font-bold backdrop-blur-sm shadow-lg">
+                ✨ UNLOCK PREMIUM FEATURES
               </Badge>
               
               <h2 className="text-4xl font-bold mb-4 text-white">
@@ -366,41 +385,45 @@ export default function Landing() {
                 detailed sustainability metrics, and personalized AI recommendations.
               </p>
 
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <div className="w-4 h-4 bg-white rounded-full"></div>
+              <div className="grid md:grid-cols-3 gap-8 mb-10">
+                <div className="text-center group">
+                  <div className="w-16 h-16 bg-white/25 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg backdrop-blur-sm">
+                    <div className="text-white text-2xl">♾️</div>
                   </div>
-                  <h3 className="font-semibold text-white mb-1">Unlimited Analysis</h3>
-                  <p className="text-white/80 text-sm">No daily limits on food recognition</p>
+                  <h3 className="font-bold text-white mb-2 text-lg">Unlimited Analysis</h3>
+                  <p className="text-white/85 text-sm leading-relaxed">No daily limits on food recognition</p>
                 </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <div className="w-4 h-4 bg-white rounded-full"></div>
+                <div className="text-center group">
+                  <div className="w-16 h-16 bg-white/25 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg backdrop-blur-sm">
+                    <div className="text-white text-2xl">🎤</div>
                   </div>
-                  <h3 className="font-semibold text-white mb-1">Voice Logging</h3>
-                  <p className="text-white/80 text-sm">Hands-free nutrition tracking</p>
+                  <h3 className="font-bold text-white mb-2 text-lg">Voice Logging</h3>
+                  <p className="text-white/85 text-sm leading-relaxed">Hands-free nutrition tracking</p>
                 </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <div className="w-4 h-4 bg-white rounded-full"></div>
+                <div className="text-center group">
+                  <div className="w-16 h-16 bg-white/25 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg backdrop-blur-sm">
+                    <div className="text-white text-2xl">📈</div>
                   </div>
-                  <h3 className="font-semibold text-white mb-1">Advanced Insights</h3>
-                  <p className="text-white/80 text-sm">Real-time health correlations</p>
+                  <h3 className="font-bold text-white mb-2 text-lg">Advanced Insights</h3>
+                  <p className="text-white/85 text-sm leading-relaxed">Real-time health correlations</p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Button 
-                  className="rounded-2xl py-4 px-8 text-lg font-bold bg-white hover:bg-white/90 text-purple-700"
+              <div className="flex flex-col gap-6 justify-center items-center">
+                <button 
+                  className="btn-outline group relative bg-white/20 border-white/30 text-white hover:bg-white/30 px-12 py-4 text-lg font-bold"
                   onClick={() => navigate('/auth')}
                   data-testid="button-start-premium"
                 >
-                  Start 7-Day Free Trial
-                </Button>
+                  <span className="relative z-10 flex items-center gap-3">
+                    <span className="text-xl group-hover:scale-110 transition-transform duration-300">✨</span>
+                    <span>Start 7-Day Free Trial</span>
+                    <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                  </span>
+                </button>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">$6.99<span className="text-base font-normal text-white/80">/month</span></div>
-                  <div className="text-white/70 text-sm">Cancel anytime • No commitment</div>
+                  <div className="text-white/90 text-sm font-medium">Cancel anytime • No commitment</div>
                 </div>
               </div>
 
