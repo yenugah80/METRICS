@@ -500,12 +500,12 @@ export default function AuthPage() {
                       </form>
                     </TabsContent>
 
-                    {/* Sign Up Tab - Same styling */}
-                    <TabsContent value="signup" className="space-y-8 mt-8">
+                    {/* Sign Up Tab */}
+                    <TabsContent value="signup" className="space-y-6 mt-8">
                       <div className="text-center">
-                        <CardTitle className="text-2xl font-bold" style={{ color: 'hsl(220, 80%, 25%)' }}>Create Your Account</CardTitle>
-                        <CardDescription className="text-base mt-3 font-medium" style={{ color: 'hsl(210, 50%, 45%)' }}>
-                          Begin your professional nutrition journey
+                        <CardTitle className="text-xl font-bold text-slate-800 mb-2">Create Your Account</CardTitle>
+                        <CardDescription className="text-slate-600 font-medium">
+                          Start your nutrition journey
                         </CardDescription>
                       </div>
 
