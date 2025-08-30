@@ -121,15 +121,9 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
 
     try {
       // Parse the voice input using AI
-      const response = await apiRequest('/api/voice-food-parsing', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          transcript: transcript.trim(),
-          isPremium: user?.isPremium || false
-        }),
+      const response = await apiRequest('POST', '/api/voice-food-parsing', {
+        transcript: transcript.trim(),
+        isPremium: user?.isPremium || false
       });
 
       if (!response.ok) {
@@ -162,16 +156,10 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
     setIsProcessing(true);
     try {
       // Create a new meal log with the parsed foods
-      const response = await apiRequest('/api/meals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          foods: parsedFoods,
-          source: 'voice',
-          notes: transcript.trim()
-        }),
+      const response = await apiRequest('POST', '/api/meals', {
+        foods: parsedFoods,
+        source: 'voice',
+        notes: transcript.trim()
       });
 
       if (!response.ok) {

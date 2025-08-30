@@ -234,6 +234,7 @@ export class RecipeChatbot {
       }
     }
 
+    const openai = await OpenAIManager.getInstance();
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -367,6 +368,7 @@ Return JSON with:
 }`;
 
     try {
+      const openai = await OpenAIManager.getInstance();
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -432,6 +434,7 @@ Would you like me to suggest some authentic recipes from this cuisine, or would 
   }
 
   private async provideCookingAdvice(topic: string, preferences: any): Promise<string> {
+    const openai = await OpenAIManager.getInstance();
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -460,6 +463,7 @@ Focus on authentic techniques and real culinary science.`
       return { name: ingredient, data };
     });
 
+    const openai = await OpenAIManager.getInstance();
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -482,6 +486,7 @@ Include selection tips, storage methods, preparation techniques, and flavor prof
   }
 
   private async generateGeneralResponse(message: string, request: RecipeRequest): Promise<string> {
+    const openai = await OpenAIManager.getInstance();
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
