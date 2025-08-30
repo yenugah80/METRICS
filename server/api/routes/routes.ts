@@ -2115,8 +2115,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PRODUCTION ERROR HANDLING - ENABLED
-  app.use(notFoundHandler);
+  // PRODUCTION ERROR HANDLING - ENABLED (API routes only)
+  app.use('/api', notFoundHandler);
+  app.use('/health', notFoundHandler);
+  app.use('/metrics', notFoundHandler);
   app.use(errorHandler);
 
   // Graceful shutdown handling
