@@ -58,6 +58,32 @@
   --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
   --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.12);
   
+  /* Premium Creative Color Palette */
+  --gradient-cosmic: linear-gradient(135deg, hsl(290, 70%, 75%) 0%, hsl(320, 80%, 80%) 30%, hsl(350, 75%, 85%) 70%, hsl(30, 85%, 88%) 100%);
+  --gradient-aurora: linear-gradient(135deg, hsl(240, 80%, 70%) 0%, hsl(260, 85%, 75%) 25%, hsl(280, 80%, 80%) 50%, hsl(300, 75%, 85%) 75%, hsl(320, 70%, 90%) 100%);
+  --gradient-ocean: linear-gradient(135deg, hsl(200, 85%, 65%) 0%, hsl(220, 80%, 70%) 30%, hsl(240, 75%, 75%) 60%, hsl(260, 70%, 80%) 100%);
+  --gradient-sunset: linear-gradient(135deg, hsl(10, 90%, 70%) 0%, hsl(30, 85%, 75%) 25%, hsl(50, 80%, 80%) 50%, hsl(70, 75%, 85%) 75%, hsl(90, 70%, 90%) 100%);
+  --gradient-forest: linear-gradient(135deg, hsl(140, 70%, 65%) 0%, hsl(160, 75%, 70%) 30%, hsl(180, 80%, 75%) 60%, hsl(200, 75%, 80%) 100%);
+  --gradient-neon: linear-gradient(135deg, hsl(300, 80%, 75%) 0%, hsl(280, 85%, 80%) 25%, hsl(260, 90%, 85%) 50%, hsl(240, 85%, 90%) 75%, hsl(220, 80%, 95%) 100%);
+  
+  /* Ultra-Premium Glow Effects */
+  --glow-cosmic: 0 0 30px hsla(290, 70%, 75%, 0.4), 0 0 60px hsla(320, 80%, 80%, 0.2);
+  --glow-aurora: 0 0 30px hsla(240, 80%, 70%, 0.4), 0 0 60px hsla(260, 85%, 75%, 0.2);
+  --glow-ocean: 0 0 30px hsla(200, 85%, 65%, 0.4), 0 0 60px hsla(220, 80%, 70%, 0.2);
+  --glow-sunset: 0 0 30px hsla(10, 90%, 70%, 0.4), 0 0 60px hsla(30, 85%, 75%, 0.2);
+  --glow-forest: 0 0 30px hsla(140, 70%, 65%, 0.4), 0 0 60px hsla(160, 75%, 70%, 0.2);
+  
+  /* Advanced Glassmorphism */
+  --glass-ultra: hsla(210, 40%, 98%, 0.9);
+  --glass-premium: hsla(220, 50%, 96%, 0.85);
+  --glass-cosmic: hsla(290, 60%, 96%, 0.8);
+  --glass-aurora: hsla(240, 70%, 97%, 0.85);
+  
+  /* Creative Shadow System */
+  --shadow-creative: 0 20px 60px hsla(220, 30%, 20%, 0.12), 0 8px 24px hsla(220, 30%, 30%, 0.08);
+  --shadow-premium: 0 32px 80px hsla(220, 40%, 15%, 0.15), 0 12px 32px hsla(220, 40%, 25%, 0.1);
+  --shadow-ultra: 0 40px 100px hsla(210, 50%, 10%, 0.18), 0 16px 40px hsla(210, 50%, 20%, 0.12);
+  
   --radius: var(--ios-radius);
   --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif;
   --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, system-ui, sans-serif;
@@ -143,16 +169,16 @@
 
   /* Premium Glass Button System */
   .btn-primary {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.95) 0%, rgba(79, 70, 229, 0.97) 100%);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: var(--gradient-aurora);
+    backdrop-filter: blur(25px);
+    border: 2px solid rgba(139, 92, 246, 0.3);
     color: white;
     font-weight: 600;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    box-shadow: var(--glow-aurora), inset 0 1px 0 rgba(255, 255, 255, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 15px;
-    padding: 14px 28px;
+    padding: 16px 32px;
     position: relative;
     overflow: hidden;
   }
@@ -184,19 +210,19 @@
   }
   
   .btn-premium {
-    background: linear-gradient(135deg, rgba(234, 179, 8, 0.95) 0%, rgba(245, 158, 11, 0.97) 50%, rgba(251, 191, 36, 0.95) 100%);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(234, 179, 8, 0.3);
+    background: var(--gradient-cosmic);
+    backdrop-filter: blur(30px);
+    border: 2px solid rgba(234, 179, 8, 0.4);
     color: white;
     font-weight: 700;
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(234, 179, 8, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    border-radius: 24px;
+    box-shadow: var(--glow-cosmic), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 16px;
-    padding: 16px 32px;
+    padding: 18px 36px;
     position: relative;
     overflow: hidden;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
   
   .btn-premium::before {
@@ -357,15 +383,11 @@
 
   /* Refined Feature Cards */
   .feature-card-primary {
-    background: linear-gradient(135deg, 
-      rgba(255, 255, 255, 0.9) 0%,
-      rgba(248, 250, 252, 0.85) 30%,
-      rgba(241, 245, 249, 0.8) 70%,
-      rgba(255, 255, 255, 0.9) 100%);
-    backdrop-filter: blur(25px);
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    border-radius: 28px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    background: var(--glass-ultra);
+    backdrop-filter: blur(30px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 32px;
+    box-shadow: var(--shadow-creative), inset 0 1px 0 rgba(255, 255, 255, 0.8);
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -384,9 +406,10 @@
   }
   
   .feature-card-primary:hover {
-    transform: translateY(-8px) scale(1.03);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-12px) scale(1.04);
+    box-shadow: var(--shadow-premium), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border-color: rgba(59, 130, 246, 0.5);
+    background: var(--glass-premium);
   }
   
   .feature-card-primary:hover::before {
