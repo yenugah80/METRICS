@@ -1,12 +1,19 @@
 import OpenAI from "openai";
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error("Missing required OpenAI API key: OPENAI_API_KEY");
-}
+// Lazy initialization - only create OpenAI client when needed
+let openai: OpenAI | null = null;
 
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
-});
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OpenAI API key is required for AI-powered food analysis. Please set OPENAI_API_KEY environment variable.");
+    }
+    openai = new OpenAI({ 
+      apiKey: process.env.OPENAI_API_KEY 
+    });
+  }
+  return openai;
+}
 
 export interface FoodAnalysisResult {
   foods: Array<{
@@ -81,7 +88,8 @@ export interface SustainabilityScore {
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 export async function analyzeFoodImage(base64Image: string): Promise<FoodAnalysisResult> {
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5",
       messages: [
         {
@@ -130,7 +138,8 @@ export async function analyzeFoodImage(base64Image: string): Promise<FoodAnalysi
 
 export async function generateRecipes(cuisine: string, dietType: string, preferences: string[], isPremium: boolean): Promise<any[]> {
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [
         {
@@ -178,7 +187,8 @@ export async function generateRecipes(cuisine: string, dietType: string, prefere
 
 export async function estimateNutritionFromName(foodName: string): Promise<any> {
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [
         {
@@ -221,7 +231,8 @@ export async function estimateNutritionFromName(foodName: string): Promise<any> 
 
 export async function parseVoiceFood(audioText: string): Promise<FoodAnalysisResult> {
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5",
       messages: [
         {
@@ -259,7 +270,8 @@ export async function parseVoiceFood(audioText: string): Promise<FoodAnalysisRes
 
 export async function estimateNutrition(foods: FoodAnalysisResult['foods']): Promise<NutritionEstimate> {
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5",
       messages: [
         {
@@ -299,7 +311,8 @@ export async function calculateNutritionScore(
   foods: FoodAnalysisResult['foods']
 ): Promise<NutritionScore> {
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5",
       messages: [
         {
@@ -344,7 +357,8 @@ export async function checkDietCompatibility(
   if (!dietPreferences.length) return {};
 
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5",
       messages: [
         {
@@ -393,7 +407,8 @@ export async function analyzeAllergens(
   }
 
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [
         {
@@ -484,7 +499,8 @@ export async function calculateSustainabilityScore(
 ): Promise<SustainabilityScore> {
   try {
     const currentMonth = new Date().toLocaleString('default', { month: 'long' });
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [
         {
@@ -581,7 +597,8 @@ export async function generateMealInsights(
   userProfile: any
 ): Promise<string[]> {
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: "gpt-5",
       messages: [
         {
