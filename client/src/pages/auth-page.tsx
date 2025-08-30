@@ -134,70 +134,103 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* Right Panel - Premium Auth Forms */}
-        <div className="flex items-center justify-center p-6 lg:p-12 bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-          <div className="w-full max-w-lg">
-            {/* Header */}
-            <div className="text-center mb-10">
-              <h1 className="text-4xl font-bold mb-4" style={{ 
-                background: 'linear-gradient(135deg, hsl(220, 100%, 30%) 0%, hsl(200, 90%, 40%) 50%, hsl(180, 80%, 45%) 100%)',
+        {/* Right Panel - Ultra Premium Design */}
+        <div className="relative flex items-center justify-center min-h-screen overflow-hidden">
+          {/* Sophisticated Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-slate-100"></div>
+          <div className="absolute inset-0 bg-gradient-to-tr from-blue-50/40 via-transparent to-indigo-50/30"></div>
+          
+          {/* Floating geometric elements */}
+          <div className="absolute top-20 right-20 w-32 h-32 rounded-full opacity-10" style={{
+            background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+            filter: 'blur(40px)'
+          }}></div>
+          <div className="absolute bottom-32 left-16 w-24 h-24 rounded-full opacity-10" style={{
+            background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+            filter: 'blur(30px)'
+          }}></div>
+
+          <div className="relative z-10 w-full max-w-md mx-auto p-8">
+            {/* Ultra Premium Header */}
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6" style={{
+                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1))',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <span className="text-2xl font-bold" style={{
+                  background: 'linear-gradient(135deg, #1e40af, #0891b2)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>M</span>
+              </div>
+              
+              <h1 className="text-3xl font-bold mb-3" style={{
+                background: 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
+                letterSpacing: '-0.025em'
               }}>
-                {activeTab === "signin" ? "Welcome Back" : "Join MyFoodMatrics"}
+                {activeTab === "signin" ? "Welcome Back" : "Create Account"}
               </h1>
-              <p className="text-lg" style={{ color: 'hsl(210, 40%, 50%)' }}>
-                {activeTab === "signin" ? "Access your nutrition intelligence dashboard" : "Begin your professional nutrition journey"}
+              <p className="text-slate-600 font-medium">
+                {activeTab === "signin" ? "Access your nutrition dashboard" : "Start your nutrition journey"}
               </p>
             </div>
 
-            {/* Premium Auth Card */}
+            {/* Ultra Premium Glass Card */}
             <div className="relative">
-              {/* Background blur effect */}
-              <div className="absolute inset-0 rounded-3xl" style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
-                backdropFilter: 'blur(20px)',
+              {/* Card Background with Advanced Glass Effect */}
+              <div className="absolute inset-0 rounded-2xl" style={{
+                background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%)',
+                backdropFilter: 'blur(24px) saturate(180%)',
                 border: '1px solid rgba(255, 255, 255, 0.8)',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(200, 220, 255, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.9)'
+                boxShadow: `
+                  0 32px 64px rgba(0, 0, 0, 0.08),
+                  0 16px 32px rgba(59, 130, 246, 0.12),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                  inset 0 -1px 0 rgba(255, 255, 255, 0.5)
+                `
               }}></div>
               
               <Card className="relative z-10 border-0 bg-transparent shadow-none">
                 <CardHeader className="space-y-8 p-8">
-                  {/* Premium Tab Selector */}
+                  {/* Ultra Premium Tab Selector */}
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <div className="p-1 rounded-2xl" style={{
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(240, 248, 255, 0.5) 100%)',
-                      border: '1px solid rgba(255, 255, 255, 0.6)',
-                      backdropFilter: 'blur(10px)'
+                    <div className="p-1.5 rounded-xl" style={{
+                      background: 'linear-gradient(135deg, rgba(241, 245, 249, 0.8) 0%, rgba(248, 250, 252, 0.9) 100%)',
+                      border: '1px solid rgba(226, 232, 240, 0.8)',
+                      backdropFilter: 'blur(8px)'
                     }}>
-                      <TabsList className="grid w-full grid-cols-2 h-14 bg-transparent border-0 gap-1">
+                      <TabsList className="grid w-full grid-cols-2 h-12 bg-transparent border-0 gap-1">
                         <TabsTrigger 
                           value="signin" 
-                          className="text-sm font-semibold rounded-xl data-[state=active]:shadow-lg transition-all duration-300"
+                          className="text-sm font-semibold rounded-lg transition-all duration-300 ease-out"
                           style={{
-                            color: activeTab === "signin" ? 'white' : 'hsl(210, 60%, 40%)',
+                            color: activeTab === "signin" ? '#ffffff' : '#64748b',
                             background: activeTab === "signin" 
-                              ? 'linear-gradient(135deg, hsl(220, 100%, 60%) 0%, hsl(200, 90%, 65%) 100%)' 
+                              ? 'linear-gradient(135deg, #1e40af 0%, #1d4ed8 50%, #2563eb 100%)' 
                               : 'transparent',
                             boxShadow: activeTab === "signin" 
-                              ? '0 4px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)' 
-                              : 'none'
+                              ? '0 8px 16px rgba(37, 99, 235, 0.24), 0 4px 8px rgba(37, 99, 235, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.2)' 
+                              : 'none',
+                            transform: activeTab === "signin" ? 'translateY(-1px)' : 'none'
                           }}
                         >
                           Sign In
                         </TabsTrigger>
                         <TabsTrigger 
                           value="signup" 
-                          className="text-sm font-semibold rounded-xl data-[state=active]:shadow-lg transition-all duration-300"
+                          className="text-sm font-semibold rounded-lg transition-all duration-300 ease-out"
                           style={{
-                            color: activeTab === "signup" ? 'white' : 'hsl(210, 60%, 40%)',
+                            color: activeTab === "signup" ? '#ffffff' : '#64748b',
                             background: activeTab === "signup" 
-                              ? 'linear-gradient(135deg, hsl(220, 100%, 60%) 0%, hsl(200, 90%, 65%) 100%)' 
+                              ? 'linear-gradient(135deg, #1e40af 0%, #1d4ed8 50%, #2563eb 100%)' 
                               : 'transparent',
                             boxShadow: activeTab === "signup" 
-                              ? '0 4px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)' 
-                              : 'none'
+                              ? '0 8px 16px rgba(37, 99, 235, 0.24), 0 4px 8px rgba(37, 99, 235, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.2)' 
+                              : 'none',
+                            transform: activeTab === "signup" ? 'translateY(-1px)' : 'none'
                           }}
                         >
                           Create Account
@@ -206,11 +239,11 @@ export default function AuthPage() {
                     </div>
 
                     {/* Sign In Tab */}
-                    <TabsContent value="signin" className="space-y-8 mt-8">
+                    <TabsContent value="signin" className="space-y-6 mt-8">
                       <div className="text-center">
-                        <CardTitle className="text-2xl font-bold" style={{ color: 'hsl(220, 80%, 25%)' }}>Welcome Back</CardTitle>
-                        <CardDescription className="text-base mt-3 font-medium" style={{ color: 'hsl(210, 50%, 45%)' }}>
-                          Access your nutrition intelligence dashboard
+                        <CardTitle className="text-xl font-bold text-slate-800 mb-2">Welcome Back</CardTitle>
+                        <CardDescription className="text-slate-600 font-medium">
+                          Access your nutrition dashboard
                         </CardDescription>
                       </div>
 
@@ -222,23 +255,23 @@ export default function AuthPage() {
                         </Alert>
                       )}
 
-                      <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-6">
-                        <div className="space-y-3">
-                          <Label htmlFor="signin-email" className="text-sm font-semibold" style={{ color: 'hsl(220, 60%, 30%)' }}>
+                      <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-5">
+                        <div className="space-y-2">
+                          <Label htmlFor="signin-email" className="text-sm font-semibold text-slate-700">
                             Email Address
                           </Label>
                           <Input
                             id="signin-email"
                             type="email"
-                            placeholder="your.email@example.com"
-                            className="h-14 text-base border-0 focus:ring-2 transition-all duration-300"
+                            placeholder="Enter your email"
+                            className="h-12 text-base border-0 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300"
                             style={{
-                              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%)',
-                              backdropFilter: 'blur(10px)',
-                              border: '1px solid rgba(255, 255, 255, 0.5)',
-                              borderRadius: '12px',
-                              boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.08)',
-                              color: 'hsl(220, 60%, 30%)'
+                              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
+                              backdropFilter: 'blur(8px)',
+                              border: '1px solid rgba(226, 232, 240, 0.8)',
+                              borderRadius: '10px',
+                              boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.04)',
+                              color: '#334155'
                             }}
                             {...signInForm.register("email")}
                             data-testid="input-signin-email"
@@ -248,8 +281,8 @@ export default function AuthPage() {
                           )}
                         </div>
 
-                        <div className="space-y-3">
-                          <Label htmlFor="signin-password" className="text-sm font-semibold" style={{ color: 'hsl(220, 60%, 30%)' }}>
+                        <div className="space-y-2">
+                          <Label htmlFor="signin-password" className="text-sm font-semibold text-slate-700">
                             Password
                           </Label>
                           <div className="relative">
@@ -257,14 +290,14 @@ export default function AuthPage() {
                               id="signin-password"
                               type={showPassword ? "text" : "password"}
                               placeholder="Enter your password"
-                              className="h-14 text-base border-0 focus:ring-2 pr-12 transition-all duration-300"
+                              className="h-12 text-base border-0 focus:ring-2 focus:ring-blue-500/30 pr-12 transition-all duration-300"
                               style={{
-                                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%)',
-                                backdropFilter: 'blur(10px)',
-                                border: '1px solid rgba(255, 255, 255, 0.5)',
-                                borderRadius: '12px',
-                                boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.08)',
-                                color: 'hsl(220, 60%, 30%)'
+                                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(226, 232, 240, 0.8)',
+                                borderRadius: '10px',
+                                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.04)',
+                                color: '#334155'
                               }}
                               {...signInForm.register("password")}
                               data-testid="input-signin-password"
@@ -272,7 +305,7 @@ export default function AuthPage() {
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors text-sm"
                             >
                               {showPassword ? "Hide" : "Show"}
                             </button>
@@ -284,14 +317,14 @@ export default function AuthPage() {
 
                         <Button 
                           type="submit" 
-                          className="w-full h-14 text-base font-bold border-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+                          className="w-full h-12 text-base font-semibold border-0 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
                           disabled={signInMutation.isPending}
                           data-testid="button-signin"
                           style={{
-                            background: 'linear-gradient(135deg, hsl(220, 100%, 60%) 0%, hsl(200, 90%, 65%) 50%, hsl(180, 80%, 70%) 100%)',
+                            background: 'linear-gradient(135deg, #1e40af 0%, #1d4ed8 50%, #2563eb 100%)',
                             color: 'white',
-                            borderRadius: '12px',
-                            boxShadow: '0 8px 32px hsla(200, 90%, 60%, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3)',
+                            borderRadius: '10px',
+                            boxShadow: '0 8px 24px rgba(37, 99, 235, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
                             textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
                           }}
                         >
