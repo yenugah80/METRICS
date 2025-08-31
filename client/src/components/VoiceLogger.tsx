@@ -129,7 +129,7 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
   const replayFoodSummary = () => {
     if (parsedFoods.length > 0) {
       const foodList = parsedFoods.map(food => `${food.quantity} ${food.unit} of ${food.name}`).join(', ');
-      speak(`I detected: ${foodList}. Do you want to save this meal?`);
+      speak(`I detected: ${foodList}`);
     }
   };
 
@@ -144,9 +144,6 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       // Start speech recognition
       recognitionRef.current.start();
       setIsRecording(true);
-      
-      // Voice feedback
-      speak("Recording started. Please describe your meal clearly.");
       
       toast({
         title: "Recording started",
@@ -190,10 +187,6 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       if (result.foods && result.foods.length > 0) {
         setParsedFoods(result.foods);
         
-        // Voice feedback with detected foods
-        const foodList = result.foods.map((food: ParsedFood) => `${food.quantity} ${food.unit} of ${food.name}`).join(', ');
-        speak(`I detected: ${foodList}. Do you want to save this meal?`);
-        
         toast({
           title: "Voice input processed!",
           description: `Identified ${result.foods.length} food item(s)`,
@@ -226,9 +219,6 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       }
 
       const mealData = await response.json();
-      
-      // Voice feedback
-      speak("Your meal has been saved to your dashboard.");
       
       toast({
         title: "Meal logged successfully!",
