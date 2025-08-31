@@ -22,7 +22,7 @@ import { analyzeFoodInput, type FoodAnalysisInput } from "../../core/nutrition/f
 import { generateRecipe, type RecipeGenerationInput } from "../../core/recipes/recipe-generation-v2";
 import { calculateNutritionScore, type NutritionInput } from "../../core/nutrition/nutrition-scoring";
 import { checkDietCompatibility, type DietCompatibilityInput } from "../../core/nutrition/diet-compatibility";
-import { freemiumMiddleware, requirePremium, type FreemiumRequest } from "../middleware/freemium";
+// import { freemiumMiddleware, type FreemiumRequest } from "./middleware/freemium";
 import { db } from "../../infrastructure/database/db";
 import { users } from "../../../shared/schema";
 import { eq } from "drizzle-orm";
@@ -862,8 +862,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced food analysis endpoint with deterministic nutrition scoring and diet compatibility (Premium Feature)
-  app.post("/api/analyze-food", verifyJWT, freemiumMiddleware, requirePremium, async (req: any, res) => {
+  // Enhanced food analysis endpoint with deterministic nutrition scoring and diet compatibility
+  app.post("/api/analyze-food", verifyJWT, async (req: any, res) => {
     try {
       const { type, data, ingredients } = req.body;
       const userId = req.user.id;
