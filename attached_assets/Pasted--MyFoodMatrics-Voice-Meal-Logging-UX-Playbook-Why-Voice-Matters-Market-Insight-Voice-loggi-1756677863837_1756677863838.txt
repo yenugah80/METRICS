@@ -1,0 +1,117 @@
+🎙 MyFoodMatrics — Voice Meal Logging UX Playbook
+🌍 Why Voice Matters (Market Insight)
+
+Voice logging increases adoption + retention (1.7× more food entries, 1.5× more active days vs text logging)【pmc†source】.
+
+Typing = tedious → users don’t log consistently.
+
+Voice = frictionless → feels natural, quick, and personal.
+
+Apps like Alma, FoodBuddy, SpeakMeal already lean on voice as their hero feature, not an add-on.
+
+👉 Brutal Truth: If you only “add” voice, users will ignore it. If you integrate voice seamlessly into Scan + Feedback + Analysis, they’ll adopt it.
+
+🧑‍💻 Core User Needs
+
+✅ Control — “Show me what the app heard, let me confirm or edit.”
+✅ Clarity — “Summarize what I ate in plain language, don’t drown me in numbers first.”
+✅ Speed — “Make logging → feedback happen instantly.”
+✅ Optional Speak-back — “Let me click 🔊 if I want to hear it, don’t force sound.”
+✅ Privacy Transparency — “Where does my voice go?”
+
+🎯 User Flow (Exact)
+
+Entry → User goes to Scan tab → chooses Voice.
+
+Recording State → “Start Recording” (purple) → “Stop Recording” (red).
+
+Transcript Display
+
+User’s speech appears in a text box.
+
+🔊 Speaker button on right (replays transcript).
+
+Text is blank until speech is processed (no placeholder).
+
+Confirmation Step
+
+Prompt: “Is this transcript correct?”
+
+✅ Analyze This Food | ✏️ Edit Text | 🔁 Re-record
+
+Food Analysis (after backend)
+
+Card Layout:
+
+🍽 Ingredients (detected foods, quantities, confidence)
+
+🍎 Macros (calories, protein, carbs, fat)
+
+💊 Micros (fiber, sodium, vitamins, minerals)
+
+💡 Suggestions (health swaps, eco tips)
+
+🔊 Speak Results button → reads summary aloud.
+
+Save Meal → Updates dashboard & streak/gamification.
+
+🎨 UI & UX Guidelines
+Buttons
+
+Primary CTA (Start/Analyze) → Purple #4F46E5
+
+Stop Recording → Red #DC2626
+
+Secondary (Retry/Edit) → Gray #6B7280
+
+Cards
+
+Transcript card → rounded, bordered, white background with shadow.
+
+Analysis card → segmented with icons 🍽 🍎 💊 💡.
+
+Navigation
+
+Remove separate Voice Tab.
+
+Voice is inside Scan.
+
+Clear top label: “Log Your Meal by Voice”.
+
+🗣 User Quotes (For Alignment)
+
+“Logging by typing is tedious—I just talk and the app does the math. That ease makes me log consistently.” (Reddit user)
+
+“I love seeing the transcript before saving—sometimes voice hears me wrong, and I want to fix it.”
+
+“Don’t force sound on me—let me click to hear it.”
+
+🚀 Key Differentiators (Make Users Love It)
+
+Trust Layer → Always show transcript first.
+
+Efficiency Layer → Fast backend analysis (<3s ideal).
+
+Choice Layer → Speak-back only on 🔊 click.
+
+Gamification Layer → XP/streaks for daily logs (especially voice logs).
+
+Transparency Layer → Small “🔒 We don’t store your raw voice” disclaimer.
+
+🛑 Brutal Checklist
+
+❌ Don’t keep a dead “Voice Tab” (confuses users).
+
+❌ Don’t pre-fill transcripts with fake text.
+
+❌ Don’t auto-play voice results.
+
+✅ Confirm transcript before analyze.
+
+✅ Allow edit/re-record.
+
+✅ Always show both macros + micros + suggestions.
+
+📌 Summary Statement for Stakeholders
+
+“Voice logging must live inside Scan, not as a separate tab. It should give users control (confirm transcript), clarity (clear summary), and choice (optional speak-back). Done right, it drives adoption and retention, turning meal logging from a chore into a natural conversation.”

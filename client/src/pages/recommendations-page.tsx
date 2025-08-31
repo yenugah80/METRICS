@@ -17,25 +17,48 @@ interface MealRecommendation {
   name: string;
   description: string;
   cuisine: string;
-  mealType: string;
   difficulty: 'easy' | 'medium' | 'hard';
   prepTime: number;
+  cookTime: number;
   servings: number;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber: number;
-  sodium: number;
-  personalizedScore: number;
-  nutritionScore: number;
-  matchReasons: string[];
-  ingredients: Array<{ name: string; amount: string; category: string }>;
+  
+  nutrition: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+    sodium: number;
+  };
+  
+  goalAlignment: {
+    calorieMatch: number;
+    proteinMatch: number;
+    carbMatch: number;
+    fatMatch: number;
+    overallScore: number;
+  };
+  
+  ingredients: Array<{
+    name: string;
+    quantity: number;
+    unit: string;
+  }>;
   instructions: string[];
-  tags: string[];
-  healthBenefits: string[];
-  variations: string[];
-  pairedWith: string[];
+  
+  dietCompatibility: {
+    vegetarian: boolean;
+    vegan: boolean;
+    glutenFree: boolean;
+    dairyFree: boolean;
+    lowSodium: boolean;
+    keto: boolean;
+  };
+  
+  sustainabilityScore: number;
+  sustainabilityNotes: string;
+  confidence: number;
+  reasoning: string;
 }
 
 export default function RecommendationsPage() {
@@ -50,33 +73,35 @@ export default function RecommendationsPage() {
 
   // Get personalized recommendations
   const { data: personalizedRecs, isLoading: loadingPersonalized, refetch: refetchPersonalized } = useQuery({
-    queryKey: ['/api/recommendations/personalized'],
+    queryKey: ['/api/meal-recommendations/generate'],
     queryFn: async () => {
-      const response = await apiRequest('POST', '/api/recommendations/personalized', {
+      const response = await apiRequest('POST', '/api/meal-recommendations/generate', {
         mealType: selectedMealType === 'all' ? undefined : selectedMealType,
-        maxCalories: maxCalories ? parseInt(maxCalories) : undefined,
-        excludeIngredients: excludeIngredients ? excludeIngredients.split(',').map(s => s.trim()) : [],
-        limit: 6
+        preferences: {
+          prepTime: maxCalories ? Math.min(parseInt(maxCalories) / 10, 60) : 30, // Convert calories to reasonable prep time
+          difficulty: 'easy',
+          cuisineType: undefined
+        }
       });
       return response.json();
     },
     enabled: false // We'll trigger manually
   });
 
-  // Get trending recommendations
+  // Get trending recommendations (using quick for now)
   const { data: trendingRecs, isLoading: loadingTrending } = useQuery({
-    queryKey: ['/api/recommendations/trending'],
+    queryKey: ['/api/meal-recommendations/quick', 'trending'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/recommendations/trending?limit=8');
+      const response = await apiRequest('GET', '/api/meal-recommendations/quick');
       return response.json();
     }
   });
 
   // Get quick recommendations
   const { data: quickRecs, isLoading: loadingQuick } = useQuery({
-    queryKey: ['/api/recommendations/quick'],
+    queryKey: ['/api/meal-recommendations/quick'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/recommendations/quick');
+      const response = await apiRequest('GET', '/api/meal-recommendations/quick');
       return response.json();
     }
   });
@@ -162,7 +187,6 @@ export default function RecommendationsPage() {
         
         <div className="flex flex-wrap gap-2 mt-2">
           <Badge variant="secondary" data-testid={`cuisine-${rec.id}`}>{rec.cuisine}</Badge>
-          <Badge variant="outline" data-testid={`meal-type-${rec.id}`}>{rec.mealType}</Badge>
           <Badge variant={rec.difficulty === 'easy' ? 'default' : rec.difficulty === 'medium' ? 'secondary' : 'destructive'}>
             {rec.difficulty}
           </Badge>
@@ -174,7 +198,7 @@ export default function RecommendationsPage() {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2" data-testid={`prep-time-${rec.id}`}>
             <Clock className="h-4 w-4 text-muted-foreground" />
-            <span>{rec.prepTime} min</span>
+            <span>{rec.prepTime + rec.cookTime} min</span>
           </div>
           <div className="flex items-center gap-2" data-testid={`servings-${rec.id}`}>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -185,19 +209,19 @@ export default function RecommendationsPage() {
         {/* Nutrition summary */}
         <div className="grid grid-cols-4 gap-2 text-xs">
           <div className="text-center">
-            <div className="font-semibold" data-testid={`calories-${rec.id}`}>{rec.calories}</div>
+            <div className="font-semibold" data-testid={`calories-${rec.id}`}>{Math.round(rec.nutrition.calories)}</div>
             <div className="text-muted-foreground">cal</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold" data-testid={`protein-${rec.id}`}>{rec.protein}g</div>
+            <div className="font-semibold" data-testid={`protein-${rec.id}`}>{Math.round(rec.nutrition.protein)}g</div>
             <div className="text-muted-foreground">protein</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold" data-testid={`carbs-${rec.id}`}>{rec.carbs}g</div>
+            <div className="font-semibold" data-testid={`carbs-${rec.id}`}>{Math.round(rec.nutrition.carbs)}g</div>
             <div className="text-muted-foreground">carbs</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold" data-testid={`fat-${rec.id}`}>{rec.fat}g</div>
+            <div className="font-semibold" data-testid={`fat-${rec.id}`}>{Math.round(rec.nutrition.fat)}g</div>
             <div className="text-muted-foreground">fat</div>
           </div>
         </div>
@@ -206,45 +230,32 @@ export default function RecommendationsPage() {
         <div className="flex justify-between items-center text-sm">
           <div className="flex items-center gap-2">
             <Star className="h-4 w-4 text-yellow-500" />
-            <span data-testid={`personalized-score-${rec.id}`}>Match: {rec.personalizedScore}/100</span>
+            <span data-testid={`personalized-score-${rec.id}`}>Match: {Math.round(rec.goalAlignment.overallScore)}/100</span>
           </div>
-          <div className="text-muted-foreground" data-testid={`nutrition-score-${rec.id}`}>
-            Health: {rec.nutritionScore}/100
+          <div className="text-muted-foreground" data-testid={`confidence-${rec.id}`}>
+            Confidence: {Math.round(rec.confidence)}/100
           </div>
         </div>
 
-        {/* Match reasons */}
-        {rec.matchReasons.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">Why this matches:</h4>
-            <div className="space-y-1">
-              {rec.matchReasons.slice(0, 2).map((reason, index) => (
-                <div key={index} className="text-xs text-muted-foreground" data-testid={`match-reason-${rec.id}-${index}`}>
-                  • {reason}
-                </div>
-              ))}
-            </div>
+        {/* Reasoning */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium">Why this matches:</h4>
+          <div className="text-xs text-muted-foreground" data-testid={`reasoning-${rec.id}`}>
+            {rec.reasoning}
           </div>
-        )}
+        </div>
 
-        {/* Tags */}
+        {/* Diet compatibility */}
         <div className="flex flex-wrap gap-1">
-          {rec.tags.slice(0, 4).map((tag, index) => (
-            <Badge key={index} variant="outline" className="text-xs" data-testid={`tag-${rec.id}-${index}`}>
-              {tag}
-            </Badge>
-          ))}
+          {Object.entries(rec.dietCompatibility)
+            .filter(([_, compatible]) => compatible)
+            .slice(0, 4)
+            .map(([diet, _]) => (
+              <Badge key={diet} variant="outline" className="text-xs" data-testid={`diet-${rec.id}-${diet}`}>
+                {diet.replace(/([A-Z])/g, ' $1').toLowerCase()}
+              </Badge>
+            ))}
         </div>
-
-        {/* Health benefits */}
-        {rec.healthBenefits.length > 0 && (
-          <div className="space-y-1">
-            <h4 className="text-sm font-medium text-green-700">Health Benefits:</h4>
-            <div className="text-xs text-green-600" data-testid={`health-benefits-${rec.id}`}>
-              {rec.healthBenefits.slice(0, 2).join(' • ')}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
@@ -370,21 +381,17 @@ export default function RecommendationsPage() {
                 <Loader2 className="h-8 w-8 animate-spin" data-testid="loading-personalized" />
                 <span className="ml-2">Generating personalized recommendations...</span>
               </div>
-            ) : personalizedRecs?.recommendations?.length > 0 ? (
+            ) : personalizedRecs?.recommendation ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {personalizedRecs.recommendations.map((rec: MealRecommendation) => 
-                  renderRecommendationCard(rec)
-                )}
+                {renderRecommendationCard(personalizedRecs.recommendation)}
               </div>
-            ) : dietaryRecsMutation.data?.recommendations?.length > 0 ? (
+            ) : dietaryRecsMutation.data?.recommendation ? (
               <div>
                 <h3 className="text-lg font-semibold mb-4" data-testid="dietary-results-title">
                   {selectedDiet} Recommendations
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {dietaryRecsMutation.data.recommendations.map((rec: MealRecommendation) => 
-                    renderRecommendationCard(rec)
-                  )}
+                  {renderRecommendationCard(dietaryRecsMutation.data.recommendation)}
                 </div>
               </div>
             ) : (
@@ -410,9 +417,7 @@ export default function RecommendationsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {trendingRecs?.recommendations?.map((rec: MealRecommendation) => 
-                renderRecommendationCard(rec)
-              )}
+              {trendingRecs?.recommendation && renderRecommendationCard(trendingRecs.recommendation)}
             </div>
           )}
         </TabsContent>
@@ -426,9 +431,7 @@ export default function RecommendationsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {quickRecs?.recommendations?.map((rec: MealRecommendation) => 
-                renderRecommendationCard(rec)
-              )}
+              {quickRecs?.recommendation && renderRecommendationCard(quickRecs.recommendation)}
             </div>
           )}
         </TabsContent>
@@ -456,25 +459,39 @@ export default function RecommendationsPage() {
                   name: meal.name,
                   description: `A favorite meal from your history`,
                   cuisine: 'favorite',
-                  mealType: meal.mealType,
                   difficulty: 'medium' as const,
                   prepTime: 30,
+                  cookTime: 0,
                   servings: 2,
-                  calories: 400,
-                  protein: 25,
-                  carbs: 35,
-                  fat: 15,
-                  fiber: 8,
-                  sodium: 300,
-                  personalizedScore: 95,
-                  nutritionScore: 80,
-                  matchReasons: ['One of your favorite meals'],
+                  nutrition: {
+                    calories: 400,
+                    protein: 25,
+                    carbs: 35,
+                    fat: 15,
+                    fiber: 8,
+                    sodium: 300,
+                  },
+                  goalAlignment: {
+                    calorieMatch: 95,
+                    proteinMatch: 90,
+                    carbMatch: 85,
+                    fatMatch: 80,
+                    overallScore: 95
+                  },
                   ingredients: [],
                   instructions: [],
-                  tags: ['favorite'],
-                  healthBenefits: [],
-                  variations: [],
-                  pairedWith: []
+                  dietCompatibility: {
+                    vegetarian: false,
+                    vegan: false,
+                    glutenFree: false,
+                    dairyFree: false,
+                    lowSodium: false,
+                    keto: false
+                  },
+                  sustainabilityScore: 7,
+                  sustainabilityNotes: 'Your favorite meal',
+                  confidence: 95,
+                  reasoning: 'One of your favorite meals'
                 }, false)
               )}
             </div>

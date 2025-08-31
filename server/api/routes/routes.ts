@@ -3,6 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import compression from "compression";
 import { chatbotRoutes } from './routes-chatbot';
+import { mealRecommendationRoutes } from './routes-meal-recommendations';
 // import { stripeRoutes } from './routes/stripe';
 import Stripe from "stripe";
 import cookieParser from "cookie-parser";
@@ -341,8 +342,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Comprehensive recipe system routes
   registerRecipeRoutes(app);
 
-  // Meal recommendation routes - temporarily disabled
-  // app.use('/api/recommendations', recommendationRoutes);
+  // AI-powered meal recommendation routes
+  app.use(mealRecommendationRoutes);
 
   // Object storage routes for meal images
   app.get("/objects/:objectPath(*)", verifyJWT, async (req: AuthenticatedRequest, res) => {
