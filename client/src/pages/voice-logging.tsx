@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Mic, Sparkles, Crown } from 'lucide-react';
 import VoiceLogger from '@/components/VoiceLogger';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useLocalAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function VoiceLoggingPage() {

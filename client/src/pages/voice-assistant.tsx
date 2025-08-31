@@ -11,7 +11,7 @@ interface TokenInfo {
 }
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useLocalAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sparkles, Heart, Brain, Lightbulb } from "lucide-react";
 
