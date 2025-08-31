@@ -2115,6 +2115,230 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===========================================
+  // GAMIFICATION & FITNESS DASHBOARD API ROUTES
+  // ===========================================
+
+  // Get fitness dashboard data with gamification
+  app.get('/api/dashboard/fitness', verifyJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Get today's nutrition stats
+      const today = new Date().toISOString().split('T')[0];
+      const todayNutrition = await storage.getDailyNutrition(userId, today);
+      const user = await storage.getUser(userId);
+      
+      // Get gamification status
+      const { GamificationEngine } = await import('../../core/gamification/gamification-engine');
+      const gamificationStatus = await GamificationEngine.getUserGamificationStatus(userId);
+      
+      // Get recent meals
+      const recentMeals = await storage.getRecentMeals(userId, 5);
+      
+      const fitnessData = {
+        todayStats: {
+          calories: todayNutrition?.totalCalories || 0,
+          caloriesGoal: user?.dailyCalorieGoal || 2000,
+          protein: todayNutrition?.totalProtein || 0,
+          proteinGoal: user?.dailyProteinGoal || 150,
+          carbs: todayNutrition?.totalCarbs || 0,
+          carbsGoal: user?.dailyCarbGoal || 250,
+          fat: todayNutrition?.totalFat || 0,
+          fatGoal: user?.dailyFatGoal || 65,
+          fiber: todayNutrition?.totalFiber || 0,
+          fiberGoal: 25,
+        },
+        gamification: gamificationStatus,
+        recentMeals: recentMeals.map(meal => ({
+          id: meal.id,
+          name: meal.name || 'Meal',
+          mealType: meal.mealType || 'snack',
+          nutritionScore: meal.nutritionScore || 75,
+          sustainabilityScore: meal.sustainabilityScore || 7.5,
+          loggedVia: meal.loggedVia || 'manual',
+          timestamp: meal.createdAt,
+        })),
+      };
+      
+      res.json(fitnessData);
+    } catch (error) {
+      console.error('Error fetching fitness dashboard data:', error);
+      res.status(500).json({ error: 'Failed to fetch fitness dashboard data' });
+    }
+  });
+
+  // Get user's gamification status
+  app.get('/api/gamification/status', verifyJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user.id;
+      const { GamificationEngine } = await import('../../core/gamification/gamification-engine');
+      const status = await GamificationEngine.getUserGamificationStatus(userId);
+      
+      res.json({
+        success: true,
+        status
+      });
+    } catch (error) {
+      console.error('Error fetching gamification status:', error);
+      res.status(500).json({
+        error: 'Failed to fetch gamification status'
+      });
+    }
+  });
+
+  // Award XP manually (for testing)
+  app.post('/api/gamification/award-xp', verifyJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user.id;
+      const { eventType, xpAmount, description, metadata } = req.body;
+      
+      if (!eventType || !xpAmount || !description) {
+        return res.status(400).json({
+          error: 'eventType, xpAmount, and description are required'
+        });
+      }
+
+      const { GamificationEngine } = await import('../../core/gamification/gamification-engine');
+      await GamificationEngine.awardXP({
+        userId,
+        eventType,
+        xpAmount,
+        description,
+        metadata
+      });
+
+      const updatedStatus = await GamificationEngine.getUserGamificationStatus(userId);
+      
+      res.json({
+        success: true,
+        message: 'XP awarded successfully',
+        status: updatedStatus
+      });
+    } catch (error) {
+      console.error('Error awarding XP:', error);
+      res.status(500).json({
+        error: 'Failed to award XP'
+      });
+    }
+  });
+
+  // Process pending events
+  app.post('/api/gamification/process-events', verifyJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user.id;
+      const { EventProcessor } = await import('../../core/events/event-processor');
+      const results = await EventProcessor.processPendingEvents(userId);
+      
+      res.json({
+        success: true,
+        eventsProcessed: results.length,
+        results
+      });
+    } catch (error) {
+      console.error('Error processing events:', error);
+      res.status(500).json({
+        error: 'Failed to process events'
+      });
+    }
+  });
+
+  // Get remaining macros for smart portions
+  app.get('/api/smart-portions/remaining-macros', verifyJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user.id;
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Get today's nutrition totals
+      const todayNutrition = await storage.getDailyNutrition(userId, today);
+      
+      // Get user's daily goals
+      const user = await storage.getUser(userId);
+      const goals = {
+        calories: user?.dailyCalorieGoal || 2000,
+        protein: user?.dailyProteinGoal || 150,
+        carbs: user?.dailyCarbGoal || 250,
+        fat: user?.dailyFatGoal || 65,
+        fiber: 25, // Default fiber goal
+      };
+      
+      // Calculate remaining macros
+      const consumed = {
+        calories: todayNutrition?.totalCalories || 0,
+        protein: todayNutrition?.totalProtein || 0,
+        carbs: todayNutrition?.totalCarbs || 0,
+        fat: todayNutrition?.totalFat || 0,
+        fiber: todayNutrition?.totalFiber || 0,
+      };
+      
+      const remaining = {
+        calories: Math.max(0, goals.calories - consumed.calories),
+        protein: Math.max(0, goals.protein - consumed.protein),
+        carbs: Math.max(0, goals.carbs - consumed.carbs),
+        fat: Math.max(0, goals.fat - consumed.fat),
+        fiber: Math.max(0, goals.fiber - consumed.fiber),
+      };
+      
+      res.json({
+        success: true,
+        goals,
+        consumed,
+        remaining,
+        percentageConsumed: {
+          calories: goals.calories > 0 ? Math.round((consumed.calories / goals.calories) * 100) : 0,
+          protein: goals.protein > 0 ? Math.round((consumed.protein / goals.protein) * 100) : 0,
+          carbs: goals.carbs > 0 ? Math.round((consumed.carbs / goals.carbs) * 100) : 0,
+          fat: goals.fat > 0 ? Math.round((consumed.fat / goals.fat) * 100) : 0,
+          fiber: 25 > 0 ? Math.round((consumed.fiber / 25) * 100) : 0,
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching remaining macros:', error);
+      res.status(500).json({
+        error: 'Failed to fetch remaining macros'
+      });
+    }
+  });
+
+  // Smart portion recommendation
+  app.post('/api/smart-portions/recommend', verifyJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user.id;
+      const { foodId, mealType } = req.body;
+      
+      if (!foodId || !mealType) {
+        return res.status(400).json({
+          error: 'foodId and mealType are required'
+        });
+      }
+
+      if (!['breakfast', 'lunch', 'dinner', 'snack'].includes(mealType)) {
+        return res.status(400).json({
+          error: 'mealType must be one of: breakfast, lunch, dinner, snack'
+        });
+      }
+
+      const { SmartPortions } = await import('../../core/nutrition/smart-portions');
+      const recommendation = await SmartPortions.getPortionRecommendation(userId, foodId, mealType);
+      
+      if (!recommendation) {
+        return res.status(404).json({
+          error: 'Food not found or unable to generate recommendation'
+        });
+      }
+
+      res.json({
+        success: true,
+        recommendation
+      });
+    } catch (error) {
+      console.error('Error generating portion recommendation:', error);
+      res.status(500).json({
+        error: 'Failed to generate portion recommendation'
+      });
+    }
+  });
+
   // PRODUCTION ERROR HANDLING - ENABLED (API routes only)
   app.use('/api', notFoundHandler);
   app.use('/health', notFoundHandler);

@@ -134,6 +134,11 @@ export interface IStorage {
   getUserUsageStats(userId: string): Promise<{recipesGenerated: number} | undefined>;
   incrementUserRecipeUsage(userId: string): Promise<void>;
   incrementRecipeUsage(userId: string): Promise<void>;
+  
+  // Daily nutrition tracking
+  getDailyNutrition(userId: string, date: string): Promise<any | undefined>;
+  getRecentMeals(userId: string, limit: number): Promise<any[]>;
+  createOrUpdateDailyNutrition(data: any): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1034,6 +1039,86 @@ export class DatabaseStorage implements IStorage {
   async incrementRecipeUsage(userId: string): Promise<void> {
     // This method is the same as incrementUserRecipeUsage
     await this.incrementUserRecipeUsage(userId);
+  }
+  
+  // Daily nutrition tracking methods
+  async getDailyNutrition(userId: string, date: string): Promise<any | undefined> {
+    try {
+      const [nutrition] = await db
+        .select()
+        .from(dailyNutrition)
+        .where(and(
+          eq(dailyNutrition.userId, userId),
+          eq(dailyNutrition.date, date)
+        ))
+        .limit(1);
+      
+      return nutrition;
+    } catch (error) {
+      console.error('Error fetching daily nutrition:', error);
+      return undefined;
+    }
+  }
+  
+  async getRecentMeals(userId: string, limit: number): Promise<any[]> {
+    try {
+      const recentMeals = await db
+        .select()
+        .from(meals)
+        .where(eq(meals.userId, userId))
+        .orderBy(desc(meals.createdAt))
+        .limit(limit);
+      
+      return recentMeals;
+    } catch (error) {
+      console.error('Error fetching recent meals:', error);
+      return [];
+    }
+  }
+  
+  async createOrUpdateDailyNutrition(data: any): Promise<void> {
+    try {
+      await db
+        .insert(dailyNutrition)
+        .values({
+          userId: data.userId,
+          date: data.date,
+          totalCalories: data.totalCalories || 0,
+          totalProtein: data.totalProtein || 0,
+          totalCarbs: data.totalCarbs || 0,
+          totalFat: data.totalFat || 0,
+          totalFiber: data.totalFiber || 0,
+          totalSodium: data.totalSodium || 0,
+          mealsLogged: data.mealsLogged || 0,
+          calorieGoalAchieved: data.calorieGoalAchieved || false,
+          proteinGoalAchieved: data.proteinGoalAchieved || false,
+          carbGoalAchieved: data.carbGoalAchieved || false,
+          fatGoalAchieved: data.fatGoalAchieved || false,
+          overallNutritionScore: data.overallNutritionScore || 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: [dailyNutrition.userId, dailyNutrition.date],
+          set: {
+            totalCalories: data.totalCalories || 0,
+            totalProtein: data.totalProtein || 0,
+            totalCarbs: data.totalCarbs || 0,
+            totalFat: data.totalFat || 0,
+            totalFiber: data.totalFiber || 0,
+            totalSodium: data.totalSodium || 0,
+            mealsLogged: data.mealsLogged || 0,
+            calorieGoalAchieved: data.calorieGoalAchieved || false,
+            proteinGoalAchieved: data.proteinGoalAchieved || false,
+            carbGoalAchieved: data.carbGoalAchieved || false,
+            fatGoalAchieved: data.fatGoalAchieved || false,
+            overallNutritionScore: data.overallNutritionScore || 0,
+            updatedAt: new Date(),
+          },
+        });
+    } catch (error) {
+      console.error('Error creating/updating daily nutrition:', error);
+    }
   }
 }
 
