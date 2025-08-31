@@ -1,0 +1,99 @@
+Summary Cards (Always-on / Compact)
+
+Purpose: Give users a snapshot in 3 seconds.
+
+Flexible because: They can hold high-level KPIs, then expand.
+
+Example in your app:
+
+“Meal Summary → 350 kcal | 18g protein | A Grade”
+
+Tap to expand into details (ingredients, micros, eco impact).
+
+Market proof: MyFitnessPal, Cronometer.
+
+🔑 2. Expandable/Accordion Cards
+
+Purpose: Keep things clean upfront but let data junkies go deeper.
+
+Flexible because: You can add infinite detail (micros, eco data, confidence scores) without overwhelming.
+
+Example:
+
+Closed → “Safety: ✅ Safe”
+
+Expanded → Recommendations + allergen details.
+
+Market proof: Cronometer, Yazio.
+
+🔑 3. Tabbed Cards
+
+Purpose: Group related but separate contexts (Health, Eco, Motivation).
+
+Flexible because: Tabs are scalable — you can add/remove without redesigning everything.
+
+Example in your flow: Instead of three colored columns → one card with tabs:
+
+Nutrition | Eco Impact | Safety | Motivation
+
+Market proof: Fitbit dashboard, Lifesum.
+
+🔑 4. Progress/Goal Cards (Rings + Bars)
+
+Purpose: Visually satisfying way to show progress.
+
+Flexible because: They work for calories, macros, hydration, streaks, XP, anything.
+
+Example:
+
+Macro ring (Protein/Carb/Fat).
+
+Eco impact ring (Carbon saved vs avg).
+
+Market proof: Apple Fitness, Duolingo XP.
+
+🔑 5. Gamification Cards
+
+Purpose: Motivate with achievements & streaks.
+
+Flexible because: You can swap metrics (XP, streak, badges) without changing card format.
+
+Example:
+
+“🔥 Streak: 7 Days” card → expands into “Next badge at 10 days.”
+
+Market proof: Duolingo, Yazio challenges.
+
+🔑 6. Action Cards (Sticky CTA style)
+
+Purpose: Guide user action (Save Meal, Edit Portions, Retry).
+
+Flexible because: You can pin them to bottom or float above → keeps user flow tight.
+
+Example:
+
+One Save Meal (+XP) card pinned → always visible.
+
+Market proof: Yazio “Save Meal,” Lifesum “Add Food.”
+
+❌ What’s Not Flexible (in your current design)
+
+Every insight in its own big colored block → rigid, overwhelming, doesn’t scale.
+
+Mixing categories in one card (e.g., Motivation + Carbon + Water in the same block) → confusing.
+
+Low-value raw data cards (like showing “0.9% confidence” upfront). → these belong hidden behind an expand.
+
+💡 Brutally Honest Take
+
+If you want flexibility + market readiness:
+
+Make Summary Cards the anchor.
+
+Use Expandable/Tabbed cards for detail.
+
+Keep Progress/Gamification cards visually distinct but secondary.
+
+One sticky action card at bottom for save/share/edit.
+
+That way you can add/remove features (eco, allergens, streaks, etc.) without redesigning the whole page.

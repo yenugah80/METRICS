@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Check, AlertCircle, Edit3, Trophy, Apple, Flame, Heart, Droplets, Leaf, Shield, Utensils, Zap, Save, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useLocalAuth';
 
 interface VoiceLoggerProps {
@@ -259,6 +259,11 @@ Nutrition Grade: ${nutritionScore?.grade || 'N/A'} (${nutritionScore?.score || 0
         title: "Meal logged successfully!",
         description: "Your voice-logged meal has been saved",
       });
+
+      // Invalidate dashboard queries to update today's progress
+      await queryClient.invalidateQueries({ queryKey: ["/api/stats/today"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/meals/today"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
 
       if (onFoodLogged) {
         onFoodLogged(mealData);

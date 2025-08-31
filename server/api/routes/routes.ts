@@ -1038,11 +1038,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const { name, mealType, imageUrl, rawText, source, foods, confidence } = req.body;
 
-      // Create meal
+      // Create meal with proper defaults
       const meal = await storage.createMeal({
         userId,
-        name,
-        mealType,
+        name: name || 'Voice Logged Meal',
+        mealType: mealType || 'snack', // Default to snack for voice logging
         imageUrl,
         rawText,
         source,
@@ -1685,8 +1685,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Transform the frontend data format to match the AI analysis format expected by saveMealFromAI
       const aiAnalysis = {
-        mealName: name,
-        mealType: mealType || 'lunch',
+        mealName: name || 'Voice Logged Meal',
+        mealType: mealType || 'snack', // Default to snack to match storage layer
         description: `Meal logged via photo analysis at ${new Date().toLocaleString()}`,
         imageUrl,
         nutrition: {
