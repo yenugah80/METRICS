@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mic, MicOff, Volume2, VolumeX, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Mic, MicOff, Volume2, VolumeX, Loader2, Check, AlertCircle, Edit3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useLocalAuth';
@@ -24,16 +25,15 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [isTranscriptConfirmed, setIsTranscriptConfirmed] = useState(false);
   const [parsedFoods, setParsedFoods] = useState<ParsedFood[]>([]);
-  const [nutritionResults, setNutritionResults] = useState<any>(null);
+  const [nutritionText, setNutritionText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechSynthSupported, setSpeechSynthSupported] = useState(true);
   
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<any>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -127,10 +127,9 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
     }
   };
 
-  const replayFoodSummary = () => {
-    if (parsedFoods.length > 0) {
-      const foodList = parsedFoods.map(food => `${food.quantity} ${food.unit} of ${food.name}`).join(', ');
-      speak(`I detected: ${foodList}`);
+  const replayNutritionText = () => {
+    if (nutritionText) {
+      speak(nutritionText);
     }
   };
 
@@ -141,6 +140,8 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       setError(null);
       setTranscript('');
       setParsedFoods([]);
+      setNutritionText('');
+      setIsTranscriptConfirmed(false);
       
       // Start speech recognition
       recognitionRef.current.start();
@@ -164,6 +165,17 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       recognitionRef.current.stop();
     }
     setIsRecording(false);
+  };
+
+  const confirmTranscript = () => {
+    setIsTranscriptConfirmed(true);
+    processVoiceInput();
+  };
+
+  const editTranscript = () => {
+    setIsTranscriptConfirmed(false);
+    setParsedFoods([]);
+    setNutritionText('');
   };
 
   const processVoiceInput = async () => {
@@ -197,20 +209,27 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       
       if (foods && foods.length > 0) {
         setParsedFoods(foods);
-        setNutritionResults({ totalNutrition, nutritionScore, foods });
         
-        // Auto-speak nutrition summary like ChatGPT voice mode
-        if (totalNutrition) {
-          const nutritionSummary = `Analysis complete. I found ${foods.length} food items. Total nutrition: ${Math.round(totalNutrition.calories || 0)} calories, ${Math.round(totalNutrition.protein || 0)} grams protein, ${Math.round(totalNutrition.carbs || 0)} grams carbs, ${Math.round(totalNutrition.fat || 0)} grams fat.`;
-          
-          setTimeout(() => {
-            speak(nutritionSummary);
-          }, 500);
-        }
+        // Create detailed nutrition text summary
+        const nutritionSummary = `Analysis complete! I found ${foods.length} food item${foods.length > 1 ? 's' : ''}:
+
+${foods.map((food: any) => `• ${food.name}: ${food.quantity} ${food.unit}`).join('\n')}
+
+Total Nutrition:
+• Calories: ${Math.round(totalNutrition?.calories || 0)}
+• Protein: ${Math.round(totalNutrition?.protein || 0)}g
+• Carbs: ${Math.round(totalNutrition?.carbs || 0)}g
+• Fat: ${Math.round(totalNutrition?.fat || 0)}g
+• Fiber: ${Math.round(totalNutrition?.fiber || 0)}g
+• Sodium: ${Math.round(totalNutrition?.sodium || 0)}mg
+
+Nutrition Grade: ${nutritionScore?.grade || 'N/A'} (${nutritionScore?.score || 0}/100)`;
+        
+        setNutritionText(nutritionSummary);
         
         toast({
-          title: "Voice input processed!",
-          description: `Identified ${foods.length} food item(s) with nutrition analysis`,
+          title: "Food analysis complete!",
+          description: `Found ${foods.length} food item(s) with full nutrition data`,
         });
       } else {
         const message = result.data?.message || 'No foods could be identified from your description. Please try speaking more clearly or describing specific foods.';
@@ -254,7 +273,8 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       // Reset state
       setTranscript('');
       setParsedFoods([]);
-      setNutritionResults(null);
+      setNutritionText('');
+      setIsTranscriptConfirmed(false);
       
       if (onClose) {
         onClose();
@@ -289,7 +309,7 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
   }
 
   return (
-    <Card className="w-full max-w-lg mx-auto" data-testid="voice-logger">
+    <Card className="w-full max-w-2xl mx-auto" data-testid="voice-logger">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Volume2 className="w-5 h-5" />
@@ -299,8 +319,8 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Voice Recording Controls */}
+      <CardContent className="space-y-6">
+        {/* Step 1: Voice Recording */}
         <div className="text-center space-y-4">
           <div className="flex justify-center gap-3">
             {!isRecording ? (
@@ -325,22 +345,6 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
                 Stop Recording
               </Button>
             )}
-            
-            {transcript && !isRecording && (
-              <Button
-                onClick={processVoiceInput}
-                disabled={isProcessing}
-                className="flex items-center gap-2"
-                data-testid="button-process-voice"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Check className="w-4 h-4" />
-                )}
-                Parse Foods
-              </Button>
-            )}
           </div>
 
           {isRecording && (
@@ -351,148 +355,105 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
           )}
         </div>
 
-        {/* Transcript Display */}
-        {transcript && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">What you said:</h4>
-              {speechSynthSupported && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={isSpeaking ? stopSpeaking : replayTranscript}
-                  className="h-8 w-8 p-0"
-                  data-testid="button-replay-transcript"
-                >
-                  {isSpeaking ? (
-                    <VolumeX className="w-4 h-4 text-red-500" />
-                  ) : (
-                    <Volume2 className="w-4 h-4 text-primary" />
-                  )}
-                </Button>
-              )}
+        {/* Step 2: Transcript with Speaker Button */}
+        {transcript && !isTranscriptConfirmed && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">What you said:</label>
+              <div className="flex gap-2">
+                <Textarea
+                  value={transcript}
+                  onChange={(e) => setTranscript(e.target.value)}
+                  className="flex-1"
+                  rows={3}
+                  placeholder="Your speech will appear here..."
+                  data-testid="transcript-textbox"
+                />
+                {speechSynthSupported && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={isSpeaking ? stopSpeaking : replayTranscript}
+                    className="shrink-0"
+                    data-testid="button-replay-transcript"
+                  >
+                    {isSpeaking ? (
+                      <VolumeX className="w-4 h-4 text-red-500" />
+                    ) : (
+                      <Volume2 className="w-4 h-4 text-primary" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
-            <div className="p-3 bg-muted rounded-lg text-sm" data-testid="transcript-display">
-              {transcript}
+
+            {/* Step 3: Confirmation Question */}
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-500">
+              <p className="text-sm font-medium mb-3">Is this transcript correct?</p>
+              <div className="flex gap-2">
+                <Button
+                  onClick={confirmTranscript}
+                  disabled={isProcessing}
+                  className="flex items-center gap-2"
+                  data-testid="button-confirm-transcript"
+                >
+                  {isProcessing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  Yes, Analyze This Food
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={editTranscript}
+                  className="flex items-center gap-2"
+                  data-testid="button-edit-transcript"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Text
+                </Button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Parsed Foods Display */}
-        {parsedFoods.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <h4 className="text-sm font-medium">Results detected</h4>
-              </div>
-              {speechSynthSupported && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={isSpeaking ? stopSpeaking : replayFoodSummary}
-                  className="h-8 w-8 p-0"
-                  data-testid="button-replay-results"
-                >
-                  {isSpeaking ? (
-                    <VolumeX className="w-4 h-4 text-red-500" />
-                  ) : (
-                    <Volume2 className="w-4 h-4 text-primary" />
-                  )}
-                </Button>
-              )}
-            </div>
-            <div className="space-y-3">
-              {/* Food Items */}
-              <div className="space-y-2">
-                {parsedFoods.map((food, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">
-                    <span className="font-medium">{food.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {food.quantity} {food.unit}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Nutrition Summary */}
-              {nutritionResults?.totalNutrition && (
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-900/20 dark:to-teal-900/20 rounded-lg border">
-                  <div className="flex items-center justify-between mb-3">
-                    <h5 className="font-semibold text-lg">Nutrition Analysis</h5>
-                    {nutritionResults.nutritionScore && (
-                      <div className="flex items-center gap-2">
-                        <div className={`px-2 py-1 rounded-full text-sm font-bold ${
-                          nutritionResults.nutritionScore.grade === 'A' ? 'bg-green-100 text-green-800' :
-                          nutritionResults.nutritionScore.grade === 'B' ? 'bg-blue-100 text-blue-800' :
-                          nutritionResults.nutritionScore.grade === 'C' ? 'bg-yellow-100 text-yellow-800' :
-                          nutritionResults.nutritionScore.grade === 'D' ? 'bg-orange-100 text-orange-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          Grade {nutritionResults.nutritionScore.grade}
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          Score: {nutritionResults.nutritionScore.score}/100
-                        </span>
-                      </div>
+        {/* Step 4: Nutrition Analysis Results */}
+        {nutritionText && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Nutrition Analysis:</label>
+              <div className="flex gap-2">
+                <Textarea
+                  value={nutritionText}
+                  readOnly
+                  className="flex-1 bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-900/20 dark:to-teal-900/20"
+                  rows={12}
+                  data-testid="nutrition-results-text"
+                />
+                {speechSynthSupported && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={isSpeaking ? stopSpeaking : replayNutritionText}
+                    className="shrink-0"
+                    data-testid="button-replay-nutrition"
+                  >
+                    {isSpeaking ? (
+                      <VolumeX className="w-4 h-4 text-red-500" />
+                    ) : (
+                      <Volume2 className="w-4 h-4 text-primary" />
                     )}
-                  </div>
-                  
-                  {/* Macronutrients */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                    <div className="text-center p-2 bg-white/50 dark:bg-black/20 rounded">
-                      <div className="text-lg font-bold text-orange-600">{Math.round(nutritionResults.totalNutrition.calories || 0)}</div>
-                      <div className="text-xs text-muted-foreground">Calories</div>
-                    </div>
-                    <div className="text-center p-2 bg-white/50 dark:bg-black/20 rounded">
-                      <div className="text-lg font-bold text-red-600">{Math.round(nutritionResults.totalNutrition.protein || 0)}g</div>
-                      <div className="text-xs text-muted-foreground">Protein</div>
-                    </div>
-                    <div className="text-center p-2 bg-white/50 dark:bg-black/20 rounded">
-                      <div className="text-lg font-bold text-blue-600">{Math.round(nutritionResults.totalNutrition.carbs || 0)}g</div>
-                      <div className="text-xs text-muted-foreground">Carbs</div>
-                    </div>
-                    <div className="text-center p-2 bg-white/50 dark:bg-black/20 rounded">
-                      <div className="text-lg font-bold text-purple-600">{Math.round(nutritionResults.totalNutrition.fat || 0)}g</div>
-                      <div className="text-xs text-muted-foreground">Fat</div>
-                    </div>
-                  </div>
-                  
-                  {/* Micronutrients */}
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="flex justify-between">
-                      <span>Fiber:</span>
-                      <span className="font-medium">{Math.round(nutritionResults.totalNutrition.fiber || 0)}g</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Iron:</span>
-                      <span className="font-medium">{Math.round((nutritionResults.totalNutrition.iron || 0) * 10) / 10}mg</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Sodium:</span>
-                      <span className="font-medium">{Math.round(nutritionResults.totalNutrition.sodium || 0)}mg</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Vitamin C:</span>
-                      <span className="font-medium">{Math.round((nutritionResults.totalNutrition.vitaminC || 0) * 10) / 10}mg</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Magnesium:</span>
-                      <span className="font-medium">{Math.round((nutritionResults.totalNutrition.magnesium || 0) * 10) / 10}mg</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Sugar:</span>
-                      <span className="font-medium">{Math.round((nutritionResults.totalNutrition.sugar || 0) * 10) / 10}g</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  </Button>
+                )}
+              </div>
             </div>
             
             <Button
               onClick={logMeal}
               disabled={isProcessing}
-              className="w-full mt-4"
+              className="w-full"
+              size="lg"
               data-testid="button-log-meal"
             >
               {isProcessing ? (
@@ -501,7 +462,7 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
                   Logging meal...
                 </>
               ) : (
-                'Log This Meal'
+                'Save This Meal to Dashboard'
               )}
             </Button>
           </div>
