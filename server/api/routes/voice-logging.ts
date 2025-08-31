@@ -6,6 +6,7 @@
 import { Request, Response } from 'express';
 import { verifyJWT, AuthenticatedRequest } from '../../infrastructure/auth/authService';
 import { OpenAIManager } from '../../integrations/openai/openai-manager';
+import { DeterministicNutritionService } from '../../core/nutrition/deterministicNutrition';
 
 export interface VoiceFoodParsingRequest {
   transcript: string;
@@ -18,20 +19,23 @@ export interface ParsedFoodResult {
     quantity: number;
     unit: string;
     confidence: number;
+    nutrition?: any;
   }>;
   mealType?: string;
   confidence: number;
+  totalNutrition?: any;
+  nutritionScore?: any;
 }
 
 /**
  * Parse natural language food description into structured food data
  */
 export async function parseVoiceFoodInput(
-  req: AuthenticatedRequest<VoiceFoodParsingRequest>,
+  req: AuthenticatedRequest,
   res: Response
 ): Promise<void> {
   try {
-    const { transcript, isPremium } = req.body;
+    const { transcript, isPremium } = req.body as VoiceFoodParsingRequest;
 
     if (!transcript || typeof transcript !== 'string') {
       res.status(400).json({
@@ -156,6 +160,20 @@ Examples:
           unit: food.unit || 'serving',
           confidence: Math.min(1, Math.max(0, Number(food.confidence) || 0.5))
         }));
+        
+      // Calculate nutrition for the parsed foods
+      const nutritionService = new DeterministicNutritionService();
+      const nutritionResult = await nutritionService.calculateNutrition(validatedFoods);
+      
+      // Add nutrition to each food item
+      const foodsWithNutrition = validatedFoods.map((food: any, index: number) => ({
+        ...food,
+        nutrition: nutritionResult.foods[index]?.total_nutrition || null
+      }));
+      
+      // Calculate nutrition score for the total meal
+      const foodNames = validatedFoods.map((f: any) => f.name);
+      const nutritionScore = nutritionService.calculateNutritionScore(nutritionResult.total_nutrition, foodNames);
 
       if (validatedFoods.length === 0) {
         res.status(200).json({
@@ -173,10 +191,12 @@ Examples:
       res.json({
         success: true,
         data: {
-          foods: validatedFoods,
+          foods: foodsWithNutrition,
           mealType: result.mealType || 'unknown',
           confidence: Math.min(1, Math.max(0, Number(result.confidence) || 0.5)),
-          transcript: transcript // Echo back for confirmation
+          transcript: transcript, // Echo back for confirmation
+          totalNutrition: nutritionResult.total_nutrition,
+          nutritionScore: nutritionScore
         }
       });
 

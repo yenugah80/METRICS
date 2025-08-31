@@ -25,6 +25,7 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [parsedFoods, setParsedFoods] = useState<ParsedFood[]>([]);
+  const [nutritionResults, setNutritionResults] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -191,13 +192,25 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       
       // Check for foods in the data object
       const foods = result.data?.foods || [];
+      const totalNutrition = result.data?.totalNutrition;
+      const nutritionScore = result.data?.nutritionScore;
       
       if (foods && foods.length > 0) {
         setParsedFoods(foods);
+        setNutritionResults({ totalNutrition, nutritionScore, foods });
+        
+        // Auto-speak nutrition summary like ChatGPT voice mode
+        if (totalNutrition) {
+          const nutritionSummary = `Analysis complete. I found ${foods.length} food items. Total nutrition: ${Math.round(totalNutrition.calories || 0)} calories, ${Math.round(totalNutrition.protein || 0)} grams protein, ${Math.round(totalNutrition.carbs || 0)} grams carbs, ${Math.round(totalNutrition.fat || 0)} grams fat.`;
+          
+          setTimeout(() => {
+            speak(nutritionSummary);
+          }, 500);
+        }
         
         toast({
           title: "Voice input processed!",
-          description: `Identified ${foods.length} food item(s)`,
+          description: `Identified ${foods.length} food item(s) with nutrition analysis`,
         });
       } else {
         const message = result.data?.message || 'No foods could be identified from your description. Please try speaking more clearly or describing specific foods.';
@@ -241,6 +254,7 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       // Reset state
       setTranscript('');
       setParsedFoods([]);
+      setNutritionResults(null);
       
       if (onClose) {
         onClose();
@@ -388,15 +402,91 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
                 </Button>
               )}
             </div>
-            <div className="space-y-2">
-              {parsedFoods.map((food, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">
-                  <span className="font-medium">{food.name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {food.quantity} {food.unit}
-                  </span>
+            <div className="space-y-3">
+              {/* Food Items */}
+              <div className="space-y-2">
+                {parsedFoods.map((food, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">
+                    <span className="font-medium">{food.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {food.quantity} {food.unit}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Nutrition Summary */}
+              {nutritionResults?.totalNutrition && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-900/20 dark:to-teal-900/20 rounded-lg border">
+                  <div className="flex items-center justify-between mb-3">
+                    <h5 className="font-semibold text-lg">Nutrition Analysis</h5>
+                    {nutritionResults.nutritionScore && (
+                      <div className="flex items-center gap-2">
+                        <div className={`px-2 py-1 rounded-full text-sm font-bold ${
+                          nutritionResults.nutritionScore.grade === 'A' ? 'bg-green-100 text-green-800' :
+                          nutritionResults.nutritionScore.grade === 'B' ? 'bg-blue-100 text-blue-800' :
+                          nutritionResults.nutritionScore.grade === 'C' ? 'bg-yellow-100 text-yellow-800' :
+                          nutritionResults.nutritionScore.grade === 'D' ? 'bg-orange-100 text-orange-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          Grade {nutritionResults.nutritionScore.grade}
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          Score: {nutritionResults.nutritionScore.score}/100
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Macronutrients */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                    <div className="text-center p-2 bg-white/50 dark:bg-black/20 rounded">
+                      <div className="text-lg font-bold text-orange-600">{Math.round(nutritionResults.totalNutrition.calories || 0)}</div>
+                      <div className="text-xs text-muted-foreground">Calories</div>
+                    </div>
+                    <div className="text-center p-2 bg-white/50 dark:bg-black/20 rounded">
+                      <div className="text-lg font-bold text-red-600">{Math.round(nutritionResults.totalNutrition.protein || 0)}g</div>
+                      <div className="text-xs text-muted-foreground">Protein</div>
+                    </div>
+                    <div className="text-center p-2 bg-white/50 dark:bg-black/20 rounded">
+                      <div className="text-lg font-bold text-blue-600">{Math.round(nutritionResults.totalNutrition.carbs || 0)}g</div>
+                      <div className="text-xs text-muted-foreground">Carbs</div>
+                    </div>
+                    <div className="text-center p-2 bg-white/50 dark:bg-black/20 rounded">
+                      <div className="text-lg font-bold text-purple-600">{Math.round(nutritionResults.totalNutrition.fat || 0)}g</div>
+                      <div className="text-xs text-muted-foreground">Fat</div>
+                    </div>
+                  </div>
+                  
+                  {/* Micronutrients */}
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="flex justify-between">
+                      <span>Fiber:</span>
+                      <span className="font-medium">{Math.round(nutritionResults.totalNutrition.fiber || 0)}g</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Iron:</span>
+                      <span className="font-medium">{Math.round((nutritionResults.totalNutrition.iron || 0) * 10) / 10}mg</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sodium:</span>
+                      <span className="font-medium">{Math.round(nutritionResults.totalNutrition.sodium || 0)}mg</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Vitamin C:</span>
+                      <span className="font-medium">{Math.round((nutritionResults.totalNutrition.vitaminC || 0) * 10) / 10}mg</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Magnesium:</span>
+                      <span className="font-medium">{Math.round((nutritionResults.totalNutrition.magnesium || 0) * 10) / 10}mg</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sugar:</span>
+                      <span className="font-medium">{Math.round((nutritionResults.totalNutrition.sugar || 0) * 10) / 10}g</span>
+                    </div>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
             
             <Button
