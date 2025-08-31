@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mic, MicOff, Volume2, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, Loader2, Check, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useLocalAuth';
@@ -27,10 +27,13 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
   const [parsedFoods, setParsedFoods] = useState<ParsedFood[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speechSynthSupported, setSpeechSynthSupported] = useState(true);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<any>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -40,6 +43,13 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       setIsSupported(false);
       setError('Voice recognition is not supported in this browser. Please use Chrome, Safari, or Edge.');
       return;
+    }
+
+    // Check for text-to-speech support
+    if (!('speechSynthesis' in window)) {
+      setSpeechSynthSupported(false);
+    } else {
+      synthRef.current = window.speechSynthesis;
     }
 
     // Initialize speech recognition
@@ -78,8 +88,50 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
+      if (synthRef.current) {
+        synthRef.current.cancel();
+      }
     };
   }, []);
+
+  // Text-to-Speech Functions
+  const speak = (text: string) => {
+    if (!speechSynthSupported || !synthRef.current) return;
+    
+    // Cancel any ongoing speech
+    synthRef.current.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 0.8;
+    
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    synthRef.current.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  const replayTranscript = () => {
+    if (transcript) {
+      speak(`You said: ${transcript}`);
+    }
+  };
+
+  const replayFoodSummary = () => {
+    if (parsedFoods.length > 0) {
+      const foodList = parsedFoods.map(food => `${food.quantity} ${food.unit} of ${food.name}`).join(', ');
+      speak(`I detected: ${foodList}. Do you want to save this meal?`);
+    }
+  };
 
   const startRecording = async () => {
     if (!isSupported) return;
@@ -92,6 +144,9 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       // Start speech recognition
       recognitionRef.current.start();
       setIsRecording(true);
+      
+      // Voice feedback
+      speak("Recording started. Please describe your meal clearly.");
       
       toast({
         title: "Recording started",
@@ -135,6 +190,10 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       if (result.foods && result.foods.length > 0) {
         setParsedFoods(result.foods);
         
+        // Voice feedback with detected foods
+        const foodList = result.foods.map((food: ParsedFood) => `${food.quantity} ${food.unit} of ${food.name}`).join(', ');
+        speak(`I detected: ${foodList}. Do you want to save this meal?`);
+        
         toast({
           title: "Voice input processed!",
           description: `Identified ${result.foods.length} food item(s)`,
@@ -167,6 +226,9 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       }
 
       const mealData = await response.json();
+      
+      // Voice feedback
+      speak("Your meal has been saved to your dashboard.");
       
       toast({
         title: "Meal logged successfully!",
@@ -279,7 +341,24 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
         {/* Transcript Display */}
         {transcript && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">What you said:</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium">What you said:</h4>
+              {speechSynthSupported && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={isSpeaking ? stopSpeaking : replayTranscript}
+                  className="h-8 w-8 p-0"
+                  data-testid="button-replay-transcript"
+                >
+                  {isSpeaking ? (
+                    <VolumeX className="w-4 h-4 text-red-500" />
+                  ) : (
+                    <Volume2 className="w-4 h-4 text-primary" />
+                  )}
+                </Button>
+              )}
+            </div>
             <div className="p-3 bg-muted rounded-lg text-sm" data-testid="transcript-display">
               {transcript}
             </div>
@@ -289,7 +368,27 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
         {/* Parsed Foods Display */}
         {parsedFoods.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Identified Foods:</h4>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <h4 className="text-sm font-medium">Results detected</h4>
+              </div>
+              {speechSynthSupported && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={isSpeaking ? stopSpeaking : replayFoodSummary}
+                  className="h-8 w-8 p-0"
+                  data-testid="button-replay-results"
+                >
+                  {isSpeaking ? (
+                    <VolumeX className="w-4 h-4 text-red-500" />
+                  ) : (
+                    <Volume2 className="w-4 h-4 text-primary" />
+                  )}
+                </Button>
+              )}
+            </div>
             <div className="space-y-2">
               {parsedFoods.map((food, index) => (
                 <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">

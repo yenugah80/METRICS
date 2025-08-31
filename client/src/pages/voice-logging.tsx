@@ -77,7 +77,7 @@ export default function VoiceLoggingPage() {
           </div>
           <h2 className="text-3xl font-bold mb-4">Voice-Powered Meal Logging</h2>
           <p className="text-lg text-muted-foreground max-w-lg mx-auto">
-            Simply speak your meal description and our AI will automatically identify foods and quantities for instant logging.
+            Speak your meal description and get instant voice feedback. Our AI identifies foods and talks back to you like a personal nutrition assistant.
           </p>
         </div>
 
@@ -92,6 +92,7 @@ export default function VoiceLoggingPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold mb-2">Unlock Premium Voice Features</h3>
                   <ul className="text-sm text-muted-foreground space-y-1 mb-4">
+                    <li>• Interactive voice responses (speak-back)</li>
                     <li>• Advanced natural language processing</li>
                     <li>• Brand name and variety recognition</li>
                     <li>• Higher accuracy food parsing</li>
@@ -115,7 +116,7 @@ export default function VoiceLoggingPage() {
         {/* How It Works */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>How Voice Logging Works</CardTitle>
+            <CardTitle>How Interactive Voice Logging Works</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
