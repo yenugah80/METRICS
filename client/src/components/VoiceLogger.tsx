@@ -184,15 +184,21 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
 
       const result = await response.json();
       
-      if (result.foods && result.foods.length > 0) {
-        setParsedFoods(result.foods);
+      console.log('Voice parsing response:', result);
+      
+      // Check for foods in the data object
+      const foods = result.data?.foods || [];
+      
+      if (foods && foods.length > 0) {
+        setParsedFoods(foods);
         
         toast({
           title: "Voice input processed!",
-          description: `Identified ${result.foods.length} food item(s)`,
+          description: `Identified ${foods.length} food item(s)`,
         });
       } else {
-        setError('No foods could be identified from your description. Please try speaking more clearly or describing specific foods.');
+        const message = result.data?.message || 'No foods could be identified from your description. Please try speaking more clearly or describing specific foods.';
+        setError(message);
       }
     } catch (error: any) {
       console.error('Error processing voice input:', error);
