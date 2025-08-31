@@ -144,6 +144,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Enhanced authentication routes with multi-provider support
   app.use('/api/auth', authRoutes);
+  
+  // Legacy logout route for backward compatibility (GET request)
+  app.get('/api/logout', (req, res) => {
+    req.logout((err: any) => {
+      if (err) {
+        console.error('Logout error:', err);
+        return res.status(500).json({ message: 'Logout failed' });
+      }
+      res.redirect('/');
+    });
+  });
 
   // Stripe subscription routes
   // app.use('/api/stripe', stripeRoutes);
