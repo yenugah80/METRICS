@@ -1041,6 +1041,22 @@ export class DatabaseStorage implements IStorage {
     await this.incrementUserRecipeUsage(userId);
   }
   
+  // User profile update method
+  async updateUserProfile(userId: string, updates: any): Promise<void> {
+    try {
+      await db
+        .update(users)
+        .set({
+          ...updates,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
+    }
+  }
+  
   // Daily nutrition tracking methods
   async getDailyNutrition(userId: string, date: string): Promise<any | undefined> {
     try {

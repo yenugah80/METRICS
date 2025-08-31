@@ -46,7 +46,7 @@ if (process.env.NODE_ENV === 'development' &&
     (JWT_ACCESS_SECRET.includes('dev-') || JWT_REFRESH_SECRET.includes('dev-'))) {
   console.warn('⚠️  WARNING: Using default JWT secrets in development. Set JWT_ACCESS_SECRET and JWT_REFRESH_SECRET for production.');
 }
-const ACCESS_TOKEN_EXPIRES = "15m";
+const ACCESS_TOKEN_EXPIRES = "24h"; // Extended for development
 const REFRESH_TOKEN_EXPIRES = "30d";
 
 export class AuthService {
@@ -81,7 +81,7 @@ export class AuthService {
         exp: decoded.exp,
       };
     } catch (error) {
-      console.warn('JWT verification failed:', error.message);
+      console.warn('JWT verification failed:', error?.message || 'Unknown error');
       return null;
     }
   }

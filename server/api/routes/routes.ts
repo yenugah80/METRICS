@@ -2116,6 +2116,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===========================================
+  // USER PROFILE API ROUTES - Essential for Profile Page
+  // ===========================================
+  
+  // Get user profile 
+  app.get('/api/profile', verifyJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      
+      // Return comprehensive profile data
+      const profile = {
+        id: user.id,
+        userId: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+        isPremium: user.isPremium,
+        dietPreferences: user.dietPreferences || [],
+        allergens: user.allergens || [],
+        dailyCalorieTarget: user.dailyCalorieGoal || 2000,
+        dailyProteinTarget: user.dailyProteinGoal || 150,
+        dailyCarbTarget: user.dailyCarbGoal || 250,
+        dailyFatTarget: user.dailyFatGoal || 65,
+        activityLevel: user.activityLevel || 'moderate',
+        recipesGenerated: 0, // Will be calculated later
+        notifications: {
+          email: true,
+          push: true, 
+          meal_reminders: true,
+          goal_achievements: true
+        }
+      };
+      
+      res.json(profile);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+    }
+  });
+  
+  // Update user profile
+  app.patch('/api/profile', verifyJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user.id;
+      const updates = req.body;
+      
+      // Map front-end field names to database field names
+      const mappedUpdates = {
+        firstName: updates.firstName,
+        lastName: updates.lastName,
+        email: updates.email,
+        dietPreferences: updates.dietaryPreferences || updates.dietPreferences,
+        allergens: updates.allergies || updates.allergens,
+        dailyCalorieGoal: updates.dailyCalorieTarget || updates.dailyCalorieGoal,
+        dailyProteinGoal: updates.dailyProteinTarget || updates.dailyProteinGoal,
+        dailyCarbGoal: updates.dailyCarbTarget || updates.dailyCarbGoal,
+        dailyFatGoal: updates.dailyFatTarget || updates.dailyFatGoal,
+        activityLevel: updates.activityLevel,
+      };
+      
+      // Remove undefined values
+      Object.keys(mappedUpdates).forEach(key => {
+        if (mappedUpdates[key] === undefined) {
+          delete mappedUpdates[key];
+        }
+      });
+      
+      // Update user profile in database
+      await storage.updateUserProfile(userId, mappedUpdates);
+      
+      res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      res.status(500).json({ success: false, message: 'Failed to update profile' });
+    }
+  });
+
+  // ===========================================
   // GAMIFICATION & FITNESS DASHBOARD API ROUTES
   // ===========================================
 
