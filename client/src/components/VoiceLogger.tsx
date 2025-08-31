@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
-import { Mic, MicOff, Volume2, VolumeX, Loader2, Check, AlertCircle, Edit3 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Mic, MicOff, Volume2, VolumeX, Loader2, Check, AlertCircle, Edit3, Trophy, Apple, Flame, Heart, Droplets, Leaf, Shield, Utensils, Zap, Save, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useLocalAuth';
@@ -411,51 +412,152 @@ Nutrition Grade: ${nutritionScore?.grade || 'N/A'} (${nutritionScore?.score || 0
           </div>
         )}
 
-        {/* Step 4: Nutrition Analysis Results */}
+        {/* Step 4: Beautiful Nutrition Analysis Results */}
         {nutritionText && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nutrition Analysis:</label>
-              <div className="flex gap-2">
-                <Textarea
-                  value={nutritionText}
-                  readOnly
-                  className="flex-1 bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-900/20 dark:to-teal-900/20"
-                  rows={12}
-                  data-testid="nutrition-results-text"
-                />
-                {speechSynthSupported && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={isSpeaking ? stopSpeaking : replayNutritionText}
-                    className="shrink-0"
-                    data-testid="button-replay-nutrition"
-                  >
-                    {isSpeaking ? (
-                      <VolumeX className="w-4 h-4 text-red-500" />
-                    ) : (
-                      <Volume2 className="w-4 h-4 text-primary" />
-                    )}
-                  </Button>
-                )}
-              </div>
+          <div className="space-y-6">
+            {/* Main Grade Display */}
+            <Card className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-200 shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-4">
+                  <Trophy className="w-8 h-8 text-blue-600 mr-3" />
+                  <h3 className="text-2xl font-bold text-gray-800">Meal Analysis Complete!</h3>
+                </div>
+                
+                {/* Extract grade from nutritionText */}
+                {(() => {
+                  const gradeMatch = nutritionText.match(/Nutrition Grade: ([A-F])/);
+                  const scoreMatch = nutritionText.match(/\((\d+)\/100\)/);
+                  const grade = gradeMatch ? gradeMatch[1] : 'C';
+                  const score = scoreMatch ? parseInt(scoreMatch[1]) : 75;
+                  
+                  const gradeColors = {
+                    'A': { bg: 'bg-green-500', text: 'text-white', border: 'border-green-500', accent: 'from-green-400 to-green-600' },
+                    'B': { bg: 'bg-lime-500', text: 'text-white', border: 'border-lime-500', accent: 'from-lime-400 to-lime-600' },
+                    'C': { bg: 'bg-yellow-500', text: 'text-white', border: 'border-yellow-500', accent: 'from-yellow-400 to-yellow-600' },
+                    'D': { bg: 'bg-orange-500', text: 'text-white', border: 'border-orange-500', accent: 'from-orange-400 to-orange-600' },
+                    'F': { bg: 'bg-red-500', text: 'text-white', border: 'border-red-500', accent: 'from-red-400 to-red-600' }
+                  };
+                  
+                  const colors = gradeColors[grade as keyof typeof gradeColors] || gradeColors['C'];
+                  
+                  return (
+                    <div className="flex items-center justify-center space-x-6 mb-6">
+                      <div className={`w-20 h-20 rounded-full ${colors.bg} flex items-center justify-center shadow-xl border-4 ${colors.border}`}>
+                        <span className={`text-4xl font-black ${colors.text}`}>{grade}</span>
+                      </div>
+                      <div className="text-left">
+                        <div className="text-3xl font-bold text-gray-800">{score}/100</div>
+                        <div className="text-lg text-gray-600">Nutrition Score</div>
+                        <div className={`text-sm font-medium bg-gradient-to-r ${colors.accent} bg-clip-text text-transparent`}>
+                          {grade === 'A' ? 'Excellent Choice!' : grade === 'B' ? 'Great Choice!' : grade === 'C' ? 'Good Choice' : grade === 'D' ? 'Could Be Better' : 'Needs Improvement'}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Nutrition Breakdown Cards */}
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Foods Found */}
+              <Card className="bg-gradient-to-br from-slate-50 to-gray-100 border border-gray-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center text-gray-700">
+                    <Utensils className="w-5 h-5 mr-2 text-blue-600" />
+                    Foods Detected
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {parsedFoods.map((food, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:shadow-md transition-shadow">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Apple className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-800 capitalize">{food.name}</div>
+                            <div className="text-sm text-gray-600">{food.quantity} {food.unit}</div>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {Math.round(food.confidence * 100)}% confident
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Nutrition Facts */}
+              <Card className="bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center text-gray-700">
+                    <Zap className="w-5 h-5 mr-2 text-emerald-600" />
+                    Nutrition Facts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {(() => {
+                      const caloriesMatch = nutritionText.match(/Calories: (\d+)/);
+                      const proteinMatch = nutritionText.match(/Protein: (\d+)g/);
+                      const carbsMatch = nutritionText.match(/Carbs: (\d+)g/);
+                      const fatMatch = nutritionText.match(/Fat: (\d+)g/);
+                      const fiberMatch = nutritionText.match(/Fiber: (\d+)g/);
+                      const sodiumMatch = nutritionText.match(/Sodium: (\d+)mg/);
+                      
+                      const nutrients = [
+                        { name: 'Calories', value: caloriesMatch ? parseInt(caloriesMatch[1]) : 0, unit: '', max: 600, icon: Flame, color: 'text-orange-600' },
+                        { name: 'Protein', value: proteinMatch ? parseInt(proteinMatch[1]) : 0, unit: 'g', max: 50, icon: Heart, color: 'text-red-600' },
+                        { name: 'Carbs', value: carbsMatch ? parseInt(carbsMatch[1]) : 0, unit: 'g', max: 75, icon: Apple, color: 'text-yellow-600' },
+                        { name: 'Fat', value: fatMatch ? parseInt(fatMatch[1]) : 0, unit: 'g', max: 25, icon: Droplets, color: 'text-blue-600' },
+                        { name: 'Fiber', value: fiberMatch ? parseInt(fiberMatch[1]) : 0, unit: 'g', max: 15, icon: Leaf, color: 'text-green-600' },
+                        { name: 'Sodium', value: sodiumMatch ? parseInt(sodiumMatch[1]) : 0, unit: 'mg', max: 800, icon: Shield, color: 'text-purple-600' }
+                      ];
+                      
+                      return nutrients.map((nutrient) => (
+                        <div key={nutrient.name} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                          <div className="flex items-center space-x-3">
+                            <nutrient.icon className={`w-5 h-5 ${nutrient.color}`} />
+                            <span className="font-medium text-gray-700">{nutrient.name}</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-gray-800">{nutrient.value}{nutrient.unit}</div>
+                            <div className="w-20">
+                              <Progress 
+                                value={Math.min(100, (nutrient.value / nutrient.max) * 100)} 
+                                className="h-2 mt-1"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
             
+            {/* Enhanced Save Button with Gradient */}
             <Button
               onClick={logMeal}
               disabled={isProcessing}
-              className="w-full"
-              size="lg"
+              className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
               data-testid="button-log-meal"
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Logging meal...
+                  <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                  Saving Your Meal...
                 </>
               ) : (
-                'Save This Meal to Dashboard'
+                <>
+                  <Save className="w-5 h-5 mr-3" />
+                  Save This Meal to Dashboard
+                  <Sparkles className="w-5 h-5 ml-3" />
+                </>
               )}
             </Button>
           </div>
