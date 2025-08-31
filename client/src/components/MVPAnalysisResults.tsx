@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { 
   Shield, Heart, Globe, CheckCircle, AlertTriangle, 
   Flame, Apple, Droplets, Leaf, Plus, Minus, Save,
-  Trophy, Star, Zap, Eye, Brain, Crown, Utensils, ChevronDown, ChevronUp
+  Trophy, Star, Zap, Eye, Brain, Crown, Utensils, ChevronDown, ChevronUp, User
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { localApi } from "@/lib/localApi";
@@ -15,11 +15,14 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface AnalyzedFood {
   name: string;
+  description?: string; // Detailed food description
   quantity: number;
   unit: string;
   confidence: number;
   calories_per_serving: number;
   category: string;
+  cooking_method?: string;
+  preparation_details?: string;
   calories?: number;
   protein?: number;
   source?: string;
@@ -322,7 +325,10 @@ export default function MVPAnalysisResults({
                 <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900 capitalize">{food.name}</h4>
-                    <p className="text-sm text-gray-600">{food.calories_per_serving} cal per serving</p>
+                    <p className="text-sm text-gray-600 mb-1">{food.description || `${food.calories_per_serving} cal per serving`}</p>
+                    {food.cooking_method && (
+                      <p className="text-xs text-blue-600 font-medium">• {food.cooking_method}</p>
+                    )}
                     <Badge variant="outline" className="text-xs mt-1">
                       {Math.round(food.confidence * 100)}% match
                     </Badge>
@@ -365,22 +371,48 @@ export default function MVPAnalysisResults({
       <Card className="border-0 shadow-md">
         <CardContent className="p-0">
           <Tabs defaultValue="health" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-100 m-0 rounded-none">
-              <TabsTrigger value="health" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-4 bg-gray-100 m-0 rounded-none">
+              <TabsTrigger value="health" className="flex items-center gap-2 text-xs">
                 <Heart className="w-4 h-4" />
                 Health
               </TabsTrigger>
-              <TabsTrigger value="safety" className="flex items-center gap-2">
+              <TabsTrigger value="personal" className="flex items-center gap-2 text-xs">
+                <User className="w-4 h-4" />
+                Personal
+              </TabsTrigger>
+              <TabsTrigger value="safety" className="flex items-center gap-2 text-xs">
                 <Shield className="w-4 h-4" />
                 Safety
               </TabsTrigger>
-              <TabsTrigger value="sustainability" className="flex items-center gap-2">
+              <TabsTrigger value="sustainability" className="flex items-center gap-2 text-xs">
                 <Globe className="w-4 h-4" />
                 Impact
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="health" className="p-6 space-y-4">
+            <TabsContent value="health" className="p-6 space-y-6">
+              {/* Micronutrients Section - Market Leader Feature */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-blue-600" />
+                  Essential Vitamins & Minerals
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {analysis.health.micronutrients && Object.entries(analysis.health.micronutrients).map(([nutrient, value]) => (
+                    <div key={nutrient} className="flex justify-between items-center py-1">
+                      <span className="text-sm text-gray-700 capitalize">
+                        {nutrient.replace('_', ' ')}
+                      </span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {typeof value === 'number' ? value.toFixed(1) : '0'} 
+                        {nutrient.includes('vitamin_b12') || nutrient.includes('folate') ? 'mcg' : 
+                         nutrient.includes('vitamin_d') || nutrient.includes('vitamin_a') ? 'IU' : 'mg'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <h4 className="font-medium text-green-700">Health Benefits</h4>
@@ -407,6 +439,68 @@ export default function MVPAnalysisResults({
                     </ul>
                   </div>
                 )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="personal" className="p-6 space-y-6">
+              {/* Personalized Health Tips Section */}
+              <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <User className="w-4 h-4 text-indigo-600" />
+                  Personalized for You
+                </h4>
+                <div className="space-y-4">
+                  {/* Diet Compatibility Check */}
+                  {analysis.health.improvement_suggestions && analysis.health.improvement_suggestions.length > 0 && (
+                    <div className="space-y-2">
+                      <h5 className="font-medium text-indigo-700">Personalized Health Tips</h5>
+                      <ul className="text-sm text-gray-600 space-y-2">
+                        {analysis.health.improvement_suggestions.map((suggestion, index) => (
+                          <li key={index} className="flex items-start gap-2 p-2 bg-white rounded-md border">
+                            <Crown className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+                            <span>{suggestion}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* Allergen Alerts for User */}
+                  {analysis.safety.allergen_alerts && analysis.safety.allergen_alerts.length > 0 && (
+                    <div className="space-y-2">
+                      <h5 className="font-medium text-red-700">Allergen Alerts</h5>
+                      <div className="space-y-2">
+                        {analysis.safety.allergen_alerts.map((alert, index) => (
+                          <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-md">
+                            <div className="flex items-start gap-2">
+                              <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-red-800">{alert.allergen} detected</p>
+                                <p className="text-sm text-red-600">{alert.description}</p>
+                                <p className="text-xs text-red-500 mt-1">Found in: {alert.foods_containing.join(', ')}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* General Tips with Personal Touch */}
+                  {analysis.recommendations.general_tips && analysis.recommendations.general_tips.length > 0 && (
+                    <div className="space-y-2">
+                      <h5 className="font-medium text-blue-700">Smart Recommendations</h5>
+                      <ul className="text-sm text-gray-600 space-y-2">
+                        {analysis.recommendations.general_tips.slice(0, 4).map((tip, index) => (
+                          <li key={index} className="flex items-start gap-2 p-2 bg-blue-50 rounded-md border border-blue-100">
+                            <Brain className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                            <span>{tip}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
             </TabsContent>
             

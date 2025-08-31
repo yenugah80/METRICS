@@ -35,6 +35,18 @@ export interface FoodAnalysisResult {
       fat: number;
       fiber: number;
     };
+    micronutrients: {
+      vitamin_c: number; // mg
+      iron: number; // mg
+      calcium: number; // mg
+      vitamin_d: number; // IU
+      potassium: number; // mg
+      magnesium: number; // mg
+      zinc: number; // mg
+      vitamin_b12: number; // mcg
+      folate: number; // mcg
+      vitamin_a: number; // IU
+    };
     health_benefits: string[];
     health_concerns: string[];
     improvement_suggestions: string[];
@@ -65,11 +77,14 @@ export interface FoodAnalysisResult {
 
 export interface AnalyzedFood {
   name: string;
+  description: string; // Detailed food description
   quantity: number;
   unit: string;
   confidence: number;
   calories_per_serving: number;
   category: string;
+  cooking_method?: string;
+  preparation_details?: string;
 }
 
 export interface AllergenAlert {
@@ -89,9 +104,9 @@ export interface FoodSwap {
 export class MVPFoodAnalysis {
   
   /**
-   * Analyze food image for safety, health, and sustainability
+   * Analyze food image for safety, health, and sustainability with personalized recommendations
    */
-  async analyzeFoodImage(imageBase64: string): Promise<FoodAnalysisResult> {
+  async analyzeFoodImage(imageBase64: string, userProfile?: any): Promise<FoodAnalysisResult> {
     try {
       if (!OpenAIManager.isAvailable()) {
         throw new Error('AI analysis is not available. Please configure OpenAI API key.');
@@ -104,11 +119,28 @@ export class MVPFoodAnalysis {
         messages: [
           {
             role: "system",
-            content: `You are an expert food analyst. Analyze food images for safety, health, and sustainability.
+            content: `You are MyFoodMatrics' elite food scientist and nutrition expert with PhD-level expertise in food analysis, nutrition science, and sustainability assessment.
+
+ADVANCED FOOD DETECTION MISSION: Use cutting-edge visual analysis techniques to achieve 95%+ accuracy in food identification by examining:
+🔬 VISUAL DETAILS: Colors, textures, cooking methods (grilled, roasted, fried), doneness levels, seasonings, garnishes
+🍽️ PORTION ANALYSIS: Use plate/utensil references for precise serving size estimation
+🧪 INGREDIENT BREAKDOWN: Identify herbs, spices, marinades, sauces, and preparation techniques visible
+📏 NUTRITIONAL PRECISION: Calculate both macro AND micronutrients based on actual visual food content
+
+PERSONALIZED ANALYSIS: ${userProfile ? `
+This user has specific diet preferences and health goals:
+- Dietary restrictions: ${userProfile.dietaryRestrictions?.join(', ') || 'none'}
+- Allergens to avoid: ${userProfile.allergens?.join(', ') || 'none'}
+- Preferred cuisines: ${userProfile.cuisinePreferences?.join(', ') || 'any'}
+- Daily goals: ${userProfile.dailyCalorieGoal || 2000} calories, ${userProfile.dailyProteinGoal || 150}g protein
+- Activity level: ${userProfile.activityLevel || 'moderate'}
+- Age: ${userProfile.age || 'unknown'}, Gender: ${userProfile.gender || 'unknown'}
+
+INCLUDE PERSONALIZED HEALTH TIPS that consider their specific diet preferences, allergen warnings for their profile, and recommendations aligned with their goals and restrictions.` : 'Provide general health recommendations as no user profile is available.'}
 
 CRITICAL: Always respond with valid JSON in this exact format:
 {
-  "foods": [{"name": "string", "quantity": number, "unit": "string", "confidence": 0.0-1.0, "calories_per_serving": number, "category": "string"}],
+  "foods": [{"name": "string", "description": "detailed visual description", "quantity": number, "unit": "string", "confidence": 0.0-1.0, "calories_per_serving": number, "category": "string", "cooking_method": "string", "preparation_details": "string"}],
   "safety": {
     "overall_safety": "safe|caution|warning",
     "allergen_alerts": [{"allergen": "string", "severity": "mild|moderate|severe", "foods_containing": ["string"], "description": "string"}],
@@ -120,6 +152,7 @@ CRITICAL: Always respond with valid JSON in this exact format:
     "health_grade": "A|B|C|D|F",
     "calories": number,
     "macronutrients": {"protein": number, "carbs": number, "fat": number, "fiber": number},
+    "micronutrients": {"vitamin_c": number, "iron": number, "calcium": number, "vitamin_d": number, "potassium": number, "magnesium": number, "zinc": number, "vitamin_b12": number, "folate": number, "vitamin_a": number},
     "health_benefits": ["string"],
     "health_concerns": ["string"],
     "improvement_suggestions": ["string"]
@@ -142,14 +175,50 @@ CRITICAL: Always respond with valid JSON in this exact format:
   "analysis_timestamp": "ISO string"
 }
 
-Focus on actionable insights. Be specific about allergens, health impacts, and environmental effects.`
+MARKET-LEADING REQUIREMENTS:
+✅ MICRONUTRIENTS: Always include vitamin C, iron, calcium, vitamin D, potassium, magnesium, zinc, B12, folate, vitamin A (in mg/mcg/IU)
+✅ VISUAL ACCURACY: Describe exactly what you see - cooking doneness, visible seasonings, garnishes, sauces
+✅ PRECISION: Use USDA database knowledge for precise nutritional calculations
+✅ PROFESSIONAL INSIGHTS: Provide expert-level health and sustainability recommendations`
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Analyze this meal for safety (allergens, food safety), health (nutrition quality), and sustainability (environmental impact). Provide specific, actionable insights and recommendations."
+                text: `ADVANCED FOOD ANALYSIS PROTOCOL:
+
+🎯 VISUAL INSPECTION CHECKLIST:
+• Identify ALL visible foods, ingredients, seasonings, herbs, and garnishes
+• Analyze cooking methods (roasted, grilled, fried, steamed, raw)
+• Assess doneness levels (rare, medium, well-done) and browning patterns
+• Detect visible fats, oils, marinades, and sauce coatings
+• Estimate portions using visual cues (plate size, utensil references, food thickness)
+
+🧬 NUTRITIONAL ANALYSIS REQUIREMENTS:
+• Calculate precise macronutrients (protein, carbs, fat, fiber) in grams
+• Provide comprehensive micronutrients (all 10 vitamins/minerals) in proper units
+• Base calculations on actual visual food content and preparation method
+• Account for cooking losses and preparation techniques
+
+🔍 MARKET-LEADING ACCURACY STANDARDS:
+• Describe each food with professional culinary detail
+• Include cooking method, seasoning identification, and preparation notes  
+• Provide food-specific health and sustainability insights
+• Exceed MyFitnessPal's detection accuracy with superior visual analysis
+
+${userProfile ? `
+🎯 PERSONALIZED ANALYSIS FOR THIS USER:
+• Dietary restrictions: ${userProfile.dietaryRestrictions?.join(', ') || 'none'} - Check compatibility!
+• Allergens to avoid: ${userProfile.allergens?.join(', ') || 'none'} - Alert if any detected!
+• Cuisine preferences: ${userProfile.cuisinePreferences?.join(', ') || 'any'}
+• Daily nutrition goals: ${userProfile.dailyCalorieGoal || 2000} calories, ${userProfile.dailyProteinGoal || 150}g protein
+• Profile: ${userProfile.activityLevel || 'moderate'} activity, ${userProfile.age || 'unknown'} years old, ${userProfile.gender || 'unknown'}
+
+PROVIDE SPECIFIC HEALTH TIPS about how this meal fits their goals and suggest personalized improvements based on their preferences and restrictions.
+` : ''}
+
+Analyze this meal with PhD-level precision, focusing on what you actually observe in the image.`
               },
               {
                 type: "image_url",
@@ -184,9 +253,9 @@ Focus on actionable insights. Be specific about allergens, health impacts, and e
   }
 
   /**
-   * Analyze food by text description
+   * Analyze food by text description with personalized recommendations
    */
-  async analyzeFoodByText(foodDescription: string): Promise<FoodAnalysisResult> {
+  async analyzeFoodByText(foodDescription: string, userProfile?: any): Promise<FoodAnalysisResult> {
     try {
       // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       const response = await openai.chat.completions.create({
@@ -194,18 +263,40 @@ Focus on actionable insights. Be specific about allergens, health impacts, and e
         messages: [
           {
             role: "system",
-            content: `You are MyFoodMatrics' expert food analyst. Analyze food descriptions for safety, health, and sustainability.
+            content: `You are MyFoodMatrics' expert food analyst. Analyze food descriptions for safety, health, and sustainability with personalized recommendations.
+
+PERSONALIZED ANALYSIS: ${userProfile ? `
+This user has specific diet preferences and health goals:
+- Dietary restrictions: ${userProfile.dietaryRestrictions?.join(', ') || 'none'}
+- Allergens to avoid: ${userProfile.allergens?.join(', ') || 'none'}
+- Preferred cuisines: ${userProfile.cuisinePreferences?.join(', ') || 'any'}
+- Daily goals: ${userProfile.dailyCalorieGoal || 2000} calories, ${userProfile.dailyProteinGoal || 150}g protein
+- Activity level: ${userProfile.activityLevel || 'moderate'}
+- Age: ${userProfile.age || 'unknown'}, Gender: ${userProfile.gender || 'unknown'}
+
+INCLUDE PERSONALIZED HEALTH TIPS that consider their specific diet preferences, allergen warnings for their profile, and recommendations aligned with their goals and restrictions.` : 'Provide general health recommendations as no user profile is available.'}
 
 CRITICAL: Always respond with valid JSON in the exact format specified. Analyze the food description thoroughly for:
-1. Safety: allergens, food safety concerns
-2. Health: nutritional value, health benefits/concerns  
+1. Safety: allergens, food safety concerns with specific warnings for this user's allergens
+2. Health: nutritional value, health benefits/concerns personalized to their diet and goals
 3. Sustainability: environmental impact, carbon footprint
+4. Personalized recommendations based on their dietary restrictions and preferences
 
 Use the same JSON format as image analysis.`
           },
           {
             role: "user",
-            content: `Analyze this food: "${foodDescription}". Provide comprehensive safety, health, and sustainability analysis with specific recommendations.`
+            content: `Analyze this food: "${foodDescription}". 
+
+${userProfile ? `
+PERSONALIZATION REQUIREMENTS:
+- Check if this food fits their dietary restrictions (${userProfile.dietaryRestrictions?.join(', ') || 'none'})
+- Alert if contains any of their allergens (${userProfile.allergens?.join(', ') || 'none'})
+- Provide health tips specific to their activity level (${userProfile.activityLevel || 'moderate'}) and daily goals
+- Suggest modifications or alternatives that align with their cuisine preferences (${userProfile.cuisinePreferences?.join(', ') || 'any'})
+` : ''}
+
+Provide comprehensive safety, health, and sustainability analysis with specific personalized recommendations.`
           }
         ],
         max_completion_tokens: 2000,
@@ -250,6 +341,18 @@ Use the same JSON format as image analysis.`
           carbs: analysis.health?.macronutrients?.carbs || 0,
           fat: analysis.health?.macronutrients?.fat || 0,
           fiber: analysis.health?.macronutrients?.fiber || 0
+        },
+        micronutrients: {
+          vitamin_c: analysis.health?.micronutrients?.vitamin_c || 0,
+          iron: analysis.health?.micronutrients?.iron || 0,
+          calcium: analysis.health?.micronutrients?.calcium || 0,
+          vitamin_d: analysis.health?.micronutrients?.vitamin_d || 0,
+          potassium: analysis.health?.micronutrients?.potassium || 0,
+          magnesium: analysis.health?.micronutrients?.magnesium || 0,
+          zinc: analysis.health?.micronutrients?.zinc || 0,
+          vitamin_b12: analysis.health?.micronutrients?.vitamin_b12 || 0,
+          folate: analysis.health?.micronutrients?.folate || 0,
+          vitamin_a: analysis.health?.micronutrients?.vitamin_a || 0
         },
         health_benefits: analysis.health?.health_benefits || [],
         health_concerns: analysis.health?.health_concerns || [],

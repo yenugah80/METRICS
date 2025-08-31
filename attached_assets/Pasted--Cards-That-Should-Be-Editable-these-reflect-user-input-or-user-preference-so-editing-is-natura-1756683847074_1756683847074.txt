@@ -1,0 +1,86 @@
+✅ Cards That Should Be Editable
+
+(these reflect user input or user preference → so editing is natural)
+
+Meal Breakdown Card
+
+User should adjust portion sizes, swap detected foods, or delete an incorrect food.
+
+Example: “Rice – 1 cup” → editable to “0.5 cup” or change to “brown rice.”
+
+Nutrition Goals Card (Macros/Calories)
+
+Daily calorie/macro goals should be user-configurable in settings.
+
+Editable in UI via a settings icon (not inline every time).
+
+AI Recommendation Card (Food Suggestions)
+
+User should be able to swap/re-roll suggestions.
+
+Can’t edit text directly, but can choose: “Not relevant → regenerate.”
+
+Voice/Text Meal Logging
+
+User should edit transcript before confirming analysis.
+
+Critical for trust, since speech-to-text isn’t always perfect.
+
+Meal Logging / Recent Meals
+
+Logged meals should be editable (portion, food type) OR deletable.
+
+If user mislogs → they must be able to fix it.
+
+❌ Cards That Should NOT Be Editable
+
+(these reflect computed results → editing breaks trust/data integrity)
+
+Food Analysis Score (A/B/C, 90/100)
+
+AI/computed only. If editable, it loses credibility.
+
+Eco + Health Impact (Carbon, Water usage)
+
+Computed from food database. No editing.
+
+Users might disagree but it must stay consistent & scientific.
+
+Motivation / XP / Streak Card
+
+Gamification logic must be server-controlled.
+
+Users cannot edit XP, streaks, or achievements.
+
+Safety & Allergen Analysis
+
+Must remain read-only. Users can provide feedback (“Wrong allergen detected”) but not directly edit safety results.
+
+Achievements / Levels
+
+Progress, streaks, and badges → system-driven only.
+
+⚖️ Hybrid Approach (Editable via Feedback, not Directly)
+
+Some cards shouldn’t be editable, but you can add feedback loops:
+
+Example: “Carbon impact seems wrong?” → tap → “Report Issue.”
+
+Example: “Allergen flagged incorrectly?” → tap → “Mark as Safe.”
+
+👉 This maintains data trust while still letting the user feel heard.
+
+🎯 Strategic Rule for Your Devs
+
+Editable = Anything that comes from user behavior/preferences (meals, goals, logs).
+
+Non-editable = Anything that comes from system intelligence/calculations (scores, eco, streaks).
+
+Feedback only = Sensitive health/safety insights (user can’t override, but can flag).
+
+⚡ Brutally Honest Reality:
+Right now your app mixes editable (portion sizes) and non-editable (safety/eco) scores in the same flat card style. That confuses users. You need visual separation:
+
+Editable cards → lighter background, inline controls (+/–, text fields).
+
+Non-editable cards → bold, locked look (badges, solid backgrounds).

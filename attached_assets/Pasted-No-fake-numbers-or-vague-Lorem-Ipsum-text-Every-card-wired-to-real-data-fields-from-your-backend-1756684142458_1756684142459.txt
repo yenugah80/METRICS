@@ -1,0 +1,131 @@
+No fake numbers or vague “Lorem Ipsum” text.
+
+Every card wired to real data fields from your backend (API schema).
+
+Clear rules for when/how each card displays (empty, partial, complete states).
+
+Exact copy style (coaching tone) tied to data values.
+
+🔑 Production-Grade Functional UI Spec
+1. Meal Breakdown Card
+
+Backend fields:
+
+calories, protein, carbs, fat, fiber, sodium, nutrition_score
+
+Display logic:
+
+Headline: “Your Meal at a Glance”
+
+Show calories + macros, but translate into insights:
+
+Example → “Protein: 18g → covers {{percent_of_goal}}% of your daily goal.”
+
+Example → “Sodium: {{sodium}}mg → higher than usual, balance with low-salt foods later.”
+
+Copy rules (coaching style):
+
+🥗 This meal gave you {{percent_protein}}% of your protein goal — great for recovery.
+
+⚡ Carbs are {{percent_carbs}}% → perfect for fueling energy.
+
+🛑 Sodium is {{percent_sodium}}% — keep dinner lighter.
+
+🎯 Overall: {{nutrition_score.grade}} ({{nutrition_score.score}}/100). You’re making solid progress today!
+
+2. Safety & Allergen Card
+
+Backend fields:
+
+allergen_alerts[], overall_safety, food_safety_score
+
+Display logic:
+
+If allergens detected → show ⚠️ alert.
+
+If none → show ✅ Safe.
+
+Copy rules:
+
+⚠️ This meal contains {{allergen}} — severity: {{severity}}.
+
+💡 Next time: Try {{suggested_alternative}} to avoid this allergen.
+
+✅ No major allergens detected — safe overall.
+
+3. Eco Impact Card
+
+Backend fields:
+
+eco_score, eco_grade, carbon_footprint, water_usage, eco_friendly_alternatives[]
+
+Copy rules:
+
+🌍 This meal’s footprint: {{eco_grade}} (carbon: {{carbon_footprint}}, water: {{water_usage}}).
+
+💡 Swap {{original_food}} with {{alternative}} → same nutrition, better for the planet.
+
+4. Motivation / Gamification Card
+
+Backend fields:
+
+xp_earned, streak_days, next_badge, total_xp
+
+Copy rules:
+
+🔥 You’ve logged {{streak_days}} days in a row!
+
+🌟 +{{xp_earned}} XP added. You’re {{xp_remaining}} away from your next badge ({{next_badge}}).
+
+🎯 Keep it up → streak bonus at {{streak_target}} days.
+
+5. Suggestions / Recommendations Card
+
+Backend fields:
+
+health.improvement_suggestions[], recommendations.healthier_swaps[]
+
+Copy rules:
+
+💡 Add more fiber → try {{food_alternative}}.
+
+🥦 Balance this meal with more veggies at dinner.
+
+🍊 Vitamin C is low today — consider citrus fruit later.
+
+6. Functional States (No Mock Info Allowed)
+✅ Filled State (Normal)
+
+Pulls directly from backend fields.
+
+Example: Calories 520 → “This meal adds 520 kcal, about 30% of your daily target.”
+
+⚠️ Partial/Uncertain State
+
+If backend returns low confidence (confidence < 0.7):
+
+“I’m not fully sure this is {{food_name}} — please confirm or edit.”
+
+⛔ Empty State
+
+If no meal logged:
+
+“👩‍🍳 No meals logged yet — snap a photo or record by voice to get started!”
+
+🎯 Instructions for Your Developer
+
+Do not hardcode any text values. Every line must use real data from backend responses.
+
+Coaching copy must wrap around variables (percentages, nutrient gaps, allergens, eco score).
+
+Example template: "This meal gave you {{percent_protein}}% of your daily protein goal."
+
+States (empty/partial/filled) must be handled → no blank cards or dummy filler.
+
+Icons/emojis must be consistent per section (🥗 nutrition, 🚦 safety, 🌍 eco, 🔥 streaks, 💡 tips).
+
+Sticky Save button always at bottom:
+
+Saves meal → triggers recalculation of dashboard stats (daily/weekly/monthly).
+
+⚡ Brutal truth: If your dev follows this spec, you’ll get a functional production app — not a demo full of fake placeholder info.

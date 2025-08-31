@@ -8,9 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import NutritionCard from "@/components/NutritionCard";
-import MealCard from "@/components/MealCard";
-import ScoreBadge from "@/components/ScoreBadge";
 import { 
   Apple, 
   User, 
@@ -136,25 +133,79 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-foreground">Today's Progress</h2>
               <div className="flex items-center space-x-2">
-                <ScoreBadge grade={nutritionGrade} />
+                <div className={`px-3 py-1 rounded-full text-sm font-bold ${
+                  nutritionGrade === 'A' ? 'bg-green-100 text-green-800' :
+                  nutritionGrade === 'B' ? 'bg-blue-100 text-blue-800' :
+                  nutritionGrade === 'C' ? 'bg-yellow-100 text-yellow-800' :
+                  nutritionGrade === 'D' ? 'bg-orange-100 text-orange-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {nutritionGrade}
+                </div>
                 <span className="text-2xl font-bold text-foreground" data-testid="text-nutrition-score">
                   {nutritionScore}
                 </span>
               </div>
             </div>
             
-            <NutritionCard 
-              calories={dailyCalories}
-              protein={dailyProtein}
-              carbs={dailyCarbs}
-              fat={dailyFat}
-              targets={{
-                calories: 2000,
-                protein: 150,
-                carbs: 300,
-                fat: 80
-              }}
-            />
+            {/* Apple Fitness-Style Macro Rings */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+              <div className="text-center">
+                <div className="relative w-20 h-20 mx-auto mb-2">
+                  <Progress 
+                    value={(dailyCalories / 2000) * 100} 
+                    className="absolute inset-0 transform -rotate-90 h-20 w-20"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-red-600">{Math.round(dailyCalories)}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">Calories</p>
+                <p className="text-xs text-gray-400">{Math.round((dailyCalories / 2000) * 100)}% of 2000</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="relative w-20 h-20 mx-auto mb-2">
+                  <Progress 
+                    value={(dailyProtein / 150) * 100} 
+                    className="absolute inset-0 transform -rotate-90 h-20 w-20"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-green-600">{Math.round(dailyProtein)}g</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">Protein</p>
+                <p className="text-xs text-gray-400">{Math.round((dailyProtein / 150) * 100)}% of 150g</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="relative w-20 h-20 mx-auto mb-2">
+                  <Progress 
+                    value={(dailyCarbs / 300) * 100} 
+                    className="absolute inset-0 transform -rotate-90 h-20 w-20"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-yellow-600">{Math.round(dailyCarbs)}g</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">Carbs</p>
+                <p className="text-xs text-gray-400">{Math.round((dailyCarbs / 300) * 100)}% of 300g</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="relative w-20 h-20 mx-auto mb-2">
+                  <Progress 
+                    value={(dailyFat / 80) * 100} 
+                    className="absolute inset-0 transform -rotate-90 h-20 w-20"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-purple-600">{Math.round(dailyFat)}g</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">Fat</p>
+                <p className="text-xs text-gray-400">{Math.round((dailyFat / 80) * 100)}% of 80g</p>
+              </div>
+            </div>
 
             {/* Micronutrients Preview */}
             <div className="border-t border-border pt-4 mt-4">
@@ -281,7 +332,29 @@ export default function HomePage() {
             <div className="space-y-4">
               {(todayMeals as any[]).length > 0 ? (
                 (todayMeals as any[]).map((meal: any) => (
-                  <MealCard key={meal.id} meal={meal} />
+                  <div key={meal.id} className="p-4 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 capitalize">{meal.name}</h4>
+                        <p className="text-sm text-gray-600 mb-2">{meal.mealType} • {new Date(meal.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                        <div className="flex gap-4 text-xs text-gray-500">
+                          <span>{Math.round(meal.nutrition?.total_calories || 0)} cal</span>
+                          <span>{Math.round(meal.nutrition?.total_protein || 0)}g protein</span>
+                          <span>{Math.round(meal.nutrition?.total_carbs || 0)}g carbs</span>
+                          <span>{Math.round(meal.nutrition?.total_fat || 0)}g fat</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          (meal.nutrition?.nutrition_score || 0) >= 80 ? 'bg-green-100 text-green-700' :
+                          (meal.nutrition?.nutrition_score || 0) >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {Math.round(meal.nutrition?.nutrition_score || 0)}% health
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ))
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
@@ -458,7 +531,15 @@ export default function HomePage() {
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-2 mb-2">
                       <h3 className="font-semibold text-foreground">{recipe.title}</h3>
-                      <ScoreBadge grade={recipe.nutritionGrade || 'C'} />
+                      <div className={`px-2 py-1 rounded-full text-xs font-bold ${
+                        (recipe.nutritionGrade || 'C') === 'A' ? 'bg-green-100 text-green-800' :
+                        (recipe.nutritionGrade || 'C') === 'B' ? 'bg-blue-100 text-blue-800' :
+                        (recipe.nutritionGrade || 'C') === 'C' ? 'bg-yellow-100 text-yellow-800' :
+                        (recipe.nutritionGrade || 'C') === 'D' ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {recipe.nutritionGrade || 'C'}
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground mb-2">{recipe.description}</p>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">

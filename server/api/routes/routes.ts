@@ -650,13 +650,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // MVP Food Analysis - Production Ready
+  // MVP Food Analysis - Production Ready with Personalized Health Tips
   app.post('/api/meals/analyze-mvp', verifyJWT, async (req: any, res) => {
     try {
       const { imageBase64, foodDescription } = req.body;
+      const userId = req.user.id;
       
       if (!imageBase64 && !foodDescription) {
         return res.status(400).json({ message: "Image or food description required" });
+      }
+
+      // Fetch user profile for personalized analysis
+      let userProfile = null;
+      try {
+        userProfile = await storage.getUser(userId);
+      } catch (error) {
+        console.log('Could not fetch user profile, proceeding with generic analysis');
       }
 
       // Import the MVP food analysis service
@@ -664,9 +673,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let analysis;
       if (imageBase64) {
-        analysis = await mvpFoodAnalysis.analyzeFoodImage(imageBase64);
+        analysis = await mvpFoodAnalysis.analyzeFoodImage(imageBase64, userProfile);
       } else {
-        analysis = await mvpFoodAnalysis.analyzeFoodByText(foodDescription);
+        analysis = await mvpFoodAnalysis.analyzeFoodByText(foodDescription, userProfile);
       }
       
       // Get analysis summary for quick display
