@@ -1,0 +1,71 @@
+first impression
+
+pleasant, modern card layout; hierarchy is okay.
+
+the three score cards (Safety / Health / Planet) are the visual anchor — nice.
+
+“Detected Foods” list is promising, but it reads like a static summary, not an interactive analysis.
+
+critical gaps (blockers)
+
+no grams/portion controls. i only see “1 cup / 0.5 cup” etc. users must adjust exact grams/serving counts with +/- and see totals update live.
+
+no totals vs goals. show “meal macros” + “day remaining” (e.g., +28g protein, -55g carbs rem). without this, the page doesn’t help decisions.
+
+no “save to log” CTA. after analysis, there must be a clear “Save Meal → [meal type][time]” with toast + real-time dashboard update.
+
+no edit/replace items. can’t fix mis-detections, swap “white rice → brown rice”, merge/split foods, or add missing items.
+
+no provenance. where did calories/macros come from (USDA/FDC/brand)? show source + confidence per item.
+
+planet score lacks units. “Carbon: medium” is vague — add kg CO₂e, liters water, and what assumptions were used.
+
+analysis quality gaps
+
+macro breakdown missing. you show only calories; need per-meal protein / carbs / fat / fiber / sugar / sodium and % of daily target.
+
+sum check. show “Totals = Σ items” and warn if plate estimate ≠ detected sum by >10–15%.
+
+allergen drill-down. “1 allergen alert” should open a panel: allergen, found-in items, risk level, advice, swaps.
+
+confidence visualization. 90%/80% as text isn’t enough — use mini bars or chips; allow “mark item correct/incorrect” to improve model.
+
+explain the grades. “Grade B” ≠ actionable. add “why”: e.g., “+fiber, +protein, −high saturated fat”. same for Safety/Planet.
+
+ux polish issues
+
+image tools. missing retake/crop/rotate and a “scan again” button near the photo, not just “Upload New Photo”.
+
+tabs at the bottom (“Safety / Health / Planet”). unclear if they filter the long analysis or just a toggle; make them sticky and context-switch content below.
+
+density & whitespace. “Detected Foods” feels airy but wastes room on desktop; consider two-column grid with inline controls.
+
+state feedback. no skeletons/loaders for the three scores; add shimmer while analysis runs.
+
+mobile behavior. ensure score cards collapse into a horizontal scroll; image should not push scores below the fold.
+
+accessibility & consistency
+
+units. mixed “cup” and “cal” — allow switching to grams by default; cups vary by item.
+
+contrast. pale greys on cards may miss 4.5:1 in light mode; check the label/subtext colors.
+
+icons vs text. leading glyph “Your Meal” adds noise; keep but tone down or swap to section label styling.
+
+trust & compliance
+
+disclaimer + versioning. add a subtle “AI estimate • sources: USDA FDC 2024-xx • model vX.Y” link.
+
+time & meal metadata. add meal type selector (Breakfast/Lunch/…) + timestamp; these matter for streaks/quests later.
+
+high-impact quick wins (do these first)
+
+add portion controls per item (grams slider + presets + +/-) with live recompute and “Σ totals” tile.
+
+add a “Save Meal” primary CTA with meal type picker and success toast that updates the dashboard.
+
+show Meal Macros (P/C/F/fiber/sodium) and Day Remaining bars; add “Smart Portion Suggestion” chip (e.g., “add +120g chicken to hit protein”).
+
+make each score clickable → drawer with “why this grade”, itemized contributors, and suggested swaps.
+
+add units for Planet (kg CO₂e, L water) + method note (“beef=27 kg CO₂e/kg, source: Poore & Nemecek”).
