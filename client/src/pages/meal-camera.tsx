@@ -17,6 +17,7 @@ import { SustainabilityCard } from "@/components/business/SustainabilityCard";
 import { AllergenAlert } from "@/components/business/AllergenAlert";
 import { TokenDisplay } from "@/components/business/TokenDisplay";
 import MVPAnalysisResults from "@/components/MVPAnalysisResults";
+import AdvancedMealScanning from "@/components/AdvancedMealScanning";
 
 interface AnalyzedFood {
   name: string;
@@ -249,6 +250,12 @@ export default function MealCamera() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Handler for advanced food detection methods
+  const handleAdvancedFoodDetection = (foods: string[], method: 'camera' | 'upload' | 'text' | 'voice' | 'barcode') => {
+    const foodText = foods.join(', ');
+    analyzeMutation.mutate(foodText);
   };
 
   const analyzeMutation = useMutation({

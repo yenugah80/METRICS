@@ -1,22 +1,31 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, CheckCircle, Info, Heart, Shield, Globe, Utensils, ArrowRight, Zap, Award, TrendingUp, Target, Flame, Plus, Minus, Edit3, X, BarChart3 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { apiRequest } from "@/lib/queryClient";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { 
+  Shield, Heart, Globe, CheckCircle, AlertTriangle, 
+  Flame, Apple, Droplets, Leaf, Plus, Minus, Save,
+  Trophy, Star, Zap, Eye, Brain, Crown
+} from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { localApi } from "@/lib/localApi";
+
+interface AnalyzedFood {
+  name: string;
+  quantity: number;
+  unit: string;
+  confidence: number;
+  calories_per_serving: number;
+  category: string;
+  calories?: number;
+  protein?: number;
+  source?: string;
+}
 
 interface MVPAnalysisResult {
-  foods: Array<{
-    name: string;
-    quantity: number;
-    unit: string;
-    confidence: number;
-    calories_per_serving: number;
-    category: string;
-  }>;
+  foods: AnalyzedFood[];
   safety: {
     overall_safety: 'safe' | 'caution' | 'warning';
     allergen_alerts: Array<{
@@ -37,6 +46,14 @@ interface MVPAnalysisResult {
       carbs: number;
       fat: number;
       fiber: number;
+    };
+    micronutrients: {
+      vitamin_c: number;
+      iron: number;
+      calcium: number;
+      vitamin_d: number;
+      potassium: number;
+      magnesium: number;
     };
     health_benefits: string[];
     health_concerns: string[];
@@ -88,6 +105,7 @@ export default function MVPAnalysisResults({
 }: MVPAnalysisResultsProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedMealType, setSelectedMealType] = useState('lunch');
   const [editableFoods, setEditableFoods] = useState(analysis.foods);
   const [mealTotals, setMealTotals] = useState({
     calories: analysis.health.calories,
@@ -96,18 +114,96 @@ export default function MVPAnalysisResults({
     fat: analysis.health.macronutrients.fat,
     fiber: analysis.health.macronutrients.fiber
   });
-  
-  // USDA Daily Recommended Values (DRV) for adults
+
+  // USDA Daily Goals (2020-2025 Dietary Guidelines)
   const dailyGoals = {
     calories: 2000,
-    protein: 50, // grams 
-    carbs: 325, // grams (45-65% of calories)
-    fat: 78, // grams (20-35% of calories)
-    fiber: 28, // grams
-    sodium: 2300, // mg
-    sugar: 50 // grams added sugars
+    protein: 150,   // 30% of calories from protein
+    carbs: 250,     // 50% of calories from carbs  
+    fat: 67         // 20% of calories from fat
   };
   
+  // Calculate daily remaining macros
+  const dailyRemaining = {
+    calories: Math.max(0, dailyGoals.calories - mealTotals.calories),
+    protein: Math.max(0, dailyGoals.protein - mealTotals.protein),
+    carbs: Math.max(0, dailyGoals.carbs - mealTotals.carbs),
+    fat: Math.max(0, dailyGoals.fat - mealTotals.fat)
+  };
+
+  // A-E Grading System (Professional Nutri-Score style)
+  const getGradeFromScore = (score: number): 'A' | 'B' | 'C' | 'D' | 'E' => {
+    if (score >= 90) return 'A'; // Excellent
+    if (score >= 80) return 'B'; // Good
+    if (score >= 70) return 'C'; // Average
+    if (score >= 60) return 'D'; // Poor
+    return 'E'; // Worst
+  };
+
+  const getGradeColors = (grade: 'A' | 'B' | 'C' | 'D' | 'E') => {
+    switch (grade) {
+      case 'A': return {
+        border: 'border-green-500',
+        bg: 'bg-gradient-to-r from-green-50 to-green-100',
+        icon: 'text-green-600',
+        text: 'text-white',
+        badge: 'bg-green-500',
+        gradient: 'from-green-600 to-green-700',
+        glow: 'shadow-green-400/50',
+        ring: 'stroke-green-500'
+      };
+      case 'B': return {
+        border: 'border-lime-500',
+        bg: 'bg-gradient-to-r from-lime-50 to-lime-100',
+        icon: 'text-lime-600',
+        text: 'text-white',
+        badge: 'bg-lime-500',
+        gradient: 'from-lime-600 to-lime-700',
+        glow: 'shadow-lime-400/50',
+        ring: 'stroke-lime-500'
+      };
+      case 'C': return {
+        border: 'border-yellow-400',
+        bg: 'bg-gradient-to-r from-yellow-50 to-amber-50',
+        icon: 'text-yellow-600',
+        text: 'text-black',
+        badge: 'bg-yellow-400',
+        gradient: 'from-yellow-500 to-amber-500',
+        glow: 'shadow-yellow-400/50',
+        ring: 'stroke-yellow-400'
+      };
+      case 'D': return {
+        border: 'border-orange-500',
+        bg: 'bg-gradient-to-r from-orange-50 to-orange-100',
+        icon: 'text-orange-600',
+        text: 'text-white',
+        badge: 'bg-orange-500',
+        gradient: 'from-orange-600 to-orange-700',
+        glow: 'shadow-orange-400/50',
+        ring: 'stroke-orange-500'
+      };
+      case 'E': return {
+        border: 'border-red-500',
+        bg: 'bg-gradient-to-r from-red-50 to-red-100',
+        icon: 'text-red-600',
+        text: 'text-white',
+        badge: 'bg-red-500',
+        gradient: 'from-red-600 to-red-700',
+        glow: 'shadow-red-400/50',
+        ring: 'stroke-red-500'
+      };
+    }
+  };
+
+  // Get impact colors for environmental metrics
+  const getImpactColor = (impact: 'low' | 'medium' | 'high') => {
+    switch (impact) {
+      case 'low': return 'bg-green-100 text-green-700';
+      case 'medium': return 'bg-yellow-100 text-yellow-700';
+      case 'high': return 'bg-red-100 text-red-700';
+    }
+  };
+
   // Update meal totals when food portions change
   useEffect(() => {
     const newTotals = editableFoods.reduce((acc, food) => ({
@@ -120,151 +216,86 @@ export default function MVPAnalysisResults({
     
     setMealTotals(newTotals);
   }, [editableFoods]);
-  
+
   // Update food portion
   const updateFoodPortion = (index: number, newQuantity: number) => {
     const updated = [...editableFoods];
     updated[index] = { ...updated[index], quantity: Math.max(0.1, newQuantity) };
     setEditableFoods(updated);
   };
-  
-  // Remove food item
-  const removeFoodItem = (index: number) => {
-    const updated = editableFoods.filter((_, i) => i !== index);
-    setEditableFoods(updated);
-  };
-  
+
+  // Save meal with XP rewards
   const handleSaveMeal = async () => {
-    if (!onSaveMeal) return;
+    if (isSaving) return;
     
     setIsSaving(true);
     try {
-      // Save the meal with updated portions
-      await onSaveMeal();
+      // Create meal data
+      const mealData = {
+        type: selectedMealType,
+        foods: editableFoods,
+        analysis,
+        totals: mealTotals,
+        timestamp: new Date().toISOString()
+      };
+
+      // Save meal using local API
+      const savedMeal = await localApi.saveMeal(mealData);
       
-      // Award XP for meal logging using local API
-      try {
-        await localApi.awardXP({
-          eventType: 'meal_logged',
-          xpAmount: 15,
-          description: 'Logged meal with AI analysis'
-        });
-        
-        // Invalidate queries to refresh dashboard
-        queryClient.invalidateQueries({ queryKey: ['/api/dashboard/fitness'] });
-        
-        // Show celebration toast with XP reward
-        toast({
-          title: "🎉 Meal Saved Successfully!",
-          description: (
-            <div className="flex items-center space-x-2">
-              <Zap className="h-4 w-4 text-yellow-500" />
-              <span>+15 XP earned for logging this meal!</span>
-            </div>
-          ),
-          duration: 4000,
-        });
-      } catch (xpError) {
-        console.log('XP award failed:', xpError);
-        // Still show success toast even if XP fails
-        toast({
-          title: "✅ Meal Saved Successfully!",
-          description: "Your meal has been added to your nutrition log.",
-          duration: 3000,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to save meal:', error);
+      // Calculate XP based on meal quality
+      const baseXP = 50;
+      const healthBonus = Math.floor(analysis.health.nutrition_score / 10) * 5;
+      const safetyBonus = Math.floor(analysis.safety.food_safety_score / 10) * 3;
+      const ecoBonus = Math.floor(analysis.sustainability.eco_score / 10) * 4;
+      const totalXP = baseXP + healthBonus + safetyBonus + ecoBonus;
+
+      // Award XP
+      await localApi.awardXP(totalXP, 'meal_logged');
+      
       toast({
-        title: "Error",
-        description: "Failed to save meal. Please try again.",
+        title: "🎉 Meal Saved Successfully!",
+        description: `Earned ${totalXP} XP! (+${healthBonus} health, +${safetyBonus} safety, +${ecoBonus} eco bonus)`,
+        duration: 4000,
+      });
+
+      if (onSaveMeal) onSaveMeal();
+    } catch (error) {
+      toast({
+        title: "Save Failed",
+        description: "Unable to save meal. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSaving(false);
     }
   };
-  
-  // Dynamic color functions based on scores
-  const getScoreColors = (score: number) => {
-    if (score >= 90) return {
-      gradient: 'from-emerald-400 via-green-500 to-teal-600',
-      border: 'border-emerald-300',
-      bg: 'bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50',
-      text: 'text-emerald-700',
-      icon: 'text-emerald-600',
-      glow: 'shadow-emerald-200/50'
-    };
-    if (score >= 80) return {
-      gradient: 'from-green-400 via-emerald-500 to-cyan-600', 
-      border: 'border-green-300',
-      bg: 'bg-gradient-to-br from-green-50 via-emerald-50 to-cyan-50',
-      text: 'text-green-700',
-      icon: 'text-green-600',
-      glow: 'shadow-green-200/50'
-    };
-    if (score >= 70) return {
-      gradient: 'from-blue-400 via-cyan-500 to-teal-600',
-      border: 'border-blue-300', 
-      bg: 'bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50',
-      text: 'text-blue-700',
-      icon: 'text-blue-600',
-      glow: 'shadow-blue-200/50'
-    };
-    if (score >= 60) return {
-      gradient: 'from-yellow-400 via-amber-500 to-orange-500',
-      border: 'border-yellow-300',
-      bg: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50', 
-      text: 'text-yellow-700',
-      icon: 'text-yellow-600',
-      glow: 'shadow-yellow-200/50'
-    };
-    return {
-      gradient: 'from-red-400 via-rose-500 to-pink-600',
-      border: 'border-red-300',
-      bg: 'bg-gradient-to-br from-red-50 via-rose-50 to-pink-50',
-      text: 'text-red-700', 
-      icon: 'text-red-600',
-      glow: 'shadow-red-200/50'
-    };
-  };
-
-  const getSafetyColor = (status: string) => {
-    switch (status) {
-      case 'safe': return 'text-emerald-600';
-      case 'caution': return 'text-amber-600';
-      case 'warning': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const getImpactColor = (impact: string) => {
-    switch (impact) {
-      case 'low': return 'text-emerald-600 bg-emerald-100';
-      case 'medium': return 'text-amber-600 bg-amber-100';
-      case 'high': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
 
   return (
-    <div className="space-y-6">
-      {/* Exciting Score Cards with Dynamic Colors */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Safety Score - Clickable with Explanation */}
-        <Card className={`border-2 ${getScoreColors(analysis.safety.food_safety_score).border} ${getScoreColors(analysis.safety.food_safety_score).bg} shadow-lg ${getScoreColors(analysis.safety.food_safety_score).glow} hover:shadow-xl transition-all duration-300 cursor-pointer group`}
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* A-E Grade Overview Cards */}
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
+        {/* Food Analysis Score - A-E Grade */}
+        <Card className={`border-2 ${getGradeColors(getGradeFromScore(analysis.safety.food_safety_score)).border} ${getGradeColors(getGradeFromScore(analysis.safety.food_safety_score)).bg} shadow-lg ${getGradeColors(getGradeFromScore(analysis.safety.food_safety_score)).glow} hover:shadow-xl transition-all duration-300 cursor-pointer group`}
               onClick={() => document.getElementById('safety-tab')?.click()}>
           <CardContent className="p-6 text-center">
             <div className="flex items-center justify-center mb-4">
-              <Shield className={`h-10 w-10 ${getScoreColors(analysis.safety.food_safety_score).icon} mr-3 group-hover:scale-110 transition-transform`} />
-              <span className="text-xl font-bold">Safety</span>
+              <Shield className={`h-10 w-10 ${getGradeColors(getGradeFromScore(analysis.safety.food_safety_score)).icon} mr-3 group-hover:scale-110 transition-transform`} />
+              <span className="text-xl font-bold">🍽 Food Analysis</span>
             </div>
-            <div className={`text-4xl font-black mb-3 bg-gradient-to-r ${getScoreColors(analysis.safety.food_safety_score).gradient} bg-clip-text text-transparent`}>
+            
+            {/* A-E Grade Badge (Professional) */}
+            <div className="flex items-center justify-center mb-4">
+              <div className={`w-16 h-16 rounded-full ${getGradeColors(getGradeFromScore(analysis.safety.food_safety_score)).badge} flex items-center justify-center shadow-lg`}>
+                <span className={`text-3xl font-black ${getGradeColors(getGradeFromScore(analysis.safety.food_safety_score)).text}`}>
+                  {getGradeFromScore(analysis.safety.food_safety_score)}
+                </span>
+              </div>
+            </div>
+            
+            <div className="text-2xl font-bold mb-2">
               {analysis.safety.food_safety_score}/100
             </div>
-            <Badge className={`${getScoreColors(analysis.safety.food_safety_score).bg} ${getScoreColors(analysis.safety.food_safety_score).text} border-0 text-sm font-semibold px-3 py-1`}>
-              {analysis.safety.overall_safety.toUpperCase()}
-            </Badge>
+            
             {analysis.safety.allergen_alerts.length > 0 && (
               <div className="mt-4 p-2 bg-red-100 rounded-lg">
                 <div className="text-sm text-red-700 font-medium flex items-center justify-center">
@@ -279,46 +310,80 @@ export default function MVPAnalysisResults({
           </CardContent>
         </Card>
 
-        {/* Health Score - Clickable with Explanation */}
-        <Card className={`border-2 ${getScoreColors(analysis.health.nutrition_score).border} ${getScoreColors(analysis.health.nutrition_score).bg} shadow-lg ${getScoreColors(analysis.health.nutrition_score).glow} hover:shadow-xl transition-all duration-300 cursor-pointer group`}
+        {/* Health Score - A-E Grade with Apple Fitness Ring */}
+        <Card className={`border-2 ${getGradeColors(getGradeFromScore(analysis.health.nutrition_score)).border} ${getGradeColors(getGradeFromScore(analysis.health.nutrition_score)).bg} shadow-lg ${getGradeColors(getGradeFromScore(analysis.health.nutrition_score)).glow} hover:shadow-xl transition-all duration-300 cursor-pointer group`}
               onClick={() => document.getElementById('health-tab')?.click()}>
           <CardContent className="p-6 text-center">
             <div className="flex items-center justify-center mb-4">
-              <Heart className={`h-10 w-10 ${getScoreColors(analysis.health.nutrition_score).icon} mr-3 group-hover:scale-110 transition-transform`} />
-              <span className="text-xl font-bold">Health</span>
+              <Heart className={`h-10 w-10 ${getGradeColors(getGradeFromScore(analysis.health.nutrition_score)).icon} mr-3 group-hover:scale-110 transition-transform`} />
+              <span className="text-xl font-bold">🌍 Eco + Health</span>
             </div>
-            <div className={`text-4xl font-black mb-3 bg-gradient-to-r ${getScoreColors(analysis.health.nutrition_score).gradient} bg-clip-text text-transparent`}>
-              {analysis.health.nutrition_score}/100
-            </div>
-            <Badge className={`${getScoreColors(analysis.health.nutrition_score).bg} ${getScoreColors(analysis.health.nutrition_score).text} border-0 text-sm font-semibold px-3 py-1`}>
-              Grade {analysis.health.health_grade}
-            </Badge>
-            <div className="mt-4 p-2 bg-gray-100 rounded-lg">
-              <div className="text-sm font-medium flex items-center justify-center">
-                <Flame className="w-4 h-4 mr-1 text-orange-500" />
-                {Math.round(mealTotals.calories)} calories
+            
+            {/* A-E Grade Badge */}
+            <div className="flex items-center justify-center mb-4">
+              <div className={`w-16 h-16 rounded-full ${getGradeColors(getGradeFromScore(analysis.health.nutrition_score)).badge} flex items-center justify-center shadow-lg`}>
+                <span className={`text-3xl font-black ${getGradeColors(getGradeFromScore(analysis.health.nutrition_score)).text}`}>
+                  {getGradeFromScore(analysis.health.nutrition_score)}
+                </span>
               </div>
             </div>
+            
+            {/* Apple Fitness Style Radial Progress Ring */}
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 80 80">
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="36"
+                  stroke="#e5e7eb"
+                  strokeWidth="8"
+                  fill="transparent"
+                />
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="36"
+                  className={getGradeColors(getGradeFromScore(analysis.health.nutrition_score)).ring}
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray={`${Math.min(100, (mealTotals.calories / dailyGoals.calories) * 100) * 2.26} 226`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-xs font-bold">{Math.round(mealTotals.calories)}</span>
+                <span className="text-xs text-gray-500">kcal</span>
+              </div>
+            </div>
+            
             <div className="text-xs text-gray-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
               Click for USDA analysis
             </div>
           </CardContent>
         </Card>
 
-        {/* Sustainability Score - Clickable with Real Units */}
-        <Card className={`border-2 ${getScoreColors(analysis.sustainability.eco_score).border} ${getScoreColors(analysis.sustainability.eco_score).bg} shadow-lg ${getScoreColors(analysis.sustainability.eco_score).glow} hover:shadow-xl transition-all duration-300 cursor-pointer group`}
+        {/* Sustainability Score - A-E Grade */}
+        <Card className={`border-2 ${getGradeColors(getGradeFromScore(analysis.sustainability.eco_score)).border} ${getGradeColors(getGradeFromScore(analysis.sustainability.eco_score)).bg} shadow-lg ${getGradeColors(getGradeFromScore(analysis.sustainability.eco_score)).glow} hover:shadow-xl transition-all duration-300 cursor-pointer group`}
               onClick={() => document.getElementById('sustainability-tab')?.click()}>
           <CardContent className="p-6 text-center">
             <div className="flex items-center justify-center mb-4">
-              <Globe className={`h-10 w-10 ${getScoreColors(analysis.sustainability.eco_score).icon} mr-3 group-hover:scale-110 transition-transform`} />
-              <span className="text-xl font-bold">Planet</span>
+              <Globe className={`h-10 w-10 ${getGradeColors(getGradeFromScore(analysis.sustainability.eco_score)).icon} mr-3 group-hover:scale-110 transition-transform`} />
+              <span className="text-xl font-bold">🎮 Motivation</span>
             </div>
-            <div className={`text-4xl font-black mb-3 bg-gradient-to-r ${getScoreColors(analysis.sustainability.eco_score).gradient} bg-clip-text text-transparent`}>
+            
+            {/* A-E Grade Badge */}
+            <div className="flex items-center justify-center mb-4">
+              <div className={`w-16 h-16 rounded-full ${getGradeColors(getGradeFromScore(analysis.sustainability.eco_score)).badge} flex items-center justify-center shadow-lg`}>
+                <span className={`text-3xl font-black ${getGradeColors(getGradeFromScore(analysis.sustainability.eco_score)).text}`}>
+                  {getGradeFromScore(analysis.sustainability.eco_score)}
+                </span>
+              </div>
+            </div>
+            
+            <div className="text-2xl font-bold mb-4">
               {analysis.sustainability.eco_score}/100
             </div>
-            <Badge className={`${getScoreColors(analysis.sustainability.eco_score).bg} ${getScoreColors(analysis.sustainability.eco_score).text} border-0 text-sm font-semibold px-3 py-1`}>
-              Grade {analysis.sustainability.eco_grade}
-            </Badge>
+            
             <div className="mt-4 p-2 bg-gray-100 rounded-lg space-y-1">
               <div className={`text-sm font-medium px-2 py-1 rounded ${getImpactColor(analysis.sustainability.carbon_footprint)}`}>
                 Carbon: 2.3 kg CO₂e
@@ -334,487 +399,444 @@ export default function MVPAnalysisResults({
         </Card>
       </div>
 
-      {/* Interactive Food Items with Portion Controls */}
-      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+      {/* Interactive Food List with Portion Controls */}
+      <Card className="border-2 border-gray-200 bg-gradient-to-r from-gray-50 to-slate-50">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Utensils className="h-5 w-5 mr-2 text-blue-600" />
-              Interactive Food Analysis
-            </div>
-            <Badge className="bg-blue-100 text-blue-700 border-blue-300">
-              {editableFoods.length} items • USDA Compliant
-            </Badge>
+          <CardTitle className="flex items-center text-gray-700">
+            <Utensils className="h-5 w-5 mr-2" />
+            Meal Breakdown - Adjust Portions
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Meal Totals & Daily Goals Comparison */}
-          <div className="p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl">
-            <h4 className="font-bold text-emerald-700 mb-3 flex items-center">
-              <BarChart3 className="w-5 h-5 mr-2" />
-              Meal Totals vs Daily Goals (USDA 2020-2025)
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-black text-emerald-700">{Math.round(mealTotals.calories)}</div>
-                <div className="text-sm font-medium text-emerald-600">Calories</div>
-                <div className="text-xs text-emerald-500">{dailyRemaining.calories} remaining</div>
+          {editableFoods.map((food, index) => (
+            <div key={index} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+              <div className="flex-1">
+                <div className="font-semibold text-gray-800">{food.name}</div>
+                <div className="text-sm text-gray-600">
+                  {Math.round(food.calories_per_serving * food.quantity)} calories per serving
+                </div>
+                <Badge variant="outline" className="mt-1 text-xs">
+                  {food.confidence}% confidence
+                </Badge>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-black text-blue-700">{Math.round(mealTotals.protein)}g</div>
-                <div className="text-sm font-medium text-blue-600">Protein</div>
-                <div className="text-xs text-blue-500">{Math.round(dailyRemaining.protein)}g remaining</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-black text-green-700">{Math.round(mealTotals.carbs)}g</div>
-                <div className="text-sm font-medium text-green-600">Carbs</div>
-                <div className="text-xs text-green-500">{Math.round(dailyRemaining.carbs)}g remaining</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-black text-yellow-700">{Math.round(mealTotals.fat)}g</div>
-                <div className="text-sm font-medium text-yellow-600">Fat</div>
-                <div className="text-xs text-yellow-500">{Math.round(dailyRemaining.fat)}g remaining</div>
+              
+              {/* Portion Controls */}
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateFoodPortion(index, food.quantity - 0.25)}
+                  className="w-8 h-8 p-0"
+                  data-testid={`button-decrease-${index}`}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                
+                <div className="text-center min-w-[4rem]">
+                  <div className="font-bold">{food.quantity}</div>
+                  <div className="text-xs text-gray-500">{food.unit}</div>
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateFoodPortion(index, food.quantity + 0.25)}
+                  className="w-8 h-8 p-0"
+                  data-testid={`button-increase-${index}`}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
               </div>
             </div>
-          </div>
+          ))}
           
-          {/* Interactive Food Items */}
-          <div className="space-y-3">
-            {editableFoods.map((food, index) => (
-              <div key={index} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h5 className="font-semibold text-gray-800">{food.name}</h5>
-                      <Badge variant="outline" className="text-xs">
-                        {Math.round(food.confidence * 100)}% confidence
-                      </Badge>
-                      <Badge variant="outline" className="text-xs text-blue-600">
-                        USDA FDC
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <div>Category: {food.category}</div>
-                      <div>Per serving: {food.calories_per_serving} cal</div>
-                    </div>
-                  </div>
-                  
-                  {/* Portion Controls */}
-                  <div className="flex items-center space-x-3">
-                    <div className="text-center">
-                      <div className="text-sm text-gray-500 mb-1">Portions</div>
-                      <div className="flex items-center space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-8 w-8 p-0"
-                          onClick={() => updateFoodPortion(index, food.quantity - 0.25)}
-                          data-testid={`button-decrease-${food.name.toLowerCase().replace(/\s+/g, '-')}-${index}`}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="font-bold text-lg w-12 text-center">
-                          {food.quantity.toFixed(1)}
-                        </span>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-8 w-8 p-0"
-                          onClick={() => updateFoodPortion(index, food.quantity + 0.25)}
-                          data-testid={`button-increase-${food.name.toLowerCase().replace(/\s+/g, '-')}-${index}`}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">{food.unit}</div>
-                    </div>
-                    
-                    {/* Current Totals */}
-                    <div className="text-center">
-                      <div className="text-sm text-gray-500 mb-1">Total</div>
-                      <div className="font-bold text-orange-600">
-                        {Math.round(food.calories_per_serving * food.quantity)} cal
-                      </div>
-                      <div className="text-xs text-gray-500">this item</div>
-                    </div>
-                    
-                    {/* Remove Button */}
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
-                      onClick={() => removeFoodItem(index)}
-                      data-testid={`button-remove-${food.name.toLowerCase().replace(/\s+/g, '-')}-${index}`}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+          {/* Meal Totals Summary */}
+          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg mt-6">
+            <h4 className="font-bold text-blue-700 mb-3 flex items-center">
+              <Crown className="w-4 h-4 mr-2" />
+              Meal Totals
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-orange-600">{Math.round(mealTotals.calories)}</div>
+                <div className="text-sm text-gray-600">Calories</div>
+                <div className="text-xs text-gray-500">{dailyRemaining.calories} remaining</div>
               </div>
-            ))}
+              <div>
+                <div className="text-2xl font-bold text-red-600">{Math.round(mealTotals.protein)}g</div>
+                <div className="text-sm text-gray-600">Protein</div>
+                <div className="text-xs text-gray-500">{dailyRemaining.protein}g remaining</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-yellow-600">{Math.round(mealTotals.carbs)}g</div>
+                <div className="text-sm text-gray-600">Carbs</div>
+                <div className="text-xs text-gray-500">{dailyRemaining.carbs}g remaining</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">{Math.round(mealTotals.fat)}g</div>
+                <div className="text-sm text-gray-600">Fat</div>
+                <div className="text-xs text-gray-500">{dailyRemaining.fat}g remaining</div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Detailed Analysis Tabs */}
-      <Tabs defaultValue="safety" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="safety" id="safety-tab" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Safety
-          </TabsTrigger>
-          <TabsTrigger value="health" id="health-tab" className="flex items-center gap-2">
-            <Heart className="h-4 w-4" />
-            Health
-          </TabsTrigger>
-          <TabsTrigger value="sustainability" id="sustainability-tab" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            Planet
-          </TabsTrigger>
+      <Tabs defaultValue="health" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="health" id="health-tab">🌍 Health Impact</TabsTrigger>
+          <TabsTrigger value="safety" id="safety-tab">🍽 Safety Check</TabsTrigger>
+          <TabsTrigger value="sustainability" id="sustainability-tab">🎮 Progress</TabsTrigger>
+          <TabsTrigger value="recommendations">💡 Improvements</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="safety" className="space-y-4">
+        {/* Health Analysis */}
+        <TabsContent value="health" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Safety Analysis</CardTitle>
-              <CardDescription>
-                Food safety assessment and allergen detection
-              </CardDescription>
+              <CardTitle className="flex items-center text-green-700">
+                <Heart className="h-5 w-5 mr-2" />
+                USDA 2020-2025 Guidelines Analysis
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Macronutrient Breakdown */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-700">Macronutrient Profile</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(analysis.health.macronutrients).map(([key, value]) => (
+                    <div key={key} className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-lg font-bold text-gray-800">{Math.round(value)}g</div>
+                      <div className="text-sm text-gray-600 capitalize">{key}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Micronutrient Analysis */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-700">Essential Micronutrients</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {Object.entries(analysis.health.micronutrients).map(([key, value]) => {
+                    const percentage = Math.min(100, (value / 100) * 100); // Assuming 100 is daily value
+                    return (
+                      <div key={key} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium capitalize">{key.replace('_', ' ')}</span>
+                          <span className="text-sm font-bold">{Math.round(percentage)}%</span>
+                        </div>
+                        <Progress value={percentage} className="h-2" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Health Benefits & Concerns */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-green-700 flex items-center">
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Health Benefits
+                  </h4>
+                  <div className="space-y-2">
+                    {analysis.health.health_benefits.map((benefit, index) => (
+                      <div key={index} className="p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                        {benefit}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {analysis.health.health_concerns.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-orange-700 flex items-center">
+                      <AlertTriangle className="w-4 h-4 mr-2" />
+                      Health Considerations
+                    </h4>
+                    <div className="space-y-2">
+                      {analysis.health.health_concerns.map((concern, index) => (
+                        <div key={index} className="p-2 bg-orange-50 border border-orange-200 rounded text-sm text-orange-700">
+                          {concern}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Safety Analysis */}
+        <TabsContent value="safety" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-blue-700">
+                <Shield className="h-5 w-5 mr-2" />
+                Food Safety & Allergen Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Overall Safety Status */}
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-blue-700">Overall Safety Status</span>
+                  <Badge 
+                    className={`${
+                      analysis.safety.overall_safety === 'safe' ? 'bg-green-100 text-green-700' :
+                      analysis.safety.overall_safety === 'caution' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
+                    }`}
+                  >
+                    {analysis.safety.overall_safety.toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
+
               {/* Allergen Alerts */}
               {analysis.safety.allergen_alerts.length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-red-600 flex items-center">
-                    <AlertTriangle className="h-4 w-4 mr-1" />
-                    Allergen Alerts
+                  <h4 className="font-semibold text-red-700 flex items-center">
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Allergen Alerts ({analysis.safety.allergen_alerts.length})
                   </h4>
-                  {analysis.safety.allergen_alerts.map((alert, index) => (
-                    <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <div className="font-medium text-red-800">{alert.allergen}</div>
-                      <div className="text-sm text-red-700 mt-1">{alert.description}</div>
-                      <div className="text-xs text-red-600 mt-2">
-                        Found in: {alert.foods_containing.join(', ')}
+                  <div className="space-y-3">
+                    {analysis.safety.allergen_alerts.map((alert, index) => (
+                      <div key={index} className={`p-4 border rounded-lg ${
+                        alert.severity === 'severe' ? 'bg-red-50 border-red-300' :
+                        alert.severity === 'moderate' ? 'bg-orange-50 border-orange-300' :
+                        'bg-yellow-50 border-yellow-300'
+                      }`}>
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-semibold">{alert.allergen}</span>
+                          <Badge variant={alert.severity === 'severe' ? 'destructive' : 'secondary'}>
+                            {alert.severity}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{alert.description}</p>
+                        <div className="text-xs text-gray-500">
+                          Found in: {alert.foods_containing.join(', ')}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
 
               {/* Safety Recommendations */}
-              {analysis.safety.safety_recommendations.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-blue-700">Safety Recommendations</h4>
                 <div className="space-y-2">
-                  <h4 className="font-semibold">Safety Recommendations</h4>
                   {analysis.safety.safety_recommendations.map((rec, index) => (
-                    <div key={index} className="flex items-start">
-                      <Info className="h-4 w-4 mt-0.5 mr-2 text-blue-500 flex-shrink-0" />
-                      <span className="text-sm">{rec}</span>
+                    <div key={index} className="p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+                      {rec}
                     </div>
                   ))}
-                </div>
-              )}
-
-              {/* Safer Alternatives */}
-              {analysis.recommendations.safer_alternatives.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Safer Alternatives</h4>
-                  {analysis.recommendations.safer_alternatives.map((swap, index) => (
-                    <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center text-sm">
-                        <span>{swap.original_food}</span>
-                        <ArrowRight className="h-4 w-4 mx-2 text-green-600" />
-                        <span className="font-medium text-green-700">{swap.alternative}</span>
-                      </div>
-                      <div className="text-xs text-green-600 mt-1">{swap.reason}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="health" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Health Analysis</CardTitle>
-              <CardDescription>
-                Nutritional value and health impact assessment
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Complete Nutritional Breakdown */}
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-semibold mb-4 flex items-center">
-                    <Target className="w-5 h-5 mr-2 text-blue-600" />
-                    Complete Macronutrients
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-xl">
-                      <div className="text-2xl font-black text-blue-700">{analysis.health.macronutrients.protein}g</div>
-                      <div className="text-sm font-medium text-blue-600">Protein</div>
-                      <div className="text-xs text-blue-500 mt-1">{Math.round((analysis.health.macronutrients.protein * 4 / analysis.health.calories) * 100)}% calories</div>
-                    </div>
-                    <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-100 border border-green-200 rounded-xl">
-                      <div className="text-2xl font-black text-green-700">{analysis.health.macronutrients.carbs}g</div>
-                      <div className="text-sm font-medium text-green-600">Carbs</div>
-                      <div className="text-xs text-green-500 mt-1">{Math.round((analysis.health.macronutrients.carbs * 4 / analysis.health.calories) * 100)}% calories</div>
-                    </div>
-                    <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-amber-100 border border-yellow-200 rounded-xl">
-                      <div className="text-2xl font-black text-yellow-700">{analysis.health.macronutrients.fat}g</div>
-                      <div className="text-sm font-medium text-yellow-600">Fat</div>
-                      <div className="text-xs text-yellow-500 mt-1">{Math.round((analysis.health.macronutrients.fat * 9 / analysis.health.calories) * 100)}% calories</div>
-                    </div>
-                    <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-red-100 border border-orange-200 rounded-xl">
-                      <div className="text-2xl font-black text-orange-700">{analysis.health.macronutrients.fiber}g</div>
-                      <div className="text-sm font-medium text-orange-600">Fiber</div>
-                      <div className="text-xs text-orange-500 mt-1">Essential for digestion</div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Estimated Micronutrients */}
-                <div>
-                  <h4 className="font-semibold mb-4 flex items-center">
-                    <Award className="w-5 h-5 mr-2 text-purple-600" />
-                    Key Micronutrients (Estimated)
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    <div className="p-3 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-lg">
-                      <div className="font-bold text-red-700">Vitamin C</div>
-                      <div className="text-sm text-red-600">~15mg</div>
-                      <div className="text-xs text-red-500">Immune support</div>
-                    </div>
-                    <div className="p-3 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg">
-                      <div className="font-bold text-orange-700">Vitamin A</div>
-                      <div className="text-sm text-orange-600">~280mcg</div>
-                      <div className="text-xs text-orange-500">Eye health</div>
-                    </div>
-                    <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
-                      <div className="font-bold text-green-700">Folate</div>
-                      <div className="text-sm text-green-600">~25mcg</div>
-                      <div className="text-xs text-green-500">Cell function</div>
-                    </div>
-                    <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
-                      <div className="font-bold text-purple-700">Potassium</div>
-                      <div className="text-sm text-purple-600">~320mg</div>
-                      <div className="text-xs text-purple-500">Heart health</div>
-                    </div>
-                    <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg">
-                      <div className="font-bold text-blue-700">Magnesium</div>
-                      <div className="text-sm text-blue-600">~45mg</div>
-                      <div className="text-xs text-blue-500">Muscle function</div>
-                    </div>
-                    <div className="p-3 bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200 rounded-lg">
-                      <div className="font-bold text-gray-700">Iron</div>
-                      <div className="text-sm text-gray-600">~2.1mg</div>
-                      <div className="text-xs text-gray-500">Energy support</div>
-                    </div>
-                    <div className="p-3 bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg">
-                      <div className="font-bold text-teal-700">Calcium</div>
-                      <div className="text-sm text-teal-600">~45mg</div>
-                      <div className="text-xs text-teal-500">Bone health</div>
-                    </div>
-                    <div className="p-3 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-lg">
-                      <div className="font-bold text-rose-700">Zinc</div>
-                      <div className="text-sm text-rose-600">~1.2mg</div>
-                      <div className="text-xs text-rose-500">Immune system</div>
-                    </div>
-                  </div>
                 </div>
               </div>
-
-              {/* Health Benefits */}
-              {analysis.health.health_benefits.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-green-600">Health Benefits</h4>
-                  {analysis.health.health_benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-start">
-                      <CheckCircle className="h-4 w-4 mt-0.5 mr-2 text-green-500 flex-shrink-0" />
-                      <span className="text-sm">{benefit}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Health Concerns */}
-              {analysis.health.health_concerns.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-orange-600">Health Concerns</h4>
-                  {analysis.health.health_concerns.map((concern, index) => (
-                    <div key={index} className="flex items-start">
-                      <AlertTriangle className="h-4 w-4 mt-0.5 mr-2 text-orange-500 flex-shrink-0" />
-                      <span className="text-sm">{concern}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Healthier Swaps */}
-              {analysis.recommendations.healthier_swaps.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Healthier Alternatives</h4>
-                  {analysis.recommendations.healthier_swaps.map((swap, index) => (
-                    <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center text-sm">
-                        <span>{swap.original_food}</span>
-                        <ArrowRight className="h-4 w-4 mx-2 text-green-600" />
-                        <span className="font-medium text-green-700">{swap.alternative}</span>
-                      </div>
-                      <div className="text-xs text-green-600 mt-1">{swap.reason}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="sustainability" className="space-y-4">
+        {/* Sustainability Analysis */}
+        <TabsContent value="sustainability" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Sustainability Analysis</CardTitle>
-              <CardDescription>
-                Environmental impact and eco-friendly recommendations
-              </CardDescription>
+              <CardTitle className="flex items-center text-green-700">
+                <Globe className="h-5 w-5 mr-2" />
+                Environmental Impact & Gamification
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Environmental Impact */}
-              <div>
-                <h4 className="font-semibold mb-3">Environmental Impact</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className={`text-xl font-bold ${getImpactColor(analysis.sustainability.carbon_footprint)}`}>
-                      {analysis.sustainability.carbon_footprint.toUpperCase()}
+            <CardContent className="space-y-6">
+              {/* Environmental Metrics */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-green-700">Environmental Footprint</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium">Carbon Footprint</span>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getImpactColor(analysis.sustainability.carbon_footprint)}>
+                          {analysis.sustainability.carbon_footprint}
+                        </Badge>
+                        <span className="text-sm font-bold">2.3 kg CO₂e</span>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">Carbon Footprint</div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium">Water Usage</span>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getImpactColor(analysis.sustainability.water_usage)}>
+                          {analysis.sustainability.water_usage}
+                        </Badge>
+                        <span className="text-sm font-bold">85 L</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className={`text-xl font-bold ${getImpactColor(analysis.sustainability.water_usage)}`}>
-                      {analysis.sustainability.water_usage.toUpperCase()}
+                </div>
+
+                {/* Gamification Progress */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-purple-700 flex items-center">
+                    <Trophy className="w-4 h-4 mr-2" />
+                    Progress & Rewards
+                  </h4>
+                  <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium">XP Progress</span>
+                      <span className="text-sm font-bold text-purple-600">2,450 / 3,000 XP</span>
                     </div>
-                    <div className="text-sm text-gray-600">Water Usage</div>
+                    <Progress value={81} className="h-3 mb-2" />
+                    <div className="text-xs text-gray-600">550 XP to next level!</div>
+                  </div>
+                  
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center justify-center text-yellow-700">
+                      <Star className="w-4 h-4 mr-2" />
+                      <span className="text-sm font-medium">7-Day Streak Active!</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Sustainability Tips */}
-              {analysis.sustainability.sustainability_tips.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-green-700">Sustainability Tips</h4>
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-blue-600">Sustainability Tips</h4>
                   {analysis.sustainability.sustainability_tips.map((tip, index) => (
-                    <div key={index} className="flex items-start">
-                      <Info className="h-4 w-4 mt-0.5 mr-2 text-blue-500 flex-shrink-0" />
-                      <span className="text-sm">{tip}</span>
+                    <div key={index} className="p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                      {tip}
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-              {/* Eco-Friendly Options */}
-              {analysis.recommendations.eco_friendly_options.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Eco-Friendly Alternatives</h4>
-                  {analysis.recommendations.eco_friendly_options.map((swap, index) => (
-                    <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center text-sm">
-                        <span>{swap.original_food}</span>
-                        <ArrowRight className="h-4 w-4 mx-2 text-green-600" />
-                        <span className="font-medium text-green-700">{swap.alternative}</span>
-                      </div>
-                      <div className="text-xs text-green-600 mt-1">{swap.reason}</div>
+        {/* Recommendations */}
+        <TabsContent value="recommendations" className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Healthier Swaps */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center text-green-700">
+                  <Heart className="h-5 w-5 mr-2" />
+                  Healthier Alternatives
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {analysis.recommendations.healthier_swaps.map((swap, index) => (
+                  <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-semibold">{swap.original_food} → {swap.alternative}</div>
+                      <Badge variant="outline" className="text-xs bg-green-100 text-green-700">
+                        +{swap.benefit_score} points
+                      </Badge>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <p className="text-xs text-gray-600">{swap.reason}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Eco-Friendly Options */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center text-blue-700">
+                  <Globe className="h-5 w-5 mr-2" />
+                  Eco-Friendly Swaps
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {analysis.recommendations.eco_friendly_options.map((option, index) => (
+                  <div key={index} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-semibold">{option.original_food} → {option.alternative}</div>
+                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700">
+                        +{option.benefit_score} eco points
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-gray-600">{option.reason}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* General Tips */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-purple-700">
+                <Brain className="h-5 w-5 mr-2" />
+                Personalized Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-3">
+                {analysis.recommendations.general_tips.map((tip, index) => (
+                  <div key={index} className="p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm text-purple-700">
+                    <Zap className="w-4 h-4 inline mr-2" />
+                    {tip}
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Smart Food Suggestions */}
-      <Card className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-indigo-200">
-        <CardHeader>
-          <CardTitle className="flex items-center text-indigo-700">
-            <TrendingUp className="h-5 w-5 mr-2" />
-            Smart Suggestions for Your Meal
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Optimization Tips */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
-              <h5 className="font-semibold text-green-700 mb-2 flex items-center">
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Nutritional Boosters
-              </h5>
-              <ul className="text-sm space-y-1">
-                <li className="text-green-600">• Add spinach for iron and folate</li>
-                <li className="text-green-600">• Include bell peppers for vitamin C</li>
-                <li className="text-green-600">• Sprinkle hemp seeds for omega-3</li>
-                <li className="text-green-600">• Add turmeric for anti-inflammatory benefits</li>
-              </ul>
-            </div>
+      {/* Save Meal Button with XP Preview */}
+      <div className="flex justify-center space-x-4 pt-6">
+        <div className="text-center">
+          <div className="text-sm text-gray-600 mb-2">Save this meal to earn XP!</div>
+          <div className="flex items-center space-x-2">
+            <select
+              value={selectedMealType}
+              onChange={(e) => setSelectedMealType(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              data-testid="select-meal-type"
+            >
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
+            </select>
             
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl">
-              <h5 className="font-semibold text-blue-700 mb-2 flex items-center">
-                <Target className="w-4 h-4 mr-1" />
-                Balance Improvements
-              </h5>
-              <ul className="text-sm space-y-1">
-                <li className="text-blue-600">• Consider adding lean protein</li>
-                <li className="text-blue-600">• Reduce white rice, try quinoa</li>
-                <li className="text-blue-600">• Add healthy fats like avocado</li>
-                <li className="text-blue-600">• Include probiotic foods</li>
-              </ul>
-            </div>
+            <Button
+              onClick={handleSaveMeal}
+              disabled={isSaving}
+              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-6 py-2"
+              data-testid="button-save-meal"
+            >
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Meal (+XP)
+                </>
+              )}
+            </Button>
           </div>
           
-          {/* Personalized Recommendations */}
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
-            <h5 className="font-semibold text-purple-700 mb-3 flex items-center">
-              <Award className="w-4 h-4 mr-1" />
-              Personalized for Your Goals
-            </h5>
-            <div className="grid md:grid-cols-3 gap-3 text-sm">
-              <div className="text-purple-600">
-                <strong>For Energy:</strong> Add complex carbs like sweet potato
-              </div>
-              <div className="text-purple-600">
-                <strong>For Recovery:</strong> Include antioxidant-rich berries
-              </div>
-              <div className="text-purple-600">
-                <strong>For Satiety:</strong> Add fiber-rich vegetables
-              </div>
-            </div>
+          {/* XP Preview */}
+          <div className="mt-2 text-xs text-gray-500">
+            Estimated XP: +{50 + Math.floor(analysis.health.nutrition_score / 10) * 5} points
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-4">
-        {onSaveMeal && (
-          <Button 
-            onClick={handleSaveMeal} 
-            disabled={isSaving}
-            className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
-          >
-            {isSaving ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Saving...</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Zap className="h-4 w-4" />
-                <span>Save Meal (+15 XP)</span>
-              </div>
-            )}
-          </Button>
-        )}
         {onNewAnalysis && (
-          <Button onClick={onNewAnalysis} variant="outline" className="flex-1">
+          <Button
+            onClick={onNewAnalysis}
+            variant="outline"
+            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            data-testid="button-new-analysis"
+          >
             Analyze Another Meal
           </Button>
         )}
