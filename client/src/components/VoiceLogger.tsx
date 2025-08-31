@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mic, MicOff, Volume2, Loader2, Check, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useLocalAuth';
 
 interface VoiceLoggerProps {
   onFoodLogged?: (mealData: any) => void;

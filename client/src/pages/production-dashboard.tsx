@@ -22,7 +22,7 @@ import {
   Leaf,
   Brain,
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useLocalAuth';
 import { apiRequest } from '@/lib/queryClient';
 
 interface DashboardData {

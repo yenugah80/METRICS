@@ -38,11 +38,23 @@ export const users = pgTable("users", {
   isPremium: boolean("is_premium").default(false),
   isEmailVerified: boolean("is_email_verified").default(false),
   
-  // User preferences and settings
+  // User preferences and settings - MATHEMATICALLY CONSISTENT
   dailyCalorieGoal: integer("daily_calorie_goal").default(2000),
-  dailyProteinGoal: integer("daily_protein_goal").default(150),
-  dailyCarbGoal: integer("daily_carb_goal").default(250),
-  dailyFatGoal: integer("daily_fat_goal").default(65),
+  dailyProteinGoal: integer("daily_protein_goal").default(150), // 30% of 2000kcal = 600kcal / 4 = 150g
+  dailyCarbGoal: integer("daily_carb_goal").default(200),     // 40% of 2000kcal = 800kcal / 4 = 200g
+  dailyFatGoal: integer("daily_fat_goal").default(67),       // 30% of 2000kcal = 600kcal / 9 = 67g
+  
+  // Micronutrient goals (USDA 2020-2025 DRV)
+  dailyFiberGoal: integer("daily_fiber_goal").default(28),
+  dailySodiumGoal: integer("daily_sodium_goal").default(2300), // mg
+  dailySugarGoal: integer("daily_sugar_goal").default(50),    // g added sugars
+  dailyIronGoal: real("daily_iron_goal").default(18),         // mg
+  dailyCalciumGoal: integer("daily_calcium_goal").default(1000), // mg
+  dailyVitaminDGoal: real("daily_vitamin_d_goal").default(20), // mcg
+  
+  // Macro strategy for consistency
+  macroStrategy: varchar("macro_strategy", { length: 20 }).default('percent'), // 'percent' | 'per_kg' | 'absolute'
+  macroTargets: jsonb("macro_targets").$type<{protein: number, carb: number, fat: number}>().default({protein: 30, carb: 40, fat: 30}), // percentages
   
   // Dietary preferences
   dietaryRestrictions: jsonb("dietary_restrictions").$type<string[]>().default([]),

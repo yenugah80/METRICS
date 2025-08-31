@@ -4,6 +4,7 @@
  */
 
 import { localStorageManager } from './localStorageManager';
+import { queryClient } from './queryClient';
 
 // Mock API response structure for compatibility
 interface ApiResponse<T> {
@@ -95,6 +96,12 @@ export class LocalAPI {
     return new Promise((resolve) => {
       setTimeout(() => {
         const updatedGamification = localStorageManager.awardXP(xpAmount, reason);
+        
+        // Invalidate relevant queries to update UI immediately
+        queryClient.invalidateQueries({ queryKey: ['user'] });
+        queryClient.invalidateQueries({ queryKey: ['gamification'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        
         resolve({
           success: true,
           data: { xpAwarded: xpAmount },
@@ -125,7 +132,7 @@ export class LocalAPI {
         const remaining = {
           calories: Math.max(0, user.dailyCalorieGoal - todaysProgress.calories),
           protein: Math.max(0, user.dailyProteinGoal - todaysProgress.protein),
-          carbs: Math.max(0, user.dailyCarbGoal - todaysProgress.carbs),
+          carbs: Math.max(0, (user.dailyCarbGoal || 200) - todaysProgress.carbs),
           fat: Math.max(0, user.dailyFatGoal - todaysProgress.fat)
         };
 
@@ -208,8 +215,8 @@ export class LocalAPI {
 
           // Remove undefined values
           Object.keys(mappedUpdates).forEach(key => {
-            if (mappedUpdates[key] === undefined) {
-              delete mappedUpdates[key];
+            if ((mappedUpdates as any)[key] === undefined) {
+              delete (mappedUpdates as any)[key];
             }
           });
 
@@ -321,6 +328,11 @@ export class LocalAPI {
           fat: mealData.fat || 10,
           nutritionScore: mealData.nutritionScore || 75
         });
+        
+        // Invalidate queries to update UI after meal logging
+        queryClient.invalidateQueries({ queryKey: ['meals'] });
+        queryClient.invalidateQueries({ queryKey: ['daily-progress'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         
         resolve(meal);
       }, 100);

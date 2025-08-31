@@ -115,12 +115,13 @@ export default function MVPAnalysisResults({
     fiber: analysis.health.macronutrients.fiber
   });
 
-  // USDA Daily Goals (2020-2025 Dietary Guidelines)
+  // USDA Daily Goals (2020-2025 Dietary Guidelines) - MATHEMATICALLY CONSISTENT
   const dailyGoals = {
     calories: 2000,
-    protein: 150,   // 30% of calories from protein
-    carbs: 250,     // 50% of calories from carbs  
-    fat: 67         // 20% of calories from fat
+    protein: 150,   // 30% of 2000kcal = 600kcal / 4 = 150g ✓
+    carbs: 200,     // 40% of 2000kcal = 800kcal / 4 = 200g ✓ 
+    fat: 67         // 30% of 2000kcal = 600kcal / 9 = 67g ✓
+    // Total: (150*4) + (200*4) + (67*9) = 600 + 800 + 603 = 2003 kcal ≈ 2000 kcal ✓
   };
   
   // Calculate daily remaining macros

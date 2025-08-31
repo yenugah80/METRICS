@@ -13,7 +13,7 @@ export interface LocalUser {
   isPremium: boolean;
   createdAt: string;
   
-  // Preferences
+  // Preferences - MATHEMATICALLY CONSISTENT
   dietPreferences: string[];
   allergens: string[];
   dailyCalorieGoal: number;
@@ -21,6 +21,12 @@ export interface LocalUser {
   dailyCarbGoal: number;
   dailyFatGoal: number;
   activityLevel: string;
+  
+  // Gamification 
+  xp: number;
+  level: number;
+  currentStreak: number;
+  longestStreak: number;
   
   // Notifications
   notifications: {
@@ -152,11 +158,17 @@ class LocalStorageManager {
       createdAt: new Date().toISOString(),
       dietPreferences: [],
       allergens: [],
+      // MATHEMATICALLY CONSISTENT MACROS: 2000 kcal = 600P + 800C + 603F = 2003 kcal ≈ 2000
       dailyCalorieGoal: 2000,
-      dailyProteinGoal: 150,
-      dailyCarbGoal: 250,
-      dailyFatGoal: 65,
+      dailyProteinGoal: 150, // 30% of 2000kcal = 600kcal / 4 = 150g
+      dailyCarbGoal: 200,    // 40% of 2000kcal = 800kcal / 4 = 200g  
+      dailyFatGoal: 67,      // 30% of 2000kcal = 600kcal / 9 = 67g
       activityLevel: 'moderate',
+      // Gamification fields
+      xp: 0,
+      level: 1,
+      currentStreak: 0,
+      longestStreak: 0,
       notifications: {
         email: false,
         push: true,
@@ -400,7 +412,7 @@ class LocalStorageManager {
     
     // Calculate nutrition score (simplified)
     const calorieRatio = Math.min(progress.calories / 2000, 1);
-    const proteinRatio = Math.min(progress.protein / 150, 1);
+    const proteinRatio = Math.min(progress.protein / 150, 1); // 150g protein goal
     const balanceScore = (calorieRatio + proteinRatio) / 2;
     progress.nutritionScore = Math.round(balanceScore * 100);
     
