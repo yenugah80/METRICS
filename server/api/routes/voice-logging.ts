@@ -106,6 +106,26 @@ Examples:
   ],
   "mealType": "breakfast",
   "confidence": 0.85
+}
+
+"two eggs and toast" →
+{
+  "foods": [
+    {"name": "eggs", "quantity": 2, "unit": "pieces", "confidence": 0.9},
+    {"name": "toast", "quantity": 1, "unit": "slices", "confidence": 0.8}
+  ],
+  "mealType": "breakfast",
+  "confidence": 0.85
+}
+
+"I had a banana and some yogurt" →
+{
+  "foods": [
+    {"name": "banana", "quantity": 1, "unit": "pieces", "confidence": 0.9},
+    {"name": "yogurt", "quantity": 1, "unit": "serving", "confidence": 0.8}
+  ],
+  "mealType": "snack",
+  "confidence": 0.85
 }`
           },
           {
@@ -119,6 +139,8 @@ Examples:
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{}');
+      
+      console.log('OpenAI parsing result for transcript "' + transcript + '":', result);
       
       // Validate the response structure
       if (!result.foods || !Array.isArray(result.foods)) {
@@ -159,10 +181,12 @@ Examples:
       });
 
     } catch (aiError: any) {
-      console.error('OpenAI parsing error:', aiError);
+      console.error('OpenAI parsing error for transcript "' + transcript + '":', aiError);
       
       // Fallback to basic text parsing
       const fallbackResult = basicTextParsing(transcript);
+      
+      console.log('Fallback parsing result for transcript "' + transcript + '":', fallbackResult);
       
       res.json({
         success: true,
@@ -188,31 +212,100 @@ Examples:
 function basicTextParsing(text: string): ParsedFoodResult {
   const foods: Array<{ name: string; quantity: number; unit: string; confidence: number }> = [];
   
-  // Simple regex patterns for common food descriptions
+  // Enhanced regex patterns for natural speech
   const patterns = [
-    /(\d+)\s*(cups?|cup)\s+(?:of\s+)?([^,\.]+)/gi,
-    /(\d+)\s*(slices?|slice)\s+(?:of\s+)?([^,\.]+)/gi,
-    /(\d+)\s*(pieces?|piece)\s+(?:of\s+)?([^,\.]+)/gi,
-    /(\d+)\s*(tablespoons?|tbsp|teaspoons?|tsp)\s+(?:of\s+)?([^,\.]+)/gi,
-    /(?:a|an|one)\s+([^,\.]+)/gi,
+    // Number + unit + food ("2 cups of rice")
+    /(\d+)\s*(cups?|cup|slices?|slice|pieces?|piece|tablespoons?|tbsp|teaspoons?|tsp|bowls?|bowl)\s+(?:of\s+)?([^,\.]+)/gi,
+    
+    // Number + food without unit ("two eggs", "3 apples")
+    /(\d+|two|three|four|five|six|seven|eight|nine|ten)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)*?)(?:\s+(?:and|,|\.|$))/gi,
+    
+    // Words like "a", "an", "one", "some" + food
+    /(?:a|an|one|some)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)*?)(?:\s+(?:and|,|\.|$|with))/gi,
+    
+    // Food words without quantities ("toast", "coffee")
+    /(?:^|\s)(toast|bread|egg|eggs|apple|apples|banana|bananas|coffee|tea|milk|cheese|chicken|beef|rice|pasta|salad|sandwich|pizza)(?:\s|$|,|\.)/gi
   ];
 
-  patterns.forEach(pattern => {
+  // Convert number words to digits
+  const convertWordToNumber = (word: string): number => {
+    const numberMap: { [key: string]: number } = {
+      'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+      'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10
+    };
+    return numberMap[word.toLowerCase()] || 1;
+  };
+
+  patterns.forEach((pattern, index) => {
     let match;
     while ((match = pattern.exec(text)) !== null) {
-      const [, quantityStr, unit, food] = match;
-      const quantity = quantityStr ? parseInt(quantityStr) : 1;
-      
-      if (food && food.trim()) {
-        foods.push({
-          name: food.trim().toLowerCase(),
-          quantity,
-          unit: unit || 'serving',
-          confidence: 0.4 // Lower confidence for basic parsing
-        });
+      if (index === 0) {
+        // Pattern with unit: [quantity, unit, food]
+        const [, quantityStr, unit, food] = match;
+        const quantity = parseInt(quantityStr) || 1;
+        
+        if (food && food.trim()) {
+          foods.push({
+            name: food.trim().toLowerCase(),
+            quantity,
+            unit: unit || 'serving',
+            confidence: 0.8
+          });
+        }
+      } else if (index === 1) {
+        // Number + food: [quantity, food]
+        const [, quantityStr, food] = match;
+        const quantity = isNaN(parseInt(quantityStr)) ? convertWordToNumber(quantityStr) : parseInt(quantityStr);
+        
+        if (food && food.trim()) {
+          // Determine unit based on food type
+          let unit = 'pieces';
+          const foodLower = food.toLowerCase();
+          if (foodLower.includes('slice') || foodLower.includes('bread') || foodLower.includes('toast')) {
+            unit = 'slices';
+          } else if (foodLower.includes('cup') || foodLower.includes('liquid')) {
+            unit = 'cups';
+          }
+          
+          foods.push({
+            name: food.trim().toLowerCase(),
+            quantity,
+            unit,
+            confidence: 0.7
+          });
+        }
+      } else if (index === 2) {
+        // "a", "an", "one", "some" + food
+        const [, food] = match;
+        
+        if (food && food.trim()) {
+          foods.push({
+            name: food.trim().toLowerCase(),
+            quantity: 1,
+            unit: 'serving',
+            confidence: 0.6
+          });
+        }
+      } else if (index === 3) {
+        // Common food words
+        const [food] = match;
+        
+        if (food && food.trim()) {
+          foods.push({
+            name: food.trim().toLowerCase(),
+            quantity: 1,
+            unit: 'serving',
+            confidence: 0.5
+          });
+        }
       }
     }
   });
+
+  // Remove duplicates (same food name)
+  const uniqueFoods = foods.filter((food, index, self) => 
+    index === self.findIndex(f => f.name === food.name)
+  );
 
   // Determine meal type based on keywords
   const lowerText = text.toLowerCase();
@@ -229,8 +322,8 @@ function basicTextParsing(text: string): ParsedFoodResult {
   }
 
   return {
-    foods,
+    foods: uniqueFoods,
     mealType,
-    confidence: foods.length > 0 ? 0.5 : 0.1
+    confidence: uniqueFoods.length > 0 ? 0.6 : 0.1
   };
 }
