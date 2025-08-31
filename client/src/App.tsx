@@ -68,6 +68,11 @@ function App() {
                     <LazyMealCamera />
                   </SafeLazyWrapper>
                 </Route>
+                <Route path="/log">
+                  <SafeLazyWrapper message="Loading meal logging...">
+                    <LazyMealCamera />
+                  </SafeLazyWrapper>
+                </Route>
                 <Route path="/voice-logging">
                   <ProtectedRoute>
                     <VoiceLoggingPage />
