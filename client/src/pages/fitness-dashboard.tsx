@@ -105,8 +105,19 @@ export default function FitnessDashboard() {
     refetchInterval: 60000, // Update when macros change
   });
 
-  // These mutations are no longer needed - using local API instead
-  // Old server-based mutations removed for no-auth approach
+  // Safe data extraction with fallbacks
+  const safeData = {
+    todayStats: dashboardData?.todayStats || {
+      calories: 0, caloriesGoal: 2000, protein: 0, proteinGoal: 150,
+      carbs: 0, carbsGoal: 250, fat: 0, fatGoal: 65, fiber: 0, fiberGoal: 25, nutritionScore: 0
+    },
+    gamification: dashboardData?.gamification || {
+      level: 1, currentXP: 0, xpForNextLevel: 100, totalXPNeeded: 100,
+      currentStreak: 0, longestStreak: 0, badges: [], recentXP: []
+    },
+    recentMeals: dashboardData?.recentMeals || [],
+    remaining: smartData?.remaining || { calories: 2000, protein: 150, carbs: 250, fat: 65 }
+  };
 
   // Badge color mapping - vibrant like reference image
   const getBadgeColor = (badge: string) => {

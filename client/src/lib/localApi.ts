@@ -20,9 +20,44 @@ export class LocalAPI {
   static getDashboardFitness(): Promise<any> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const data = localStorageManager.getFitnessDashboardData();
-        resolve(data);
-      }, 100); // Simulate network delay
+        const rawData = localStorageManager.getFitnessDashboardData();
+        
+        // Map local data structure to expected dashboard format
+        const mappedData = {
+          todayStats: {
+            calories: rawData.todayStats?.calories || 0,
+            caloriesGoal: rawData.todayStats?.calorieGoal || 2000,
+            protein: rawData.todayStats?.protein || 0,
+            proteinGoal: rawData.todayStats?.proteinGoal || 150,
+            carbs: rawData.todayStats?.carbs || 0,
+            carbsGoal: rawData.todayStats?.carbGoal || 250,
+            fat: rawData.todayStats?.fat || 0,
+            fatGoal: rawData.todayStats?.fatGoal || 65,
+            fiber: 0,
+            fiberGoal: 25,
+            nutritionScore: rawData.todayStats?.nutritionScore || 0
+          },
+          gamification: {
+            level: rawData.gamification?.currentLevel || 1,
+            currentXP: rawData.gamification?.totalXP || 0,
+            xpForNextLevel: Math.max(0, (rawData.gamification?.currentLevel || 1) * 100 - (rawData.gamification?.totalXP || 0)),
+            totalXPNeeded: (rawData.gamification?.currentLevel || 1) * 100,
+            currentStreak: rawData.gamification?.currentStreak || 0,
+            longestStreak: rawData.gamification?.longestStreak || 0,
+            badges: rawData.gamification?.badges?.map(b => b.id) || [],
+            recentXP: []
+          },
+          recentMeals: [],
+          remaining: {
+            calories: Math.max(0, (rawData.todayStats?.calorieGoal || 2000) - (rawData.todayStats?.calories || 0)),
+            protein: Math.max(0, (rawData.todayStats?.proteinGoal || 150) - (rawData.todayStats?.protein || 0)),
+            carbs: Math.max(0, (rawData.todayStats?.carbGoal || 250) - (rawData.todayStats?.carbs || 0)),
+            fat: Math.max(0, (rawData.todayStats?.fatGoal || 65) - (rawData.todayStats?.fat || 0))
+          }
+        };
+        
+        resolve(mappedData);
+      }, 100);
     });
   }
 
@@ -33,10 +68,24 @@ export class LocalAPI {
   static getGamificationStatus(): Promise<any> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const gamification = localStorageManager.getGamification();
+        const rawGamification = localStorageManager.getGamification();
+        const gamification = rawGamification || localStorageManager.initializeGamification('guest');
+        
+        // Map to expected format
+        const mappedStatus = {
+          level: gamification.currentLevel || 1,
+          currentXP: gamification.totalXP || 0,
+          xpForNextLevel: Math.max(0, (gamification.currentLevel || 1) * 100 - (gamification.totalXP || 0)),
+          totalXPNeeded: (gamification.currentLevel || 1) * 100,
+          currentStreak: gamification.currentStreak || 0,
+          longestStreak: gamification.longestStreak || 0,
+          badges: gamification.badges || [],
+          recentXP: []
+        };
+        
         resolve({
           success: true,
-          status: gamification || localStorageManager.initializeGamification('guest')
+          status: mappedStatus
         });
       }, 50);
     });
