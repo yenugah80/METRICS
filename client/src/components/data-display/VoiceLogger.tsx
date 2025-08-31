@@ -105,10 +105,6 @@ export default function VoiceLogger({ onVoiceResult, disabled = false }: VoiceLo
       setIsRecording(true);
       setTranscript("");
 
-      toast({
-        title: "Recording Started",
-        description: "Speak clearly about what you ate...",
-      });
 
     } catch (error) {
       console.error('Error starting recording:', error);
@@ -131,10 +127,6 @@ export default function VoiceLogger({ onVoiceResult, disabled = false }: VoiceLo
 
     setIsRecording(false);
     
-    toast({
-      title: "Recording Stopped",
-      description: "Processing your speech...",
-    });
   }, [recognition, toast]);
 
   const playRecording = useCallback(() => {
