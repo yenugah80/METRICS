@@ -6,11 +6,12 @@
 import { Router } from 'express';
 import { recipeChatbot, type RecipeRequest } from '../../core/recipes/recipe-chatbot';
 import { verifyJWT, type AuthenticatedRequest } from '../../infrastructure/auth/authService';
+import { freemiumMiddleware, requirePremium } from '../middleware/freemium';
 
 const router = Router();
 
-// Generate chatbot response for recipe requests (completely free)
-router.post('/api/chatbot/recipe', async (req: any, res) => {
+// Generate chatbot response for recipe requests (Premium Feature)
+router.post('/api/chatbot/recipe', freemiumMiddleware, requirePremium, async (req: any, res) => {
   try {
     const { message, preferences, context, conversationId } = req.body;
     
@@ -40,7 +41,7 @@ router.post('/api/chatbot/recipe', async (req: any, res) => {
 
     const result = await recipeChatbot.generateResponse(request, message);
 
-    // Chef AI is now completely free - no usage tracking needed!
+    // Personal Chef AI is now a premium feature
 
     res.json({
       success: true,
@@ -49,7 +50,7 @@ router.post('/api/chatbot/recipe', async (req: any, res) => {
       recipes: result.recipes || [],
       suggestions: result.suggestions || [],
       timestamp: new Date().toISOString(),
-      freeAccess: true // Chef AI is completely free!
+      freeAccess: false // Personal Chef AI requires premium subscription
     });
 
   } catch (error: any) {

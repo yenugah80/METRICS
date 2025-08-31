@@ -4,7 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { storage } from '../storage';
+import { storage } from '../../infrastructure/database/storage';
 
 export interface FreemiumRequest extends Request {
   user?: any;
@@ -38,30 +38,23 @@ export async function freemiumMiddleware(req: FreemiumRequest, res: Response, ne
     const userId = req.user?.id;
     
     if (userId) {
-      // Authenticated user - get their usage stats
+      // Authenticated user - check premium status
       const user = await storage.getUser(userId);
-      const usageStats = await storage.getUserUsageStats(userId);
       
       req.usageStats = {
-        recipesGenerated: usageStats?.recipesGenerated || 0,
-        remainingFree: Math.max(0, 5 - (usageStats?.recipesGenerated || 0)),
+        recipesGenerated: 0, // Not tracking usage anymore - features are premium-only
+        remainingFree: 0,    // No free access - features are premium-only
         isPremium: user?.isPremium || false
       };
       req.isGuest = false;
     } else {
-      // Guest user - track by session/IP
-      const sessionId = req.headers['x-session-id'] as string || req.ip || 'unknown';
-      const guestStats = guestUsage.get(sessionId) || { recipesGenerated: 0, firstUsed: new Date() };
-      
+      // Guest user - no access to premium features
       req.usageStats = {
-        recipesGenerated: guestStats.recipesGenerated,
-        remainingFree: Math.max(0, 2 - guestStats.recipesGenerated), // Guests get 2 recipes to try
+        recipesGenerated: 0,
+        remainingFree: 0,    // No free access for guests
         isPremium: false
       };
       req.isGuest = true;
-      
-      // Update guest usage
-      guestUsage.set(sessionId, guestStats);
     }
 
     next();
@@ -118,25 +111,14 @@ export async function checkRecipeLimit(req: FreemiumRequest, res: Response, next
 
 /**
  * Update usage stats after successful recipe generation
+ * (Simplified since features are now premium-only)
  */
 export async function incrementRecipeUsage(req: FreemiumRequest, res: Response, next: NextFunction) {
   try {
-    if (req.isGuest) {
-      // Update guest usage
-      const sessionId = req.headers['x-session-id'] as string || req.ip || 'unknown';
-      const guestStats = guestUsage.get(sessionId) || { recipesGenerated: 0, firstUsed: new Date() };
-      guestStats.recipesGenerated += 1;
-      guestUsage.set(sessionId, guestStats);
-    } else if (req.user?.id) {
-      // Update authenticated user usage
-      const userId = req.user.id;
-      await storage.incrementUserRecipeUsage(userId);
-    }
-
+    // Features are premium-only now, so no usage tracking needed
     next();
   } catch (error) {
     console.error('Usage increment error:', error);
-    // Don't fail the request for usage tracking errors
     next();
   }
 }
