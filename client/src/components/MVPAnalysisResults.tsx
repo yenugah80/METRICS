@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { localApi } from "@/lib/localApi";
-import { queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface AnalyzedFood {
   name: string;
@@ -166,32 +166,20 @@ export default function MVPAnalysisResults({
   const saveMeal = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch('/api/meals/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        },
-        body: JSON.stringify({
-          name: `AI Analyzed Meal`,
-          mealType: selectedMealType,
-          foods: editableFoods,
-          nutrition: {
-            total_calories: mealTotals.calories,
-            total_protein: mealTotals.protein,
-            total_carbs: mealTotals.carbs,
-            total_fat: mealTotals.fat,
-            nutrition_score: analysis.health,
-            sustainability_score: analysis.sustainability,
-            safety: analysis.safety
-          }
-        })
+      const response = await apiRequest('POST', '/api/meals/save', {
+        name: `AI Analyzed Meal`,
+        mealType: selectedMealType,
+        foods: editableFoods,
+        nutrition: {
+          total_calories: mealTotals.calories,
+          total_protein: mealTotals.protein,
+          total_carbs: mealTotals.carbs,
+          total_fat: mealTotals.fat,
+          nutrition_score: analysis.health,
+          sustainability_score: analysis.sustainability,
+          safety: analysis.safety
+        }
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save meal');
-      }
 
       const result = await response.json();
       
