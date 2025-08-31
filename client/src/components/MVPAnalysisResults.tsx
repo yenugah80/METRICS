@@ -511,7 +511,7 @@ export default function MVPAnalysisResults({
               <div className="space-y-4">
                 <h4 className="font-semibold text-gray-700">Macronutrient Profile</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {Object.entries(analysis.health.macronutrients).map(([key, value]) => (
+                  {analysis.health?.macronutrients && Object.entries(analysis.health.macronutrients).map(([key, value]) => (
                     <div key={key} className="p-3 bg-gray-50 rounded-lg text-center">
                       <div className="text-lg font-bold text-gray-800">{Math.round(value)}g</div>
                       <div className="text-sm text-gray-600 capitalize">{key}</div>
@@ -524,7 +524,7 @@ export default function MVPAnalysisResults({
               <div className="space-y-4">
                 <h4 className="font-semibold text-gray-700">Essential Micronutrients</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {Object.entries(analysis.health.micronutrients).map(([key, value]) => {
+                  {analysis.health?.micronutrients && Object.entries(analysis.health.micronutrients).map(([key, value]) => {
                     const percentage = Math.min(100, (value / 100) * 100); // Assuming 100 is daily value
                     return (
                       <div key={key} className="p-3 bg-gray-50 rounded-lg">
@@ -547,15 +547,15 @@ export default function MVPAnalysisResults({
                     Health Benefits
                   </h4>
                   <div className="space-y-2">
-                    {analysis.health.health_benefits.map((benefit, index) => (
+                    {analysis.health?.health_benefits?.map((benefit, index) => (
                       <div key={index} className="p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
                         {benefit}
                       </div>
-                    ))}
+                    )) || <div className="text-sm text-gray-500">No health benefits data available</div>}
                   </div>
                 </div>
                 
-                {analysis.health.health_concerns.length > 0 && (
+                {analysis.health?.health_concerns && analysis.health.health_concerns.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="font-semibold text-orange-700 flex items-center">
                       <AlertTriangle className="w-4 h-4 mr-2" />
