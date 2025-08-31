@@ -4,7 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { storage } from '../storage';
+import { storage } from '../../infrastructure/database/storage';
 
 export interface FreemiumRequest extends Request {
   user?: any;

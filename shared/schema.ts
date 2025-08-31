@@ -61,9 +61,25 @@ export const users = pgTable("users", {
   subscriptionStatus: varchar("subscription_status"),
   subscriptionId: varchar("subscription_id"),
   
+  // Gamification & Usage Tracking
+  level: integer("level").default(1),
+  xp: integer("xp").default(0),
+  currentStreak: integer("current_streak").default(0),
+  longestStreak: integer("longest_streak").default(0),
+  totalMealsLogged: integer("total_meals_logged").default(0),
+  recipesGenerated: integer("recipes_generated").default(0),
+  freeRecipesUsed: integer("free_recipes_used").default(0),
+  badges: jsonb("badges").$type<string[]>().default([]),
+  
+  // Premium trial
+  trialStartDate: timestamp("trial_start_date"),
+  trialEndDate: timestamp("trial_end_date"),
+  isTrialActive: boolean("is_trial_active").default(false),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   lastLoginAt: timestamp("last_login_at"),
+  lastActiveDate: date("last_active_date"),
 });
 
 // Food database with comprehensive nutrition data
@@ -268,6 +284,9 @@ export const activities = pgTable("activities", {
   relatedMealId: varchar("related_meal_id").references(() => meals.id),
   relatedRecipeId: varchar("related_recipe_id"),
   
+  // XP and gamification
+  xpAwarded: integer("xp_awarded").default(0),
+  
   // Metadata
   metadata: jsonb("metadata"),
   
@@ -276,6 +295,148 @@ export const activities = pgTable("activities", {
   userIdIdx: index("activities_user_id_idx").on(table.userId),
   typeIdx: index("activities_type_idx").on(table.activityType),
   createdAtIdx: index("activities_created_at_idx").on(table.createdAt),
+}));
+
+// Gamification: Quests System
+export const quests = pgTable("quests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  name: varchar("name").notNull(),
+  description: text("description").notNull(),
+  questType: varchar("quest_type").notNull(), // daily, weekly, monthly, achievement
+  category: varchar("category").notNull(), // nutrition, activity, streak, food_grade
+  
+  // Quest requirements
+  targetValue: integer("target_value").notNull(),
+  currentProgress: integer("current_progress").default(0),
+  
+  // Rewards
+  xpReward: integer("xp_reward").notNull(),
+  badgeReward: varchar("badge_reward"),
+  
+  // Quest metadata
+  isActive: boolean("is_active").default(true),
+  difficulty: varchar("difficulty").default('medium'), // easy, medium, hard
+  
+  // Timing
+  startDate: date("start_date"),
+  endDate: date("end_date"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  typeIdx: index("quests_type_idx").on(table.questType),
+  categoryIdx: index("quests_category_idx").on(table.category),
+  activeIdx: index("quests_active_idx").on(table.isActive),
+}));
+
+// User Quest Progress
+export const userQuests = pgTable("user_quests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  questId: varchar("quest_id").references(() => quests.id).notNull(),
+  
+  // Progress tracking
+  currentProgress: integer("current_progress").default(0),
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  
+  // Reward claimed
+  rewardClaimed: boolean("reward_claimed").default(false),
+  claimedAt: timestamp("claimed_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userQuestIdx: unique("user_quest_unique").on(table.userId, table.questId),
+  userIdIdx: index("user_quests_user_id_idx").on(table.userId),
+  questIdIdx: index("user_quests_quest_id_idx").on(table.questId),
+  completedIdx: index("user_quests_completed_idx").on(table.isCompleted),
+}));
+
+// Event System for Real-time Updates
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  eventType: varchar("event_type").notNull(), // meal.created, meal.updated, activity.synced, sleep.synced
+  entityType: varchar("entity_type").notNull(), // meal, activity, sleep, goal
+  entityId: varchar("entity_id").notNull(),
+  
+  // Event data
+  eventData: jsonb("event_data"),
+  processed: boolean("processed").default(false),
+  
+  // Event results
+  triggeredRecalculation: boolean("triggered_recalculation").default(false),
+  xpAwarded: integer("xp_awarded").default(0),
+  newBadges: jsonb("new_badges").$type<string[]>().default([]),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  processedAt: timestamp("processed_at"),
+}, (table) => ({
+  userIdIdx: index("events_user_id_idx").on(table.userId),
+  typeIdx: index("events_type_idx").on(table.eventType),
+  processedIdx: index("events_processed_idx").on(table.processed),
+  createdAtIdx: index("events_created_at_idx").on(table.createdAt),
+}));
+
+// Smart Portions Recommendations
+export const portionRecommendations = pgTable("portion_recommendations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  foodId: varchar("food_id").references(() => foods.id),
+  
+  // Recommendation context
+  mealType: varchar("meal_type").notNull(), // breakfast, lunch, dinner, snack
+  timeOfDay: varchar("time_of_day"),
+  
+  // Current user status
+  remainingCalories: real("remaining_calories"),
+  remainingProtein: real("remaining_protein"),
+  remainingCarbs: real("remaining_carbs"),
+  remainingFat: real("remaining_fat"),
+  
+  // Recommendation
+  recommendedGrams: real("recommended_grams").notNull(),
+  confidenceScore: real("confidence_score"), // 0-1
+  reasoning: text("reasoning"),
+  
+  // User interaction
+  wasAccepted: boolean("was_accepted"),
+  actualGramsUsed: real("actual_grams_used"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("portion_recs_user_id_idx").on(table.userId),
+  foodIdIdx: index("portion_recs_food_id_idx").on(table.foodId),
+  mealTypeIdx: index("portion_recs_meal_type_idx").on(table.mealType),
+}));
+
+// Food Grades
+export const foodGrades = pgTable("food_grades", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  mealId: varchar("meal_id").references(() => meals.id).notNull(),
+  
+  // Overall grades
+  overallGrade: varchar("overall_grade").notNull(), // A+, A, B+, B, C+, C, D, F
+  nutritionGrade: varchar("nutrition_grade").notNull(),
+  sustainabilityGrade: varchar("sustainability_grade").notNull(),
+  
+  // Detailed scores (0-100)
+  macroBalance: real("macro_balance"),
+  micronutrientDensity: real("micronutrient_density"),
+  processingLevel: real("processing_level"),
+  carbonFootprint: real("carbon_footprint"),
+  waterUsage: real("water_usage"),
+  
+  // Grade explanation
+  strengthsText: text("strengths_text"),
+  improvementsText: text("improvements_text"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  mealIdIdx: index("food_grades_meal_id_idx").on(table.mealId),
+  overallGradeIdx: index("food_grades_overall_idx").on(table.overallGrade),
 }));
 
 // Recipes table

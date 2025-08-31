@@ -129,6 +129,11 @@ export interface IStorage {
   getActiveUserCount(): Promise<number>;
   getUserActivityStreak(userId: string): Promise<number>;
   getUserLongestStreak(userId: string): Promise<number>;
+  
+  // Recipe usage tracking for freemium
+  getUserUsageStats(userId: string): Promise<{recipesGenerated: number} | undefined>;
+  incrementUserRecipeUsage(userId: string): Promise<void>;
+  incrementRecipeUsage(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1004,6 +1009,31 @@ export class DatabaseStorage implements IStorage {
     }
     
     return Math.max(longestStreak, currentStreak);
+  }
+  
+  // Recipe usage tracking for freemium system
+  async getUserUsageStats(userId: string): Promise<{recipesGenerated: number} | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+    
+    return {
+      recipesGenerated: user.recipesGenerated || 0
+    };
+  }
+  
+  async incrementUserRecipeUsage(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        recipesGenerated: sql`${users.recipesGenerated} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
+  }
+  
+  async incrementRecipeUsage(userId: string): Promise<void> {
+    // This method is the same as incrementUserRecipeUsage
+    await this.incrementUserRecipeUsage(userId);
   }
 }
 

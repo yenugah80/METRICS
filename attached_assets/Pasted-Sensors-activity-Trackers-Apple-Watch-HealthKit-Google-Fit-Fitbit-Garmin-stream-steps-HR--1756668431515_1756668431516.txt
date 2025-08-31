@@ -1,0 +1,64 @@
+Sensors → activity
+
+Trackers (Apple Watch/HealthKit, Google Fit, Fitbit, Garmin) stream: steps, HR, HRV, active minutes, workouts, sleep, water.
+
+App computes BMR (Mifflin-St Jeor or Katch-McArdle if body-fat %) → TDEE via activity multiplier + adaptive thermogenesis offsets (optional).
+
+Exercise sessions add EAT (exercise-associated thermogenesis). NEAT captured from steps/active minutes.
+
+Food → intake
+
+Capture: Camera (AI meal scan), Barcode (UPC/EAN → FDC/OpenFoodFacts match), Voice (ASR → NLU), Text/Search (branded + restaurant DB).
+
+Portion normalization to grams; multi-item plates split by confidence; keep raw + adjusted weights.
+
+Sync + net energy
+
+Merge intake (kcal) and expenditure (BMR+NEAT+EAT) → Net kcal = Intake − Burn.
+
+Dynamic calorie goal: DailyGoal = BaseGoal − ExerciseBurn*α (α≈0.7–1.0 configurable).
+
+Macro/micro tracking
+
+Track protein, carbs, fat, fiber, sugar, sat fat, sodium, plus micronutrients when known. Fill unknowns with null and flag “incomplete label”.
+
+Personalization (body conditions)
+
+Profile: age, sex, height, weight, body-fat %, activity, goal (lose/maintain/gain), diet pattern, allergens, conditions (e.g., PCOS, diabetes, HTN).
+
+Targets:
+
+Protein: 1.6–2.2 g/kg BW (up to 2.4 g/kg during cut or high training load).
+
+Fat: 0.6–1.0 g/kg BW (or 20–35% kcal).
+
+Carbs: kcal remainder ÷ 4 after protein/fat.
+
+Sodium < 2300 mg (or physician target), added sugar < 10% kcal, sat fat < 10% kcal; stricter rules for conditions.
+
+PCOS/insulin resistance: prefer lower-GI carbs, fiber ≥ 25–30 g, sugar cap tighter, evening carbs bias if sleep debt present.
+
+Hypertension: sodium lower bound, potassium-rich swaps.
+
+Smart Portion Suggestions (exact grams)
+
+Given remaining day targets R = {P,C,F,kcal} and candidate food with nutrient density d = {p,c,f,kcal}/100g, choose grams g to minimize:
+J(g) = wP|R_P − g·p| + wC|R_C − g·c| + wF|R_F − g·f| + wkcal|R_kcal − g·kcal|
+subject to lower/upper bounds (e.g., 60g ≤ g ≤ 350g), allergens, diet rules.
+
+Return g* and round to kitchen-friendly steps (5–10g). UI shows a “Suggested: 180 g” chip (see canvas).
+
+Gamified engine
+
+XP rules (examples):
++25 log first meal, +10 hydrate milestone, +5 per 2k steps, +15 hit protein window, +20 green-zone sodium, +10 sleep goal, bonus +40 “balanced plate”.
+
+Levels: XP thresholds (e.g., 0–499 L1, 500–1199 L2, etc.).
+
+Streaks: active days with ≥ N logs or ≥ 70% macro goal adherence.
+
+Quests: “3 green plates this week”, “hit fiber 5 days”, “bedtime by 11 pm × 3”.
+
+Badges: “Sugar Tamer”, “Omega-3 Fan”, “Hydration Hero”, “Step Master”.
+
+Token economy (optional): award tokens for premium AI analyses/recipes; maintain fairness caps.

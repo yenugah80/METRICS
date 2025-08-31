@@ -6,11 +6,13 @@
 import { Router } from 'express';
 import { recipeChatbot, type RecipeRequest } from '../../core/recipes/recipe-chatbot';
 import { verifyJWT, type AuthenticatedRequest } from '../../infrastructure/auth/authService';
+import { freemiumMiddleware, checkRecipeLimit, type FreemiumRequest } from '../middleware/freemium';
+import { storage } from '../../infrastructure/database/storage';
 
 const router = Router();
 
-// Generate chatbot response for recipe requests (completely free)
-router.post('/api/chatbot/recipe', async (req: any, res) => {
+// Generate chatbot response for recipe requests (5 free, then premium)
+router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (req: FreemiumRequest, res) => {
   try {
     const { message, preferences, context, conversationId } = req.body;
     
@@ -40,7 +42,10 @@ router.post('/api/chatbot/recipe', async (req: any, res) => {
 
     const result = await recipeChatbot.generateResponse(request, message);
 
-    // Chef AI is now completely free - no usage tracking needed!
+    // Track recipe generation for freemium model
+    if (!req.isGuest && req.user?.id) {
+      await storage.incrementRecipeUsage(req.user.id);
+    }
 
     res.json({
       success: true,
@@ -49,7 +54,8 @@ router.post('/api/chatbot/recipe', async (req: any, res) => {
       recipes: result.recipes || [],
       suggestions: result.suggestions || [],
       timestamp: new Date().toISOString(),
-      freeAccess: true // Chef AI is completely free!
+      usageStats: req.usageStats,
+      remainingFree: req.usageStats?.remainingFree || 0
     });
 
   } catch (error: any) {
