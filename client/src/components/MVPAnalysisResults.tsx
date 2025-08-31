@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { 
   Shield, Heart, Globe, CheckCircle, AlertTriangle, 
   Flame, Apple, Droplets, Leaf, Plus, Minus, Save,
-  Trophy, Star, Zap, Eye, Brain, Crown
+  Trophy, Star, Zap, Eye, Brain, Crown, Utensils
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { localApi } from "@/lib/localApi";
@@ -240,8 +240,13 @@ export default function MVPAnalysisResults({
         timestamp: new Date().toISOString()
       };
 
-      // Save meal using local API
-      const savedMeal = await localApi.saveMeal(mealData);
+      // Save meal using API request
+      const response = await fetch('/api/meals/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mealData)
+      });
+      const savedMeal = await response.json();
       
       // Calculate XP based on meal quality
       const baseXP = 50;
@@ -251,7 +256,7 @@ export default function MVPAnalysisResults({
       const totalXP = baseXP + healthBonus + safetyBonus + ecoBonus;
 
       // Award XP
-      await localApi.awardXP(totalXP, 'meal_logged');
+      await localApi.awardXP('meal_logged', totalXP, `Logged meal with ${getGradeFromScore(analysis.health.nutrition_score)} grade`);
       
       toast({
         title: "🎉 Meal Saved Successfully!",

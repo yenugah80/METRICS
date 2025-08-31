@@ -213,11 +213,10 @@ Focus on meals that help achieve nutritional goals while respecting all dietary 
           { role: "user", content: userPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 4000
+        max_completion_tokens: 4000
       });
 
-      const result = JSON.parse(response.choices[0].message.content);
+      const result = JSON.parse(response.choices[0].message.content || '{}');
       
       // Add unique IDs and enhance recommendations
       const recommendations: MealRecommendation[] = result.recommendations.map((rec: any, index: number) => ({

@@ -281,10 +281,10 @@ export default function Dashboard() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
-              Your Health Journey
+              Your Health Dashboard
             </h1>
             <p className="text-slate-600">
-              Track your nutrition, achieve your goals, and build healthy habits
+              See how you're doing today and discover what's helping you thrive
             </p>
           </div>
           <div className="flex items-center space-x-4 text-sm text-slate-500">
@@ -305,7 +305,7 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold text-blue-900 mb-3">🎆 Welcome to Your Health Journey!</h2>
                 <p className="text-blue-700 mb-4">Ready to transform how you track nutrition? Let's get you started with your first healthy habit!</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Link href="/scan">
+                  <Link href="/camera">
                     <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                       📸 Log Your First Meal
                     </Button>
@@ -364,7 +364,7 @@ export default function Dashboard() {
           {/* Integration Modules */}
           <div className="xl:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">Your Health Tools</h2>
+              <h2 className="text-xl font-bold text-slate-900">Your Smart Health Assistant</h2>
               {isNewUser ? (
                 <Badge className="bg-blue-100 text-blue-800 border border-blue-200">
                   Ready to explore!
@@ -457,12 +457,12 @@ export default function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Link href="/scan">
+                <Link href="/camera">
                   <Button className="w-full btn-outline-glow justify-start text-left" size="sm">
                     📸 {isNewUser ? "Log Your First Meal" : "Add New Meal"}
                   </Button>
                 </Link>
-                <Link href="/voice">
+                <Link href="/camera">
                   <Button className="w-full btn-outline-glow justify-start text-left" size="sm">
                     🎤 {isNewUser ? "Try Voice Logging" : "Quick Voice Entry"}
                   </Button>

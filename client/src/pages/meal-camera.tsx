@@ -54,6 +54,14 @@ interface MVPAnalysisResult {
       fat: number;
       fiber: number;
     };
+    micronutrients: {
+      vitamin_c: number;
+      iron: number;
+      calcium: number;
+      vitamin_d: number;
+      potassium: number;
+      magnesium: number;
+    };
     health_benefits: string[];
     health_concerns: string[];
     improvement_suggestions: string[];
@@ -428,15 +436,15 @@ export default function MealCamera() {
       queryClient.invalidateQueries({ queryKey: ["/api/meals/today"] });
 
       toast({
-        title: "🎉 Meal Saved Successfully!",
-        description: "Your nutrition data is now available in your dashboard and progress tracking.",
+        title: "🎉 Great job! Meal logged successfully!",
+        description: "You're building healthy habits! Your nutrition data is now tracking your progress.",
         action: (
           <div className="flex gap-2">
             <button 
               onClick={() => navigate("/dashboard")}
               className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm font-medium hover:bg-primary/90"
             >
-              View Dashboard
+              See Your Progress
             </button>
           </div>
         ),
@@ -445,13 +453,13 @@ export default function MealCamera() {
       // Show clear navigation options after short delay
       setTimeout(() => {
         const shouldViewDashboard = window.confirm(
-          "✅ Your meal has been saved!\n\n📊 Your nutrition data is now available in:\n• Dashboard - Today's nutrition summary & progress\n• Progress - Achievements & wellness tracking\n\nWhere would you like to go next?\n\nClick OK for Dashboard or Cancel for Progress tracking."
+          "🎉 Amazing! Your meal is logged!\n\n✨ You're building healthy habits and we love seeing your progress!\n\n🏆 Ready to see how you're doing today?\n\nClick OK to see your dashboard or Cancel to continue logging meals."
         );
         
         if (shouldViewDashboard) {
           navigate("/dashboard");
         } else {
-          navigate("/daily-progress");
+          // Stay on current page to continue logging
         }
       }, 1500);
       
@@ -498,10 +506,10 @@ export default function MealCamera() {
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            {isDemo ? 'Try Food Analysis Demo' : 'Food Analysis'}
+            {isDemo ? 'Try Our Smart Food Assistant' : 'Log Your Meal'}
           </h1>
           <p className="text-muted-foreground">
-            Capture your meal and get instant food identification with complete nutrition analysis
+            {isDemo ? 'See how our AI instantly recognizes your food and gives you personalized health insights' : 'Take a photo, describe it, or tell us what you ate - we\'ll handle the nutrition analysis'}
           </p>
           
           {/* Authentication Banner */}
@@ -547,15 +555,9 @@ export default function MealCamera() {
                       <Type className="h-4 w-4 mr-2" />
                       Text
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="voice" 
-                      data-testid="tab-voice"
-                      disabled={!user?.isPremium}
-                      className={!user?.isPremium ? "opacity-50 cursor-not-allowed" : ""}
-                    >
+                    <TabsTrigger value="voice" data-testid="tab-voice">
                       <Mic className="h-4 w-4 mr-2" />
                       Voice
-                      {!user?.isPremium && <Crown className="h-3 w-3 ml-1 text-premium" />}
                     </TabsTrigger>
                   </TabsList>
 
@@ -667,27 +669,10 @@ export default function MealCamera() {
                   </TabsContent>
 
                   <TabsContent value="voice" className="mt-6">
-                    {user?.isPremium ? (
-                      <VoiceLogger 
-                        onVoiceResult={handleVoiceResult}
-                        disabled={isAnalyzing}
-                      />
-                    ) : (
-                      <div className="text-center p-8 border-2 border-dashed border-premium/30 rounded-xl">
-                        <Crown className="w-12 h-12 mx-auto mb-4 text-premium" />
-                        <h3 className="text-lg font-semibold mb-2">Premium Feature</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Voice logging is available with premium subscription for just $6.99/month
-                        </p>
-                        <Button 
-                          onClick={() => navigate("/subscribe")}
-                          className="btn-gradient"
-                          data-testid="button-upgrade-premium"
-                        >
-                          Upgrade to Premium
-                        </Button>
-                      </div>
-                    )}
+                    <VoiceLogger 
+                      onVoiceResult={handleVoiceResult}
+                      disabled={isAnalyzing}
+                    />
                   </TabsContent>
                 </Tabs>
               </div>

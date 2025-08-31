@@ -24,7 +24,10 @@ router.post('/api/meal-recommendations/generate', verifyJWT, async (req: Authent
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    const validatedData = mealRecommendationSchema.parse(req.body);
+    const validatedData = mealRecommendationSchema.parse({
+      ...req.body,
+      mealType: req.body.mealType || 'lunch' // Default to lunch if not provided
+    });
     
     const request: MealRecommendationRequest = {
       userId,
