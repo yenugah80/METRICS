@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { localApi } from '@/lib/localApi';
+import { TestXPButton, SyncProgressButton } from '@/components/TestXPButton';
 import { 
   Activity, 
   Zap, 
@@ -82,57 +84,29 @@ export default function FitnessDashboard() {
   const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState('overview');
 
-  // Fetch real fitness dashboard data
+  // Fetch real fitness dashboard data using local API
   const { data: dashboardData, isLoading, error } = useQuery({
     queryKey: ['/api/dashboard/fitness'],
+    queryFn: localApi.getDashboardFitness,
     refetchInterval: 30000, // Real-time updates every 30 seconds
   });
 
-  // Fetch gamification status
+  // Fetch gamification status using local API
   const { data: gamificationData } = useQuery({
     queryKey: ['/api/gamification/status'],
+    queryFn: localApi.getGamificationStatus,
     refetchInterval: 15000, // More frequent for XP changes
   });
 
-  // Fetch smart recommendations
+  // Fetch smart recommendations using local API
   const { data: smartData } = useQuery({
     queryKey: ['/api/smart-portions/remaining-macros'],
+    queryFn: localApi.getRemainingMacros,
     refetchInterval: 60000, // Update when macros change
   });
 
-  // Process events mutation with real API
-  const processEventsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/gamification/process-events'),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gamification/status'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/fitness'] });
-      toast({
-        title: "Events Processed",
-        description: "Your progress has been updated!",
-        duration: 3000,
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to sync progress. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Award XP mutation for testing
-  const awardXPMutation = useMutation({
-    mutationFn: (xpData: any) => apiRequest('POST', '/api/gamification/award-xp', xpData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/gamification/status'] });
-      toast({
-        title: "XP Awarded!",
-        description: "Great job! You earned experience points.",
-        duration: 3000,
-      });
-    },
-  });
+  // These mutations are no longer needed - using local API instead
+  // Old server-based mutations removed for no-auth approach
 
   // Badge color mapping - vibrant like reference image
   const getBadgeColor = (badge: string) => {
@@ -235,28 +209,8 @@ export default function FitnessDashboard() {
               <p className="text-gray-600 mt-2 text-lg">Track, optimize, and thrive with AI-powered insights</p>
             </div>
             <div className="flex gap-3">
-              <Button 
-                onClick={() => awardXPMutation.mutate({
-                  eventType: 'goal_achieved',
-                  xpAmount: 25,
-                  description: 'Test XP award for dashboard interaction'
-                })}
-                disabled={awardXPMutation.isPending}
-                className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white"
-                data-testid="button-test-xp"
-              >
-                <Star className="w-4 h-4 mr-2" />
-                Test XP
-              </Button>
-              <Button 
-                onClick={() => processEventsMutation.mutate()}
-                disabled={processEventsMutation.isPending}
-                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-                data-testid="button-sync-progress"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                {processEventsMutation.isPending ? 'Syncing...' : 'Sync Progress'}
-              </Button>
+              <TestXPButton />
+              <SyncProgressButton />
             </div>
           </div>
 

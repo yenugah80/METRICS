@@ -1,14 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useLocalAuth";
 import { Home, Camera, ChefHat, TrendingUp, User, Mic } from "lucide-react";
 
 export default function Navigation() {
-  const { user, signOutMutation } = useAuth();
+  const { user, signOut } = useAuth();
   const [location] = useLocation();
 
   const handleLogout = () => {
-    signOutMutation.mutate();
+    signOut();
   };
 
   const mobileNavLinks = [
@@ -19,8 +19,12 @@ export default function Navigation() {
     { href: "/profile", label: "Profile", icon: User, requiresAuth: true },
   ];
 
-  if (!user) {
-    // iOS-style navigation for unauthenticated users
+  // Always show authenticated navigation since no auth is required
+  // Remove the check that hides features from users
+  const showGuestNavigation = false; // Always false - everyone gets full access
+  
+  if (showGuestNavigation) {
+    // This section is disabled - all users get full access
     return (
       <header className="sticky top-0 z-50 mx-auto mt-3 w-[min(1100px,92%)]">
         <div className="rounded-2xl border border-white/50 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur-xl">
@@ -77,10 +81,9 @@ export default function Navigation() {
             <button
               className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-[14px] font-medium text-slate-700 backdrop-blur hover:bg-white hover:border-slate-300 transition-all duration-200 shadow-sm"
               onClick={handleLogout}
-              disabled={signOutMutation.isPending}
               data-testid="button-logout"
             >
-              {signOutMutation.isPending ? "..." : "Sign Out"}
+              Clear Data
             </button>
           </div>
         </div>
