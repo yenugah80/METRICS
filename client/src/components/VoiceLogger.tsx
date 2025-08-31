@@ -145,6 +145,9 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
       recognitionRef.current.start();
       setIsRecording(true);
       
+      // Voice feedback for recording start
+      speak("Recording started. Please describe your meal clearly.");
+      
       toast({
         title: "Recording started",
         description: "Speak your meal description clearly",
