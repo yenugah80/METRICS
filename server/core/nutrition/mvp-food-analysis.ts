@@ -5,6 +5,12 @@
  */
 
 import { OpenAIManager } from '../../integrations/openai/openai-manager';
+import OpenAI from 'openai';
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 export interface FoodAnalysisResult {
   // Core Analysis
@@ -154,8 +160,7 @@ Focus on actionable insights. Be specific about allergens, health impacts, and e
             ]
           }
         ],
-        max_tokens: 2000,
-        temperature: 0.3,
+        max_completion_tokens: 2000,
         response_format: { type: "json_object" }
       });
 
@@ -203,8 +208,7 @@ Use the same JSON format as image analysis.`
             content: `Analyze this food: "${foodDescription}". Provide comprehensive safety, health, and sustainability analysis with specific recommendations.`
           }
         ],
-        max_tokens: 2000,
-        temperature: 0.3,
+        max_completion_tokens: 2000,
         response_format: { type: "json_object" }
       });
 

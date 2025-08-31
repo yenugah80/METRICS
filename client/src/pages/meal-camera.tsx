@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, Loader2, CheckCircle, AlertCircle, Utensils, Type, Mic, Crown, Sparkles, Info, Database, Target, X, Shield, Heart, Globe } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import VoiceLogger from "@/components/data-display/VoiceLogger";
+import VoiceLogger from "@/components/VoiceLogger";
 import { SustainabilityCard } from "@/components/business/SustainabilityCard";
 import { AllergenAlert } from "@/components/business/AllergenAlert";
 import { TokenDisplay } from "@/components/business/TokenDisplay";
@@ -245,11 +245,36 @@ export default function MealCamera() {
       const response = await apiRequest("POST", "/api/meals/analyze-mvp", { foodDescription: transcript });
       const data = await response.json();
       setAnalysis(data.analysis);
+      // Speak back the analysis results
+      const healthGrade = data.analysis.health.health_grade;
+      const nutritionScore = data.analysis.health.nutrition_score;
+      const spokenResult = `Great! I analyzed your ${transcript}. Your meal gets a ${healthGrade} grade with a nutrition score of ${nutritionScore} out of 100. This looks like a ${healthGrade === 'A' ? 'fantastic' : healthGrade === 'B' ? 'great' : healthGrade === 'C' ? 'good' : 'decent'} choice for your health goals!`;
+      
+      // Use text-to-speech to speak the result
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(spokenResult);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        window.speechSynthesis.speak(utterance);
+      }
+
       toast({
-        title: "Voice input analyzed!",
-        description: `Analysis complete with safety, health, and sustainability insights!`,
+        title: "🎉 Voice analyzed successfully!",
+        description: `Got a ${healthGrade} grade! Listen for more details.`,
       });
     } catch (error: any) {
+      const errorMessage = "Sorry, I couldn't analyze that. Could you try describing your meal again?";
+      
+      // Speak the error message
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(errorMessage);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        window.speechSynthesis.speak(utterance);
+      }
+      
       toast({
         title: "Voice analysis failed",
         description: error.message,
