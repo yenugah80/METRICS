@@ -731,9 +731,9 @@ For each meal suggestion, provide:
 4. Precise nutrition breakdown (calories, protein, carbs, fat, fiber)
 5. Why this meal fits their goals
 
-Focus on real, practical foods that are easy to find and prepare. Be specific about portions and cooking methods.
+Provide 1-2 practical suggestions. Be concise but specific about portions.
 
-Respond in JSON format:
+JSON format:
 {
   "suggestions": [
     {
@@ -758,57 +758,87 @@ Respond in JSON format:
         model: "gpt-4o-mini", // Fast, efficient model for meal suggestions
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
-        max_tokens: 800
+        max_tokens: 2000 // Further increased to prevent JSON cutoff
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{}');
+      const responseContent = response.choices[0].message.content || '{}';
+      console.log('Raw meal suggestions response length:', responseContent.length);
+      const result = JSON.parse(responseContent);
       return { suggestions: result.suggestions || [], userPreferences: userGoals };
     } catch (error) {
       console.error('Error generating AI meal suggestions:', error);
-      // Fallback to basic suggestion
-      const fallbackCalories = calorieRange?.min || (mealType === 'breakfast' ? 400 : mealType === 'lunch' ? 600 : mealType === 'dinner' ? 700 : 250);
-      return {
-        suggestions: [{
-          name: `Healthy ${cuisine || 'Mediterranean'} ${mealType}`,
-          ingredients: ["Main protein (4-6 oz)", "Vegetables (1-2 cups)", "Healthy grains (1/2 cup)"],
-          nutrition: { calories: fallbackCalories, protein: 25, carbs: 45, fat: 15, fiber: 8 },
-          portionSize: "1 balanced plate",
-          prepTime: "20 minutes",
-          whyRecommended: "Balanced macros for your goals"
-        }],
-        userPreferences: userGoals
-      };
+      // Retry with simpler prompt if first attempt failed
+      try {
+        const simplePrompt = `Generate a simple ${mealType} suggestion with exact nutrition for ${calorieRange?.min || 400}-${calorieRange?.max || 600} calories. Return JSON:
+{
+  "suggestions": [{
+    "name": "specific dish name",
+    "ingredients": ["exact amounts"],
+    "instructions": ["simple steps"],
+    "nutrition": {"calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number},
+    "portionSize": "specific size",
+    "prepTime": "X minutes",
+    "whyRecommended": "brief reason"
+  }]
+}`;
+
+        const retryResponse = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: simplePrompt }],
+          response_format: { type: "json_object" },
+          max_tokens: 800
+        });
+
+        const retryResult = JSON.parse(retryResponse.choices[0].message.content || '{}');
+        return { suggestions: retryResult.suggestions || [], userPreferences: userGoals };
+      } catch (retryError) {
+        console.error('Retry also failed:', retryError);
+        throw new Error('Unable to generate meal suggestions - please try again');
+      }
     }
   }
 
   private async getRecipeDetails(mealName: string, servings: number = 4, dietaryRestrictions?: string[]): Promise<any> {
-    // This would typically query a recipe database or generate via AI
-    return {
-      name: mealName,
-      servings,
-      prepTime: '15 minutes',
-      cookTime: '25 minutes',
-      difficulty: 'Easy',
-      ingredients: [
-        { item: 'Main protein', amount: '6 oz', calories: 200, protein: 25, carbs: 0, fat: 8 },
-        { item: 'Vegetables', amount: '2 cups', calories: 50, protein: 3, carbs: 10, fat: 0 },
-        { item: 'Whole grains', amount: '1 cup cooked', calories: 150, protein: 5, carbs: 30, fat: 2 }
-      ],
-      instructions: [
-        'Prepare all ingredients',
-        'Cook protein according to method',
-        'Steam or sauté vegetables',
-        'Combine and serve'
-      ],
-      nutritionPerServing: {
-        calories: 400,
-        protein: 33,
-        carbs: 40,
-        fat: 10,
-        fiber: 8
-      },
-      dietaryInfo: dietaryRestrictions || []
-    };
+    try {
+      const restrictionsText = dietaryRestrictions?.length ? `Dietary restrictions: ${dietaryRestrictions.join(', ')}` : '';
+      
+      const prompt = `Generate a complete recipe for "${mealName}" serving ${servings} people. ${restrictionsText}
+
+Provide exact ingredients with amounts, detailed cooking instructions, and precise nutrition per serving.
+
+Return JSON format:
+{
+  "name": "${mealName}",
+  "servings": ${servings},
+  "prepTime": "X minutes",
+  "cookTime": "Y minutes", 
+  "difficulty": "Easy/Medium/Hard",
+  "ingredients": [
+    {"item": "specific ingredient", "amount": "exact amount", "calories": number, "protein": number, "carbs": number, "fat": number}
+  ],
+  "instructions": ["detailed step 1", "detailed step 2", "etc"],
+  "nutritionPerServing": {
+    "calories": number,
+    "protein": number,
+    "carbs": number,
+    "fat": number,
+    "fiber": number
+  },
+  "dietaryInfo": []
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        max_tokens: 1200
+      });
+
+      return JSON.parse(response.choices[0].message.content || '{}');
+    } catch (error) {
+      console.error('Error generating recipe details:', error);
+      throw new Error('Unable to generate recipe details - please try again');
+    }
   }
 
   private async getUserHealthProfile(userId: string): Promise<any> {
@@ -935,7 +965,7 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
         tools: CHEF_AI_TOOLS,
         tool_choice: "auto", // Let AI decide when to use tools
         response_format: { type: "json_object" }, // Force JSON format
-        max_tokens: 300 // Optimized for faster responses
+        max_tokens: 800 // Increased to prevent JSON cutoff
       });
       
       let response = completion.choices[0].message;
@@ -981,7 +1011,7 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
             ...toolResults
           ],
           response_format: { type: "json_object" },
-          max_tokens: requestType === 'meal_plan' ? 1200 : 600, // Optimized
+          max_tokens: requestType === 'meal_plan' ? 1500 : 1000, // Increased to prevent JSON cutoff
         });
         
         response = followUpCompletion.choices[0].message;
