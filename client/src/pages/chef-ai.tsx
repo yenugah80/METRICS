@@ -18,7 +18,13 @@ import {
   MessageCircle, 
   Clock,
   Utensils,
-  TrendingUp
+  TrendingUp,
+  Mic,
+  BarChart3,
+  Target,
+  Leaf,
+  Apple,
+  AlertCircle
 } from 'lucide-react';
 
 interface Message {
@@ -26,12 +32,34 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   createdAt: string;
+  recipeDetails?: {
+    recipeName: string;
+    servings: number;
+    prepTime: string;
+    cookTime: string;
+    ingredients: Array<{
+      item: string;
+      amount: string;
+      calories: number;
+      protein: number;
+    }>;
+    instructions: string[];
+    nutritionPerServing: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    };
+  };
   mealCards?: Array<{
     mealId: string;
     mealName: string;
     calories: number;
     nutritionSummary: string;
   }>;
+  insights?: string[];
+  followUpQuestions?: string[];
   nutritionContext?: {
     timeframe?: string;
     metrics?: string[];
@@ -45,6 +73,42 @@ interface Conversation {
   lastInteractionAt: string;
   messageCount: number;
 }
+
+// Nutrition Macro Component
+const NutritionBadge = ({ label, value, unit, color, icon }: {
+  label: string;
+  value: number;
+  unit: string;
+  color: string;
+  icon: string;
+}) => (
+  <div className="text-center p-3 rounded-xl bg-white/50 border border-gray-100">
+    <div className={`text-xl font-bold ${color} mb-1`}>
+      {icon} {value}{unit}
+    </div>
+    <div className="text-xs text-gray-600 font-medium">{label}</div>
+  </div>
+);
+
+// AI Response Card Component
+const ResponseCard = ({ title, children, icon, gradient }: {
+  title: string;
+  children: React.ReactNode;
+  icon?: React.ReactNode;
+  gradient?: string;
+}) => (
+  <Card className={`border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${gradient || 'bg-white'}`}>
+    <CardHeader className="pb-3">
+      <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
+        {icon}
+        {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="pt-0">
+      {children}
+    </CardContent>
+  </Card>
+);
 
 export default function ChefAI() {
   const [message, setMessage] = useState('');
@@ -104,7 +168,7 @@ export default function ChefAI() {
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversationData?.messages]);
+  }, [(conversationData as any)?.messages]);
 
   const handleSendMessage = async (messageText?: string) => {
     const textToSend = messageText || message.trim();
@@ -210,141 +274,214 @@ export default function ChefAI() {
                     </div>
                   ) : (
                     messages.map((msg, index) => (
-                      <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-2xl ${msg.role === 'user' ? 'order-2' : 'order-1'}`}>
-                          <div className="flex items-start gap-3">
-                            {msg.role === 'assistant' && (
-                              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                <Bot className="w-4 h-4 text-white" />
-                              </div>
-                            )}
-                            {msg.role === 'user' && (
-                              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                                <User className="w-4 h-4 text-gray-600" />
-                              </div>
-                            )}
-                            
-                            <div className={`rounded-lg p-3 ${
-                              msg.role === 'user' 
-                                ? 'bg-blue-600 text-white' 
-                                : 'bg-white/80 backdrop-blur-sm border text-gray-900'
-                            }`}>
+                      <div key={index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        {/* Avatar */}
+                        {msg.role === 'assistant' && (
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                            <Bot className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                        
+                        {/* Message Content */}
+                        <div className={`flex-1 max-w-3xl space-y-3 ${msg.role === 'user' ? 'flex flex-col items-end' : ''}`}>
+                          {/* User Message */}
+                          {msg.role === 'user' && (
+                            <div className="bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg max-w-lg">
                               <p className="text-sm">{msg.content}</p>
-                              
-                              {/* Recipe Details Display */}
-                              {msg.role === 'assistant' && (msg as any).recipeDetails && (
-                                <div className="mt-4 bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                  <div className="bg-gradient-to-r from-green-50 to-blue-50 px-4 py-3 border-b">
-                                    <h4 className="font-bold text-lg text-gray-800">{(msg as any).recipeDetails.recipeName}</h4>
-                                    <div className="flex gap-4 text-sm text-gray-600 mt-1">
-                                      <span>Servings: <strong>{(msg as any).recipeDetails.servings}</strong></span>
-                                      <span>Prep: <strong>{(msg as any).recipeDetails.prepTime}</strong></span>
-                                      <span>Cook: <strong>{(msg as any).recipeDetails.cookTime}</strong></span>
-                                    </div>
+                            </div>
+                          )}
+                          
+                          {/* AI Response */}
+                          {msg.role === 'assistant' && (
+                            <div className="space-y-4">
+                              {/* Main Response */}
+                              <div className="bg-white rounded-2xl rounded-tl-md border border-gray-100 p-4 shadow-lg">
+                                <div className="flex items-start gap-3 mb-3">
+                                  <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <Apple className="w-3 h-3 text-white" />
                                   </div>
-                                  
-                                  <div className="grid md:grid-cols-2 gap-6 p-4">
-                                    {/* Ingredients */}
-                                    <div>
-                                      <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-gray-900 text-sm mb-1">ChefAI</h4>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{msg.content}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Recipe Details Card */}
+                              {(msg as any).recipeDetails && (
+                                <ResponseCard 
+                                  title={(msg as any).recipeDetails.recipeName}
+                                  icon={<Utensils className="w-5 h-5 text-green-600" />}
+                                  gradient="bg-gradient-to-br from-green-50 to-emerald-50"
+                                >
+                                  <div className="space-y-4">
+                                    {/* Recipe Meta */}
+                                    <div className="flex gap-6 text-sm text-gray-600">
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-4 h-4" />
+                                        <strong>{(msg as any).recipeDetails.prepTime}</strong> prep
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-4 h-4" />
+                                        <strong>{(msg as any).recipeDetails.cookTime}</strong> cook
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <User className="w-4 h-4" />
+                                        <strong>{(msg as any).recipeDetails.servings}</strong> servings
+                                      </span>
+                                    </div>
+
+                                    {/* Nutrition Overview */}
+                                    <div className="grid grid-cols-5 gap-2">
+                                      <NutritionBadge
+                                        label="Calories"
+                                        value={(msg as any).recipeDetails.nutritionPerServing.calories}
+                                        unit=""
+                                        color="text-green-600"
+                                        icon="🔥"
+                                      />
+                                      <NutritionBadge
+                                        label="Protein"
+                                        value={(msg as any).recipeDetails.nutritionPerServing.protein}
+                                        unit="g"
+                                        color="text-blue-600"
+                                        icon="💪"
+                                      />
+                                      <NutritionBadge
+                                        label="Carbs"
+                                        value={(msg as any).recipeDetails.nutritionPerServing.carbs}
+                                        unit="g"
+                                        color="text-purple-600"
+                                        icon="🌾"
+                                      />
+                                      <NutritionBadge
+                                        label="Fat"
+                                        value={(msg as any).recipeDetails.nutritionPerServing.fat}
+                                        unit="g"
+                                        color="text-orange-600"
+                                        icon="🥑"
+                                      />
+                                      <NutritionBadge
+                                        label="Fiber"
+                                        value={(msg as any).recipeDetails.nutritionPerServing.fiber}
+                                        unit="g"
+                                        color="text-teal-600"
+                                        icon="🌿"
+                                      />
+                                    </div>
+
+                                    {/* Ingredients Grid */}
+                                    <div className="bg-white/70 rounded-xl p-4">
+                                      <h5 className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                                         Ingredients
                                       </h5>
-                                      <ul className="space-y-2">
+                                      <div className="grid md:grid-cols-2 gap-2">
                                         {(msg as any).recipeDetails.ingredients.map((ingredient: any, idx: number) => (
-                                          <li key={idx} className="text-sm text-gray-700 flex items-center gap-2">
-                                            <span className="w-1.5 h-1.5 bg-green-400 rounded-full flex-shrink-0"></span>
-                                            <span><strong>{ingredient.amount}</strong> {ingredient.item}</span>
-                                          </li>
+                                          <div key={idx} className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2">
+                                            <span className="text-gray-700">{ingredient.amount} {ingredient.item}</span>
+                                            <span className="text-xs text-gray-500">{ingredient.calories}cal</span>
+                                          </div>
                                         ))}
-                                      </ul>
+                                      </div>
                                     </div>
-                                    
+
                                     {/* Instructions */}
-                                    <div>
-                                      <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                    <div className="bg-white/70 rounded-xl p-4">
+                                      <h5 className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                                         Instructions
                                       </h5>
-                                      <ol className="space-y-3">
+                                      <ol className="space-y-2">
                                         {(msg as any).recipeDetails.instructions.map((instruction: string, idx: number) => (
                                           <li key={idx} className="text-sm text-gray-700 flex gap-3">
-                                            <span className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                                            <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                                               {idx + 1}
                                             </span>
-                                            <span>{instruction}</span>
+                                            <span className="flex-1 pt-1">{instruction}</span>
                                           </li>
                                         ))}
                                       </ol>
                                     </div>
                                   </div>
-                                  
-                                  {/* Nutrition Breakdown */}
-                                  <div className="bg-gray-50 px-4 py-3 border-t">
-                                    <h5 className="font-semibold text-gray-800 mb-3">Nutrition Per Serving</h5>
-                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                      <div className="text-center">
-                                        <div className="text-lg font-bold text-green-600">{(msg as any).recipeDetails.nutritionPerServing.calories}</div>
-                                        <div className="text-xs text-gray-500">Calories</div>
+                                </ResponseCard>
+                              )}
+                              
+                              {/* Meal Analysis Cards */}
+                              {msg.mealCards && msg.mealCards.length > 0 && (
+                                <div className="space-y-3">
+                                  {msg.mealCards.map((meal) => (
+                                    <ResponseCard 
+                                      key={meal.mealId}
+                                      title={meal.mealName}
+                                      icon={<Utensils className="w-4 h-4 text-green-600" />}
+                                      gradient="bg-gradient-to-br from-green-50 to-green-100"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <p className="text-sm text-gray-600">{meal.nutritionSummary}</p>
+                                        <Badge className="bg-green-100 text-green-700 hover:bg-green-200">
+                                          🔥 {meal.calories} cal
+                                        </Badge>
                                       </div>
-                                      <div className="text-center">
-                                        <div className="text-lg font-bold text-blue-600">{(msg as any).recipeDetails.nutritionPerServing.protein}g</div>
-                                        <div className="text-xs text-gray-500">Protein</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="text-lg font-bold text-purple-600">{(msg as any).recipeDetails.nutritionPerServing.carbs}g</div>
-                                        <div className="text-xs text-gray-500">Carbs</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="text-lg font-bold text-orange-600">{(msg as any).recipeDetails.nutritionPerServing.fat}g</div>
-                                        <div className="text-xs text-gray-500">Fat</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="text-lg font-bold text-teal-600">{(msg as any).recipeDetails.nutritionPerServing.fiber}g</div>
-                                        <div className="text-xs text-gray-500">Fiber</div>
-                                      </div>
-                                    </div>
+                                    </ResponseCard>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {/* Insights Cards */}
+                              {msg.insights && msg.insights.length > 0 && (
+                                <div className="space-y-2">
+                                  {msg.insights.map((insight, i) => (
+                                    <ResponseCard 
+                                      key={i}
+                                      title="Nutrition Insight"
+                                      icon={<Sparkles className="w-4 h-4 text-blue-600" />}
+                                      gradient="bg-gradient-to-br from-blue-50 to-blue-100"
+                                    >
+                                      <p className="text-sm text-gray-700">{insight}</p>
+                                    </ResponseCard>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Follow-up Questions */}
+                              {msg.followUpQuestions && msg.followUpQuestions.length > 0 && (
+                                <div className="space-y-2">
+                                  <h5 className="text-sm font-semibold text-gray-600 flex items-center gap-2">
+                                    <MessageCircle className="w-4 h-4" />
+                                    Try asking:
+                                  </h5>
+                                  <div className="flex flex-wrap gap-2">
+                                    {msg.followUpQuestions.map((question, i) => (
+                                      <Button
+                                        key={i}
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-xs rounded-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+                                        onClick={() => handleSuggestionClick(question)}
+                                        data-testid={`button-followup-${i}`}
+                                      >
+                                        {question}
+                                      </Button>
+                                    ))}
                                   </div>
                                 </div>
                               )}
-                              
-                              {/* Meal Cards */}
-                              {msg.mealCards && msg.mealCards.length > 0 && (
-                                <div className="mt-3 space-y-2">
-                                  {msg.mealCards.map((meal) => (
-                                    <Card key={meal.mealId} className="border border-blue-200 bg-blue-50">
-                                      <CardContent className="p-3">
-                                        <div className="flex items-center justify-between">
-                                          <div>
-                                            <h4 className="font-medium text-sm">{meal.mealName}</h4>
-                                            <p className="text-xs text-gray-600">{meal.nutritionSummary}</p>
-                                          </div>
-                                          <Badge variant="secondary">{meal.calories} cal</Badge>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </div>
-                              )}
-                              
-                              {/* Insights */}
-                              {msg.nutritionContext?.insights && msg.nutritionContext.insights.length > 0 && (
-                                <div className="mt-3 space-y-1">
-                                  {msg.nutritionContext.insights.map((insight, i) => (
-                                    <div key={i} className="flex items-center gap-2 text-xs text-blue-700 bg-blue-50 rounded p-2">
-                                      <Sparkles className="w-3 h-3" />
-                                      {insight}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              
-                              <div className="text-xs text-gray-500 mt-2">
+
+                              {/* Timestamp */}
+                              <div className="text-xs text-gray-400 mt-2">
                                 {new Date(msg.createdAt).toLocaleTimeString()}
                               </div>
                             </div>
-                          </div>
+                          )}
                         </div>
+
+                        {/* User Avatar */}
+                        {msg.role === 'user' && (
+                          <div className="w-10 h-10 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                        )}
                       </div>
                     ))
                   )}
@@ -352,24 +489,153 @@ export default function ChefAI() {
                 </div>
               </ScrollArea>
 
-              {/* Message Input */}
-              <div className="bg-white/80 backdrop-blur-sm border-t p-4">
+              {/* Enhanced Message Input */}
+              <div className="bg-white border-t border-gray-100 p-6">
                 <div className="max-w-4xl mx-auto">
-                  <div className="flex gap-2">
+                  <div className="bg-gray-50 rounded-2xl p-4">
+                    <div className="flex gap-3">
+                      <Input
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Ask ChefAI about nutrition, recipes, or meal planning..."
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        disabled={sendMessageMutation.isPending}
+                        className="flex-1 border-0 bg-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+                        data-testid="input-chat-message"
+                      />
+                      <Button
+                        variant="outline"
+                        className="rounded-xl border-gray-200 hover:bg-gray-100 px-4"
+                        data-testid="button-voice-input"
+                      >
+                        <Mic className="w-4 h-4 text-gray-600" />
+                      </Button>
+                      <Button
+                        onClick={() => handleSendMessage()}
+                        disabled={!message.trim() || sendMessageMutation.isPending}
+                        className="rounded-xl bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 px-6"
+                        data-testid="button-send-message"
+                      >
+                        {sendMessageMutation.isPending ? (
+                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                    
+                    {/* Typing indicator */}
+                    {sendMessageMutation.isPending && (
+                      <div className="flex items-center gap-2 mt-3 text-sm text-gray-500">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+                        </div>
+                        ChefAI is thinking...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            /* Production ChefAI Welcome */
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="max-w-3xl w-full text-center space-y-8">
+                {/* ChefAI Coach Header */}
+                <div className="space-y-4">
+                  <div className="relative mx-auto w-fit">
+                    <div className="w-24 h-24 bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 rounded-full flex items-center justify-center shadow-2xl">
+                      <Bot className="w-12 h-12 text-white" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                      <Sparkles className="w-3 h-3 text-white" />
+                    </div>
+                  </div>
+                </div>
+                
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Meet ChefAI</h1>
+                    <p className="text-lg text-gray-600 max-w-lg mx-auto">
+                      Your AI nutrition coach is ready to help you eat better!
+                    </p>
+                  </div>
+
+                {/* Quick Action Pills */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Quick Actions</h3>
+                  <div className="flex flex-wrap justify-center gap-3 max-w-2xl mx-auto">
+                    {[
+                      { text: "What's a healthy lunch today?", emoji: "🥗", bg: "bg-green-500 hover:bg-green-600" },
+                      { text: "Suggest 400-calorie dinners", emoji: "🍽️", bg: "bg-blue-500 hover:bg-blue-600" },
+                      { text: "How can I increase my protein?", emoji: "💪", bg: "bg-purple-500 hover:bg-purple-600" },
+                      { text: "Make me a meal plan", emoji: "📋", bg: "bg-orange-500 hover:bg-orange-600" }
+                    ].map((suggestion, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className={`${suggestion.bg} text-white border-0 rounded-full px-4 py-2 text-sm font-medium hover:scale-105 transition-all duration-200 shadow-lg`}
+                        onClick={() => handleSuggestionClick(suggestion.text)}
+                        data-testid={`button-suggestion-${index}`}
+                      >
+                        <span className="mr-2">{suggestion.emoji}</span>
+                        {suggestion.text}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Feature Overview Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                  <ResponseCard
+                    title="Meal Analysis"
+                    icon={<Utensils className="w-5 h-5 text-blue-600" />}
+                    gradient="bg-gradient-to-br from-blue-50 to-blue-100"
+                  >
+                    <p className="text-sm text-gray-600">
+                      Instant insights about calories, macros, and nutrition quality
+                    </p>
+                  </ResponseCard>
+                  
+                  <ResponseCard
+                    title="Progress Tracking"
+                    icon={<BarChart3 className="w-5 h-5 text-green-600" />}
+                    gradient="bg-gradient-to-br from-green-50 to-green-100"
+                  >
+                    <p className="text-sm text-gray-600">
+                      See your nutrition trends and celebrate improvements
+                    </p>
+                  </ResponseCard>
+                  
+                  <ResponseCard
+                    title="Smart Coaching"
+                    icon={<Target className="w-5 h-5 text-purple-600" />}
+                    gradient="bg-gradient-to-br from-purple-50 to-purple-100"
+                  >
+                    <p className="text-sm text-gray-600">
+                      Get personalized advice based on your goals and data
+                    </p>
+                  </ResponseCard>
+                </div>
+
+                {/* Start Chat Input */}
+                <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-lg p-4">
+                  <div className="flex gap-3">
                     <Input
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Ask ChefAI about your nutrition..."
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       disabled={sendMessageMutation.isPending}
-                      className="flex-1"
-                      data-testid="input-chat-message"
+                      className="flex-1 border-0 bg-gray-50 rounded-xl focus:bg-white transition-colors"
+                      data-testid="input-welcome-message"
                     />
                     <Button
                       onClick={() => handleSendMessage()}
                       disabled={!message.trim() || sendMessageMutation.isPending}
-                      className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
-                      data-testid="button-send-message"
+                      className="rounded-xl bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 px-4"
+                      data-testid="button-send-welcome-message"
                     >
                       {sendMessageMutation.isPending ? (
                         <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
@@ -377,113 +643,12 @@ export default function ChefAI() {
                         <Send className="w-4 h-4" />
                       )}
                     </Button>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            /* Welcome Screen - More Visual & Engaging */
-            <div className="flex-1 flex items-center justify-center p-8">
-              <div className="max-w-2xl text-center space-y-8">
-                {/* Animated ChefAI Avatar */}
-                <div className="relative">
-                  <div className="w-32 h-32 bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 rounded-full flex items-center justify-center mx-auto shadow-2xl animate-pulse">
-                    <Bot className="w-16 h-16 text-white" />
-                  </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-white" />
-                  </div>
-                </div>
-                
-                <div>
-                  <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-teal-600 to-green-600 bg-clip-text text-transparent mb-3">Meet ChefAI</h2>
-                  <p className="text-gray-600 text-lg mb-6">
-                    🍽️ Your AI nutrition coach is ready to help you eat better!
-                  </p>
-                </div>
-
-                {/* Quick Action Chips */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-800">🚀 Quick Actions</h3>
-                  <div className="grid gap-3 max-w-lg mx-auto">
-                    {[
-                      { text: "What's a healthy lunch today?", emoji: "🥗", color: "from-green-400 to-green-600" },
-                      { text: "Suggest 400-calorie dinners", emoji: "🍽️", color: "from-blue-400 to-blue-600" },
-                      { text: "How can I increase my protein?", emoji: "💪", color: "from-purple-400 to-purple-600" },
-                      { text: "Make me a meal plan", emoji: "📋", color: "from-orange-400 to-orange-600" }
-                    ].map((suggestion, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        className={`justify-start p-4 h-auto text-left hover:shadow-lg border-0 bg-gradient-to-r ${suggestion.color} text-white hover:scale-105 transition-all duration-200`}
-                        onClick={() => handleSuggestionClick(suggestion.text)}
-                        data-testid={`button-suggestion-${index}`}
-                      >
-                        <span className="text-xl mr-3">{suggestion.emoji}</span>
-                        <span className="text-sm font-medium">{suggestion.text}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Visual Feature Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card className="border-0 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Utensils className="w-8 h-8 text-white" />
-                      </div>
-                      <h4 className="font-bold text-gray-800 mb-2">🔍 Meal Analysis</h4>
-                      <p className="text-sm text-gray-600">
-                        Get instant insights about calories, macros, and nutrition quality
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border-0 bg-gradient-to-br from-green-50 to-green-100 shadow-lg hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <TrendingUp className="w-8 h-8 text-white" />
-                      </div>
-                      <h4 className="font-bold text-gray-800 mb-2">📊 Progress Tracking</h4>
-                      <p className="text-sm text-gray-600">
-                        See your nutrition trends and celebrate improvements
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100 shadow-lg hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Sparkles className="w-8 h-8 text-white" />
-                      </div>
-                      <h4 className="font-bold text-gray-800 mb-2">✨ Smart Coaching</h4>
-                      <p className="text-sm text-gray-600">
-                        Get personalized advice based on your goals and data
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Quick Start Input */}
-                <div className="max-w-md mx-auto">
-                  <div className="flex gap-2">
-                    <Input
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Ask me anything about nutrition..."
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                      disabled={sendMessageMutation.isPending}
-                      className="bg-white/80 backdrop-blur-sm"
-                      data-testid="input-welcome-message"
-                    />
                     <Button
-                      onClick={() => handleSendMessage()}
-                      disabled={!message.trim() || sendMessageMutation.isPending}
-                      className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
-                      data-testid="button-send-welcome-message"
+                      variant="outline"
+                      className="rounded-xl border-gray-200 hover:bg-gray-50 px-4"
+                      data-testid="button-voice-input"
                     >
-                      <Send className="w-4 h-4" />
+                      <Mic className="w-4 h-4 text-gray-600" />
                     </Button>
                   </div>
                 </div>

@@ -1,0 +1,202 @@
+ChefAI Redesign Developer Prompt
+
+Objective:
+Redesign the ChefAI interface to be clean, chat-first, and professional, avoiding cluttered blocks and inconsistent colors. ChefAI should feel like a calm, intelligent nutrition assistant (similar to Apple Health + Notion AI + Calm app minimalism).
+
+1. Layout & Structure
+
+Header Section
+
+Title: “Meet ChefAI – Your Personal Nutrition Coach”
+
+Subtitle: “Chat with ChefAI for personalized meal suggestions, insights, and guidance.”
+
+One CTA button: Start Chat (use brand gradient).
+
+Chat Area (Main Body)
+
+Left-aligned bot bubbles with subtle background (#F9FAFB).
+
+Right-aligned user bubbles with brand color background (#3B82F6 → #06B6D4 gradient).
+
+Typing indicator animation (three dots).
+
+Input bar with:
+
+Text field (rounded corners).
+
+Mic icon for voice logging.
+
+Send icon (paper plane).
+
+Suggested Prompts (Below Input)
+
+Display 3–4 pill-shaped buttons with subtle hover.
+
+Examples:
+
+“What’s a healthy lunch today?”
+
+“Suggest 400-calorie dinners.”
+
+“How can I increase my protein?”
+
+Each prompt should be small, not blocky.
+
+Expandable Insights Cards (Inside Chat)
+
+When ChefAI responds, allow expansion into cards for:
+
+Meal Analysis (macros, micros, allergens, safety, eco impact).
+
+Progress Tracking (charts + weekly insights).
+
+Smart Coaching (personalized recommendations).
+
+Style:
+
+Rounded corners (border-radius: 1rem).
+
+Shadow (shadow-md).
+
+Light pastel background.
+
+Consistent iconography (line icons, muted tones).
+
+2. Color System
+
+Primary Brand Gradient:
+
+Start: #3B82F6 (blue 500).
+
+End: #06B6D4 (teal 400).
+
+Usage: Buttons, highlights, chat bubbles.
+
+Secondary Accents:
+
+Lavender: #A78BFA
+
+Mint Green: #10B981
+
+Coral (for warnings): #F97316
+
+Neutrals:
+
+Background: #FAFAFA
+
+Text Primary: #111827
+
+Text Secondary: #6B7280
+
+Card Background: #FFFFFF
+
+3. Typography
+
+Font Family: Inter or SF Pro (system friendly).
+
+Weights:
+
+Titles → 600 (semibold).
+
+Body → 400 (normal).
+
+Small captions → 300 (light).
+
+Sizes:
+
+Title → 24px.
+
+Subtitles → 18px.
+
+Body → 16px.
+
+Captions → 14px.
+
+4. UX Flow
+
+Entry Point → User clicks Start Chat.
+
+Conversation Mode → ChefAI opens in full chat screen.
+
+Suggested Prompts appear inline below chat input.
+
+User sends a query → AI responds in chat bubble, followed by expandable insights card.
+
+Insights Cards display optional breakdowns:
+
+Nutrition details.
+
+Coaching suggestions.
+
+Progress tracking.
+
+Minimal Distractions → Only one CTA per section, consistent navigation bottom bar.
+
+5. Do’s & Don’ts
+
+✅ Do:
+
+Keep design lightweight, airy, calm.
+
+Use consistent color hierarchy (brand gradient + pastel cards).
+
+Make chat the primary interaction, insights secondary.
+
+Add animations (subtle fade, scale-in for cards).
+
+❌ Don’t:
+
+Stack multiple large colored blocks (cluttered look).
+
+Overuse bright orange/green/purple simultaneously.
+
+Mix styles (flat + gradient + sharp edges).
+
+Display all features upfront (progressive reveal instead).
+
+6. Implementation Notes (React + Tailwind Example)
+<div className="flex flex-col h-screen bg-gray-50">
+  {/* Header */}
+  <div className="p-6 text-center">
+    <h1 className="text-2xl font-semibold text-gray-900">Meet ChefAI</h1>
+    <p className="text-gray-600">Your personal nutrition coach</p>
+    <button className="mt-4 px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-teal-400 text-white font-medium">
+      Start Chat
+    </button>
+  </div>
+
+  {/* Chat Area */}
+  <div className="flex-1 overflow-y-auto px-6 space-y-4">
+    {/* Bot Message */}
+    <div className="max-w-md p-4 bg-white rounded-xl shadow text-gray-800">
+      Hi 👋 I’m ChefAI. How can I help with your meals today?
+    </div>
+    {/* User Message */}
+    <div className="max-w-md p-4 ml-auto bg-gradient-to-r from-blue-500 to-teal-400 text-white rounded-xl shadow">
+      Suggest a healthy lunch
+    </div>
+  </div>
+
+  {/* Input */}
+  <div className="p-4 border-t bg-white flex items-center space-x-2">
+    <input
+      className="flex-1 border rounded-full px-4 py-2 focus:outline-none"
+      placeholder="Type your message..."
+    />
+    <button className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-teal-400 text-white">
+      ➤
+    </button>
+  </div>
+</div>
+
+7. References for Inspiration
+
+Notion AI → clean conversational UI.
+
+Apple Health app → calming whites + light colors.
+
+Duolingo Coaching cards → gamified but consistent.
+
+⚡ Final Note for Developer:
+The entire ChefAI UX must be conversational-first (like talking to a nutritionist), with optional expandable insights — not a cluttered dashboard of boxes. Think calm, intelligent, minimal.

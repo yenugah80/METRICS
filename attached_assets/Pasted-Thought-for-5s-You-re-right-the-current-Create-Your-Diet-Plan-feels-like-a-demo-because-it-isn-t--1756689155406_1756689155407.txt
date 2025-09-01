@@ -1,0 +1,234 @@
+Thought for 5s
+
+You’re right—the current “Create Your Diet Plan” feels like a demo because it isn’t wired to a real generation pipeline. Hand this to your dev as the exact spec to make it fully functional.
+
+1) What’s broken (symptoms to fix)
+
+Radio buttons toggle but nothing happens → no submit handler or it isn’t calling a real API.
+
+No persistence → selections aren’t saved to the user profile.
+
+No plan object returned → UI cannot render a calendar/meal list.
+
+No error/empty/loading states → page appears frozen if the API fails.
+
+2) Definition of Done (acceptance criteria)
+
+User completes the 4-step wizard, clicks Create My Diet Plan, and receives a 28-day plan within 5–10s.
+
+Plan respects: calories + macro targets, diet preference, allergies, exclusions, cultural cuisine toggle, budget (if set), cooking skill/time.
+
+Each day has 3 meals + optional snacks with linked recipe IDs and complete nutrition totals.
+
+User can: save plan, regenerate a day/meal, swap a meal, download shopping list.
+
+State is persisted server-side and reloadable.
+
+Proper empty/loading/error UI; button disabled until valid.
+
+3) Data flow & contracts
+Frontend → Backend
+
+POST /api/diet-plans/generate
+
+Body
+
+{
+  "userId": "uuid",
+  "targets": { "calories": 2000, "protein_g": 150, "carbs_g": 250, "fat_g": 80 },
+  "prefs": {
+    "diet": "vegetarian",
+    "restrictions": ["gluten_free","nut_allergy"],
+    "dislikedIngredients": ["mushroom"],
+    "cuisineBias": ["indian","mediterranean"],
+    "maxCookMins": 30,
+    "mealsPerDay": 3,
+    "snacksPerDay": 1,
+    "budgetTier": "mid"
+  }
+}
+
+
+Response (success)
+
+{
+  "planId": "uuid",
+  "startsOn": "2025-09-01",
+  "days": [
+    {
+      "dayIndex": 1,
+      "totals": { "calories": 1988, "protein_g": 152, "carbs_g": 244, "fat_g": 77, "fiber_g": 28, "sodium_mg": 1800 },
+      "meals": [
+        {
+          "slot": "breakfast",
+          "recipeId": "rec_3421",
+          "title": "Paneer & Spinach Scramble on GF Toast",
+          "servings": 1,
+          "nutrition": { "calories": 420, "protein_g": 34, "carbs_g": 28, "fat_g": 18, "fiber_g": 5 },
+          "swapIds": ["rec_3123","rec_9002"]
+        },
+        { "slot": "lunch", ... },
+        { "slot": "dinner", ... },
+        { "slot": "snack", ... }
+      ]
+    }
+  ],
+  "shoppingList": [
+    { "ingredient": "eggs", "qty": "18", "unit": "count" },
+    { "ingredient": "spinach", "qty": "900", "unit": "g" }
+  ]
+}
+
+
+Response (error)
+
+{ "error": "NO_RECIPES_MATCH", "message": "No vegetarian/gluten-free recipes found without nuts. Loosen filters or add recipes." }
+
+Persistence tables (minimal)
+
+diet_plans(id, user_id, starts_on, generated_at, meta_json)
+
+diet_plan_days(id, plan_id, day_index, totals_json)
+
+diet_plan_meals(id, day_id, slot, recipe_id, servings, nutrition_json)
+
+Recipes you already have: ensure fields diet_tags[], allergens[], cuisine, cook_minutes, cost_tier, nutrition_per_serving.
+
+4) Backend generation logic (deterministic + AI assisted)
+Step A — Fetch constraints
+
+Pull user profile targets; override with wizard selections.
+
+Compute per-meal macro budgets:
+
+Breakfast 25%, Lunch 35%, Dinner 35%, Snack 5% (configurable).
+
+Step B — Candidate pool
+
+SQL example (Postgres):
+
+SELECT id, title, nutrition, cook_minutes, cuisine, cost_tier
+FROM recipes
+WHERE $1 = ANY(diet_tags)
+AND NOT (allergens && $2)             -- array overlap
+AND NOT (ingredients && $3)           -- disliked ingredients
+AND cook_minutes <= $4
+AND (cost_tier <= $5)
+LIMIT 500;
+
+
+Bind vars: diet, restrictions[], disliked[], maxCookMins, budgetTier.
+
+Step C — Fit meals to targets
+
+Greedy + fallback:
+
+For each day, select meals B/L/D/S from candidates so that
+
+sum(cal) ≈ target ± 5%
+
+protein ≥ target * 0.95, fat & carbs within ±10%
+
+If no perfect fit, allow portion scaling 0.75–1.25× (recipes must support scalable nutrition).
+
+If still no fit, relax cuisine bias; then relax cook time by +10 mins; finally widen macros tolerance to ±15%. If nothing, return NO_RECIPES_MATCH.
+
+Step D — Diversity rules
+
+No recipe repeats within 3 days.
+
+Enforce cuisine variety (at least two cuisines per 3-day window).
+
+Rotate protein sources (e.g., tofu/eggs/legumes/paneer).
+
+Step E — AI polish (optional but safe)
+
+Use LLM only to generate descriptions, prep tips, and swap suggestions, NOT nutrition math. Provide exact chosen recipe IDs and final macros to avoid hallucinations.
+
+System prompt (safe)
+
+You are ChefAI, a registered-dietitian style coach.
+You are given a fixed meal plan with exact nutrition. 
+Never change numbers; only add human-friendly tips, plating ideas, and two ingredient swaps per meal that keep it vegetarian, gluten-free, nut-free.
+Return Markdown with sections: “Day Summary”, “Prep Tips”, “Smart Swaps”.
+
+5) Frontend work (replace mock)
+Wizard
+
+State: store selections in DietPlanContext and in userPrefs via PATCH /api/users/:id/prefs.
+
+CTA: Create My Diet Plan triggers mutation; disable + spinner while pending.
+
+Loading: skeleton calendar for 28 rows.
+
+Error: toast with backend message + “Adjust filters” link (opens a sheet to relax limits).
+
+Plan UI
+
+Top: Daily totals vs target with mini bars (green within ±10%, amber ±15%, red otherwise).
+
+Grid: Day 1–28; each meal card → recipe modal.
+
+Actions per meal: Swap (opens candidate list pre-filtered), Scale (0.75×, 1×, 1.25×), Save Favorite.
+
+FAB: Download shopping list (group by aisle).
+
+Components & calls (React)
+const { mutate: generatePlan, isPending } = useMutation({
+  mutationFn: (payload: GeneratePayload) =>
+    fetch('/api/diet-plans/generate', { method:'POST', body: JSON.stringify(payload) })
+      .then(r => r.ok ? r.json() : r.json().then(Promise.reject)),
+  onSuccess: (plan) => queryClient.setQueryData(['dietPlan', plan.planId], plan)
+});
+
+6) Validation & safeguards
+
+Frontend: require at least one diet and confirm restrictions checkbox list (multi-select).
+
+Backend:
+
+Return 400 if targets missing or unrealistic (protein_g > calories/2).
+
+Sanitize arrays; limit dislikedIngredients to 100 items.
+
+Rate limit: 5 generations / hour / user.
+
+Log generation decisions for QA: constraints, relaxations applied, reasons.
+
+7) Testing checklist
+
+✔️ Vegetarian + Gluten-Free + Nut allergy returns zero nut recipes.
+
+✔️ Max cook time honored (no meal over limit).
+
+✔️ 28 distinct days created; no recipe repeats within 3 days.
+
+✔️ Macros within tolerance; totals add up to per-day target.
+
+✔️ Swap keeps constraints.
+
+✔️ Regenerate day only touches that day.
+
+✔️ Server survives empty recipe pool with helpful error.
+
+8) UX copy (replace placeholders)
+
+Success banner: “Your 28-day vegetarian, gluten-free plan is ready 🎉”
+
+Empty/error: “We couldn’t find enough recipes that are vegetarian, gluten-free, and nut-free under 20 minutes. Try increasing cook time or removing a restriction.”
+
+9) Performance targets
+
+Candidate query < 150ms.
+
+Plan assembly < 1.5s.
+
+Optional LLM tips < 3s (run in parallel; show plan first, hydrate tips when ready).
+
+10) Analytics (to verify adoption)
+
+diet_plan_generate_clicked
+
+diet_plan_generate_succeeded/failed (with reason)
+
+meal_swapped, meal_scaled, plan_saved, shopping_list_downloaded

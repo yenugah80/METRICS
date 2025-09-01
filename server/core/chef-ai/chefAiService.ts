@@ -12,12 +12,12 @@ export interface ChefAiChatRequest {
   message: string;
   messageType?: 'text' | 'voice';
   voiceTranscript?: string;
-  conversationId?: string;
+  conversationId?: string | null;
 }
 
 export interface ChefAiChatResponse {
   conversationId: string;
-  response: string;
+  message: string;
   recipeDetails?: {
     recipeName: string;
     servings: number;
@@ -117,14 +117,31 @@ export class ChefAiService {
 
       return {
         conversationId,
-        response: aiResponse.response,
+        message: aiResponse.response,
+        recipeDetails: aiResponse.recipeDetails,
         mealCards: aiResponse.mealCards,
         insights: aiResponse.insights,
         followUpQuestions: aiResponse.followUpQuestions,
       };
     } catch (error: any) {
-      console.error('ChefAI chat error:', error);
-      throw new Error(`ChefAI failed: ${error.message}`);
+      console.error('ChefAI service error:', {
+        message: error.message,
+        stack: error.stack,
+        userId: request.userId,
+        conversationId: request.conversationId,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Provide specific error details for debugging
+      if (error.message?.includes('API key')) {
+        throw new Error('OpenAI API configuration error');
+      } else if (error.message?.includes('rate limit')) {
+        throw new Error('AI service is busy, please try again in a moment');
+      } else if (error.message?.includes('timeout')) {
+        throw new Error('AI response took too long, please try again');
+      } else {
+        throw new Error(`AI processing failed: ${error.message}`);
+      }
     }
   }
 
@@ -271,24 +288,26 @@ For recipes, always include:
 - Total servings and portion sizes
 - Prep time and cook time
 
-Respond with JSON: {
-  "response": "detailed coaching response with precise food/nutrition information",
+ALWAYS respond with valid JSON in this exact format:
+{
+  "response": "Your encouraging, detailed coaching response with precise nutrition information",
   "recipeDetails": {
-    "recipeName": "name",
-    "servings": number,
-    "prepTime": "minutes",
-    "cookTime": "minutes", 
-    "ingredients": [{"item": "ingredient", "amount": "precise measurement", "calories": number, "protein": number}],
-    "instructions": ["numbered step with details"],
-    "nutritionPerServing": {"calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number}
+    "recipeName": "Recipe Name",
+    "servings": 4,
+    "prepTime": "15 mins",
+    "cookTime": "30 mins", 
+    "ingredients": [{"item": "ingredient name", "amount": "1 cup", "calories": 120, "protein": 4}],
+    "instructions": ["Step 1: Detailed instruction with timing", "Step 2: Next step"],
+    "nutritionPerServing": {"calories": 350, "protein": 25, "carbs": 30, "fat": 15, "fiber": 8}
   },
-  "mealCards": [{"mealId": "id", "mealName": "name", "calories": number, "nutritionSummary": "detailed nutrition info"}],
-  "insights": ["specific nutrition insights based on their data"],
-  "followUpQuestions": ["relevant next questions"],
-  "timeframe": "timeframe analyzed",
-  "metrics": ["nutrition metrics referenced"],
+  "insights": ["Personalized nutrition insight based on their actual data and goals"],
+  "followUpQuestions": ["What about breakfast options?", "Need meal prep ideas?"],
+  "timeframe": "today/this week/recent",
+  "metrics": ["calories", "protein"],
   "confidence": 0.95
-}`;
+}
+
+Only include recipeDetails when user specifically asks for recipes. Always include insights and followUpQuestions.`;
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -296,8 +315,9 @@ Respond with JSON: {
       { role: 'user', content: userMessage }
     ];
 
+    // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-5",
       messages: messages as any,
       response_format: { type: "json_object" },
       max_tokens: 1500, // Increased for detailed recipe responses

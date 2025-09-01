@@ -31,7 +31,7 @@ router.post('/api/chef-ai/chat', verifyJWT, async (req: AuthenticatedRequest, re
       message: validatedData.message,
       messageType: validatedData.messageType,
       voiceTranscript: validatedData.voiceTranscript,
-      conversationId: validatedData.conversationId,
+      conversationId: validatedData.conversationId || undefined,
     };
 
     const response = await chefAiService.processChat(chatRequest);
@@ -121,6 +121,16 @@ router.get('/api/chef-ai/suggestions', verifyJWT, async (req: AuthenticatedReque
       error: 'Failed to generate suggestions'
     });
   }
+});
+
+// Health check endpoint
+router.get('/api/chef-ai/health', (_req, res) => {
+  res.json({ 
+    ok: true, 
+    time: Date.now(),
+    service: 'ChefAI',
+    status: 'operational'
+  });
 });
 
 export default router;

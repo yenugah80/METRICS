@@ -1,0 +1,146 @@
+Short answer: yes—right now that hero looks like a static marketing page. To make it feel dynamic and “alive,” wire it to real data, user state, and actions. Hand this to your dev:
+
+What to make dynamic (priority order)
+
+CTA does real work
+
+Button opens camera/upload → calls /api/meal/analyze → routes to /log/analysis/:id.
+
+Show progress (0–100%), skeletons, and fail states.
+
+Personalized hero copy
+
+If user is known: “Welcome back, Sam — yesterday you hit 86% of your protein target.”
+
+If new: show demo analysis and invite a quick scan.
+
+Live counters/badges
+
+“99% accuracy” → replace with your rolling accuracy & “20M foods” pulled from config/DB.
+
+Streak badge, last scan time, total meals analyzed.
+
+Feature flags / experiments
+
+Control CTA text, gradient, and layout via flags (LaunchDarkly/Unleash), not hardcoded.
+
+CMS-driven content
+
+Load “What makes us different” cards, FAQ, and logos from a CMS (Contentful/Sanity) so marketing can edit without a deploy.
+
+Localization
+
+i18n strings from files/CMS; detect locale.
+
+Minimal implementation sketch (Next.js + React Query)
+// components/Hero.tsx
+export default function Hero() {
+  const { data: me } = useQuery({ queryKey:['me'], queryFn: fetchMe });
+  const { data: metrics } = useQuery({ queryKey:['public-metrics'], queryFn: fetchMetrics, staleTime: 60_000 });
+  const mutate = useMutation({ mutationFn: analyzeMeal, onSuccess: ({id}) => router.push(`/log/analysis/${id}`) });
+
+  return (
+    <section className="py-16">
+      <h1>Stop guessing what's in your food. <span className="text-emerald-600">Know instantly.</span></h1>
+
+      <p className="mt-3 text-slate-600">
+        {me ? `Welcome back, ${me.firstName}. You’re ${me.weekProtein}% to your weekly protein goal.` :
+               `Our AI delivers ${metrics?.accuracy ?? '—'} accurate analysis across ${metrics?.foods ?? '—'} foods.`}
+      </p>
+
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        disabled={mutate.isPending}
+        className="btn btn-primary"
+      >
+        {mutate.isPending ? 'Analyzing…' : 'Analyze Your Meal Instantly'}
+      </button>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={async (e) => {
+          const file = e.target.files?.[0]; if (!file) return;
+          await mutate.mutateAsync(file);
+        }}
+      />
+      {mutate.isPending && <ProgressBar value={uploadProgress}/>}
+      {mutate.isError && <InlineError message="Upload failed. Try another photo." />}
+    </section>
+  );
+}
+
+// lib/api.ts
+export async function analyzeMeal(file: File) {
+  const body = new FormData(); body.append('image', file);
+  const res = await fetch('/api/meal/analyze', { method:'POST', body });
+  if (!res.ok) throw new Error('upload');
+  return res.json(); // { id }
+}
+export const fetchMe = () => fetch('/api/me').then(r=>r.json());
+export const fetchMetrics = () => fetch('/api/public/metrics').then(r=>r.json());
+
+Required backend endpoints
+
+POST /api/meal/analyze → returns { id } and starts analysis job; stream status via SSE/WebSocket (/api/meal/status/:id).
+
+GET /api/me → user summary (name, weekly progress, streak).
+
+GET /api/public/metrics → accuracy %, foods count, countries, last-model-date.
+
+GET /api/cms/landing → cards, FAQs, logos.
+
+UX details that sell the “dynamic” feel
+
+Skeletons for headings and cards during CMS/data load.
+
+Optimistic UI: after upload, route immediately to the analysis page and stream detection chips as they arrive.
+
+Toasts for errors + retry.
+
+A/B test CTA (“Scan a meal now” vs “Analyze your meal instantly”).
+
+Sticky mini-player showing current analysis progress if user scrolls.
+
+Data & config (no more hardcoding)
+
+Put numbers like “99%” and “20M foods” in public_settings table or a feature-flag service; fetch on load.
+
+Home cards/FAQs in CMS collections; include publishedAt, locale, slug.
+
+Performance & SEO
+
+Use Next.js App Router:
+
+SSR hero for SEO.
+
+ISR (revalidate 60s) for /api/public/metrics to keep numbers fresh without load spikes.
+
+Lazy-load heavy components (carousels, animations).
+
+Image optimization on hero illustration.
+
+Observability
+
+Track events: cta_click, upload_start/success/fail, analysis_complete, faq_expand, ab_variant.
+
+Dashboard: CTR, analyze success rate, p95 time to analysis, error codes.
+
+Quick checklist for your dev
+
+ Wire CTA → camera/upload → /api/meal/analyze.
+
+ Add /api/public/metrics + render real numbers.
+
+ Show user summary if authenticated.
+
+ CMS for cards/FAQs; remove hardcoded copy.
+
+ Feature flags for CTA text/layout.
+
+ Loading states, progress, and error toasts.
+
+ Telemetry + A/B test.

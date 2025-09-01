@@ -1,0 +1,138 @@
+ChefAI chat not responding — debugging brief
+Symptoms I see in the UI
+
+No reply from ChefAI after sending a message.
+
+Network to /api/chef-ai/messages sometimes returns:
+
+400 with {"error":"invalid_type","details":{"expected":"string","received":"null","path":["conversationId"]}}
+
+500 with message like “ChefAI temporarily unavailable / taking a quick break”.
+
+Earlier we also saw a 400 “invalid message data”.
+
+What this likely means
+
+Schema mismatch: Frontend is sending conversationId: null while backend expects a string.
+
+Fix either side (prefer backend: allow nullable() and handle empty).
+
+Upstream AI call failing (500): missing API key, rate-limit, or unhandled exception.
+
+We’re catching errors and showing a generic “taking a break” message instead of surfacing the real cause.
+
+SSE/streaming or CORS misconfig: if we stream, headers must be correct; otherwise the UI sits waiting.
+
+Action plan (15-minute fix path)
+1) Align request/response schema
+
+Backend (Zod example)
+
+// routes-chef-ai.ts
+const MessageSchema = z.object({
+  conversationId: z.string().min(1).nullable().optional(), // accept null/undefined
+  message: z.string().min(1),
+  voice: z.boolean().optional(),
+});
+
+
+Then normalize:
+
+const { conversationId, message } = MessageSchema.parse(req.body);
+const convId = conversationId ?? crypto.randomUUID(); // start a new one if null
+
+
+Frontend
+
+When starting a new chat, omit conversationId entirely (don’t send null).
+
+const payload = { message: input.trim(), ...(convId ? {conversationId: convId} : {}) };
+
+2) Add a health check & log the real error
+
+Route
+
+app.get('/api/chef-ai/health', (_req, res) => res.json({ ok: true, time: Date.now() }));
+
+
+Error logging
+
+try {
+  // call OpenAI, etc.
+} catch (e:any) {
+  console.error('ChefAI error', { message: e.message, stack: e.stack, cause: e.cause, body: req.body });
+  return res.status(500).json({ error: 'upstream_failed', details: e.message });
+}
+
+
+Right now the user only sees “taking a break.” We need the real error in server logs.
+
+3) Verify env & upstream
+
+OPENAI_API_KEY (or provider key) is present in the server environment, not just the client.
+
+Confirm no rate limits hit (429). Log headers x-ratelimit-remaining.
+
+If deployed on an edge runtime, confirm fetch to OpenAI is allowed for that runtime.
+
+4) Streaming/SSE (if used)
+
+If we stream, set headers:
+
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+
+
+Flush \n\n events; handle client aborts.
+
+5) CORS / Body size
+
+Ensure CORS allows the app origin for POST /api/chef-ai/messages.
+
+Raise body limit to 1mb if we ever attach transcripts.
+
+Repro steps for dev (use these to test quickly)
+A) Health
+curl -sS http://localhost:3000/api/chef-ai/health
+# expect: {"ok":true,"time":...}
+
+B) Start a new conversation (no conversationId)
+curl -sS -X POST http://localhost:3000/api/chef-ai/messages \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Suggest a 500 kcal high-protein lunch"}'
+# expect: { conversationId: "uuid", messageId: "...", reply: "...", sources: [...] }
+
+C) Continue existing conversation
+curl -sS -X POST http://localhost:3000/api/chef-ai/messages \
+  -H "Content-Type: application/json" \
+  -d '{"conversationId":"<paste-from-prev>", "message":"Make it vegetarian"}'
+
+
+If any of these return 400/500, grab the server log line from console.error('ChefAI error', ...) and fix per message (missing key, schema, upstream).
+
+UX/Copy change
+
+Replace the vague toaster with a helpful message:
+
+If 400 → “We couldn’t process that. Please update the app and try again.”
+
+If 500 and error=upstream_failed → “Our AI service had an issue. We’re on it—try again in a minute.”
+
+Acceptance criteria
+
+Sending a message without conversationId successfully creates a conversation and returns an ID.
+
+Subsequent messages with that ID respond within < 3s (local).
+
+No 400 from schema mismatch; no generic “taking a break” unless upstream genuinely fails.
+
+Health check returns {ok:true} in all environments.
+
+Nice-to-have (post-fix)
+
+Add request/response JSON examples to a short README.
+
+Add Playwright test that posts a message and asserts a non-empty reply.
+
+Add rate-limit handler (retry-after backoff, user notice).
