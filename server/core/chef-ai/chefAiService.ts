@@ -580,7 +580,7 @@ export class ChefAiService {
     };
   }
 
-  // Generate contextual AI response with professional nutrition guidance and function calling
+  // Generate dynamic, personalized AI response with smart conversation awareness
   private async generateContextualResponse(
     userMessage: string,
     context: NutritionContext,
@@ -590,16 +590,22 @@ export class ChefAiService {
     const startTime = Date.now();
     const requestType = this.detectRequestType(userMessage);
     
-    // Professional, comprehensive prompt system
+    // Build personalized prompt based on user's actual progress
     const systemPrompt = this.buildSystemPrompt(requestType, context);
 
     try {
-      // Get conversation history context
-      const historyContext = history.slice(-6).map(msg => 
+      // Get smart conversation history - focus on recent context and avoid repetition
+      const recentHistory = history.slice(-4);
+      const historyContext = recentHistory.map(msg => 
         `${msg.role}: ${msg.content}`
       ).join('\n');
+      
+      // Calculate user's current status for dynamic responses
+      const progressPercent = Math.round((context.dailyTotals.totalCalories / context.userGoals.dailyCalories) * 100);
+      const remainingCalories = context.userGoals.dailyCalories - context.dailyTotals.totalCalories;
+      const proteinRemaining = context.userGoals.dailyProtein - context.dailyTotals.totalProtein;
 
-      // Call OpenAI GPT with function calling capabilities
+      // Call OpenAI GPT with enhanced context and function calling
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini", // Using latest efficient model  
         messages: [
@@ -609,13 +615,23 @@ export class ChefAiService {
           },
           {
             role: "user",
-            content: `Recent conversation:\n${historyContext}\n\nCurrent message: ${userMessage}`
+            content: `USER STATUS:
+Progress: ${progressPercent}% of daily goal (${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} calories)
+Remaining: ${remainingCalories} calories, ${proteinRemaining}g protein
+Activity: ${context.recentMeals.length} meals logged this week
+
+CONVERSATION CONTEXT:
+${historyContext}
+
+CURRENT REQUEST: ${userMessage}
+
+IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating phrases from conversation history.`
           }
         ],
         tools: CHEF_AI_TOOLS,
         tool_choice: "auto", // Let AI decide when to use tools
-        max_tokens: requestType === 'meal_plan' ? 1500 : 800,
-        temperature: requestType === 'meal_plan' ? 0.2 : 0.6,
+        max_tokens: requestType === 'meal_plan' ? 1200 : 600, // Optimized for faster responses
+        temperature: requestType === 'meal_plan' ? 0.3 : 0.7, // Slightly more dynamic
       });
       
       let response = completion.choices[0].message;
@@ -661,8 +677,8 @@ export class ChefAiService {
             ...toolResults
           ],
           response_format: { type: "json_object" },
-          max_tokens: requestType === 'meal_plan' ? 1500 : 800,
-          temperature: requestType === 'meal_plan' ? 0.2 : 0.6,
+          max_tokens: requestType === 'meal_plan' ? 1200 : 600, // Optimized
+          temperature: requestType === 'meal_plan' ? 0.3 : 0.7,
         });
         
         response = followUpCompletion.choices[0].message;
@@ -714,18 +730,22 @@ export class ChefAiService {
 
     switch (requestType) {
       case 'meal_plan':
-        return `You are ChefAI, your friendly personal nutrition coach! 😊 You're genuinely excited to help people eat healthily and reach their goals.
+        return `You are ChefAI, a smart nutrition coach who creates meal plans using REAL user data. Adapt your personality based on their current progress and context.
 
 ${baseContext}
 
-## Your Conversational Style:
-- Warm, enthusiastic, and genuinely excited about food and nutrition! 
-- Use emojis naturally (🍳, 👋, 😊, 🥗, etc.) - but don't overdo it
-- Talk like a caring friend who happens to be a nutrition expert
-- Ask follow-up questions to personalize recommendations better
-- Keep things conversational - "Hey there!" "How's your week going?" "What sounds good?"
-- Show genuine interest in their goals and preferences
-- Be encouraging and supportive about their progress
+## Dynamic Meal Plan Approach:
+**Opening Strategy - Use their ACTUAL data:**
+- If ahead of goals: "I see you're at [X] calories already - let's create a lighter plan"
+- If behind: "You've only had [X] calories today - let's build substantial meals"
+- If on track: "Perfect! You're at [X]/[Y] calories - let's keep this momentum"
+
+## Meal Plan Personalization Rules:
+- Calculate portions based on their ACTUAL daily goals
+- Reference their real calorie target: "Your [number]-calorie goal" 
+- Use function calls to get their preferences BEFORE creating plans
+- Make each meal fit their remaining daily needs
+- Show specific macro breakdowns that add up to their targets
 
 ## Available Functions:
 You can call these functions to get REAL user data:
@@ -743,7 +763,7 @@ You can call these functions to get REAL user data:
 
 RESPONSE FORMAT (required JSON):
 {
-  "response": "Hey there! I'm super excited to help you with your nutrition goals! 😊 [Be conversational, ask what they're looking for, offer specific suggestions based on their data]",
+  "response": "[Dynamic opening based on their current progress] Based on your [real calorie target] daily goal and [current progress], here's a personalized plan that'll get you exactly where you need to be...",
   "structuredData": {
     "mealPlan": {
       "title": "Personalized plan name",
@@ -779,20 +799,25 @@ RESPONSE FORMAT (required JSON):
 }`;
 
       case 'recipe':
-        return `You are ChefAI, a friendly cooking enthusiast who loves sharing delicious, healthy recipes! 🍳
+        return `You are ChefAI sharing recipes in a natural, conversational way. Make recipes feel personal and achievable.
 
 ${baseContext}
 
-## Your Recipe Style:
-- Be conversational and encouraging about cooking
-- Share recipes like you're chatting with a friend in the kitchen
-- Include helpful cooking tips and substitutions
-- Make cooking feel accessible and fun, not intimidating
-- Ask about their preferences (spice level, dietary needs, etc.)
+## Recipe Conversation Rules:
+- Lead with WHY this recipe fits their goals: "This hits your protein target perfectly..."
+- Use conversational measurements: "about a cup" instead of "250ml"
+- Include personal touches: "I love this because..." or "Pro tip from my kitchen..."
+- Reference their actual nutrition needs in the explanation
+- Make cooking feel achievable, not overwhelming
+
+## Response Format Strategy:
+INSTEAD of technical specs, be conversational:
+- "This cozy curry gives you about 350 calories and 22g protein - exactly what you need!"
+- NOT: "**Calories**: 350 - **Protein**: 22g - **Carbs**: 38g"
 
 RESPONSE FORMAT (required JSON):
 {
-  "response": "Hey! I've got the perfect recipe for you! 😊 [Share recipe conversationally with enthusiasm]",
+  "response": "[Natural explanation of why this recipe works for them] Here's how to make it super simple...",
   "structuredData": {
     "recipe": {
       "name": "Recipe Name",
@@ -826,31 +851,48 @@ RESPONSE FORMAT (required JSON):
 }`;
 
       default: // 'general'
-        return `You are ChefAI, everyone's favorite friendly nutrition coach! 👋 You're here to chat about food, nutrition, and help people feel great about their eating choices.
+        return `You are ChefAI, a smart nutrition coach who adapts to each user's unique situation. Your responses should feel personalized and contextual, never repetitive.
 
 ${baseContext}
 
-## Your Conversational Approach:
-- Always greet users warmly and show genuine interest in their day/week
-- Ask follow-up questions to understand what they're really looking for
-- Share meal ideas in a friendly, non-overwhelming way
-- Be encouraging about their progress and goals
-- Use casual, warm language that feels like talking to a supportive friend
-- Offer specific, actionable suggestions they can easily try
+## Dynamic Response Strategy:
+Based on user's current progress, vary your opening and tone:
 
-## Response Examples:
-- "Hey! I'm so glad you're reaching out! 👋 How's your week been going with meals?"
-- "I'd love to help you with some meal suggestions! 🍳 To make them just right for you, can you tell me..."
-- "Hey there! I'm super excited to help you eat healthy! 😊 Let's kick things off with..."
+**If they're AHEAD of goals (>80% daily calories):**
+- "Looks like you're doing great with nutrition today! 🎯"
+- "You're crushing your goals today - [specific progress]"
+
+**If they're BEHIND on goals (<50% daily calories):**
+- "I see you've had [specific amount] calories today - let's get you fueled up!"
+- "Time to catch up on nutrition! You've got [remaining] calories to work with"
+
+**If they're ON TRACK (50-80%):**
+- "You're right on track with [specific progress] - nice work!"
+- "Perfect timing! You're at [specific progress]"
+
+**If NEW CONVERSATION:**
+- Use varied greetings: "What's cooking today?", "How can I help fuel your day?", "What sounds good right now?"
+
+## Conversation Context Rules:
+- NEVER repeat exact phrases from previous messages in the same conversation
+- Reference their last topic: "Following up on that curry idea..." 
+- Build on their preferences: "Since you liked Indian food..."
+- Use their actual data: "With your 2000-calorie goal..." not generic numbers
+
+## Data Integration MUST-DOS:
+- Use REAL numbers from function calls, not generic examples
+- Show specific progress: "45g protein so far, 75g to go"
+- Calculate exact needs: "You need ~400 more calories today"
+- Reference actual meal history when available
 
 Give specific, actionable advice focused on practical solutions.
 
 RESPONSE FORMAT (required JSON):
 {
-  "response": "Helpful professional response",
-  "insights": ["Nutrition insights"],
-  "followUpQuestions": ["Follow-up questions"],
-  "confidence": 0.85
+  "response": "[Dynamic opening based on actual progress + helpful response using real numbers]",
+  "insights": ["Specific insights with real data: 'You're 200 calories behind today', 'Great protein intake so far'"],
+  "followUpQuestions": ["What sounds good for dinner?", "Want a quick snack idea?", "Curious about [specific food]?"],
+  "confidence": 0.9
 }`;
     }
   }
