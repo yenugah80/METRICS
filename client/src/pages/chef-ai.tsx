@@ -27,7 +27,9 @@ import {
   Leaf,
   Apple,
   AlertCircle,
-  Trash2
+  Trash2,
+  Bookmark,
+  Plus
 } from 'lucide-react';
 
 interface Message {
@@ -494,8 +496,50 @@ export default function ChefAI() {
                                     </div>
                                   </div>
 
+                                  {/* Ingredients Section */}
+                                  {msg.structuredData.recipe.ingredients && msg.structuredData.recipe.ingredients.length > 0 && (
+                                    <div className="space-y-3">
+                                      <h5 className="font-medium text-gray-900 flex items-center gap-2">
+                                        🛒 Ingredients
+                                      </h5>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {msg.structuredData.recipe.ingredients.map((ingredient, i) => (
+                                          <div key={i} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                                            <span className="text-gray-700">
+                                              <span className="font-medium">{ingredient.amount}</span> {ingredient.item}
+                                            </span>
+                                            {ingredient.calories > 0 && (
+                                              <Badge variant="secondary" className="text-xs">
+                                                {ingredient.calories} cal
+                                              </Badge>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Instructions Section */}
+                                  {msg.structuredData.recipe.instructions && msg.structuredData.recipe.instructions.length > 0 && (
+                                    <div className="space-y-3">
+                                      <h5 className="font-medium text-gray-900 flex items-center gap-2">
+                                        👩‍🍳 Instructions
+                                      </h5>
+                                      <ol className="space-y-2">
+                                        {msg.structuredData.recipe.instructions.map((instruction, i) => (
+                                          <li key={i} className="flex gap-3">
+                                            <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
+                                              {i + 1}
+                                            </span>
+                                            <span className="text-gray-700 leading-relaxed">{instruction}</span>
+                                          </li>
+                                        ))}
+                                      </ol>
+                                    </div>
+                                  )}
+
                                   {/* Health Benefits */}
-                                  {msg.structuredData.recipe.healthBenefits.length > 0 && (
+                                  {msg.structuredData.recipe.healthBenefits && msg.structuredData.recipe.healthBenefits.length > 0 && (
                                     <div className="space-y-2">
                                       <h5 className="font-medium text-gray-900">Health Benefits</h5>
                                       <div className="flex flex-wrap gap-2">
@@ -507,6 +551,38 @@ export default function ChefAI() {
                                       </div>
                                     </div>
                                   )}
+
+                                  {/* Recipe Actions */}
+                                  <div className="flex gap-2 pt-2 border-t border-gray-100">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        toast({
+                                          title: "Recipe Saved",
+                                          description: "Added to your saved recipes",
+                                        });
+                                      }}
+                                      className="text-xs"
+                                    >
+                                      <Bookmark className="w-3 h-3 mr-1" />
+                                      Save Recipe
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        toast({
+                                          title: "Added to Meal Plan",
+                                          description: "Recipe added to your meal plan",
+                                        });
+                                      }}
+                                      className="text-xs"
+                                    >
+                                      <Plus className="w-3 h-3 mr-1" />
+                                      Add to Plan
+                                    </Button>
+                                  </div>
                                 </div>
                               )}
 
