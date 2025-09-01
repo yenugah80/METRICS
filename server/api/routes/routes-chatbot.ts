@@ -11,8 +11,8 @@ import { storage } from '../../infrastructure/database/storage';
 
 const router = Router();
 
-// Generate chatbot response for recipe requests (5 free, then premium)
-router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (req: FreemiumRequest, res) => {
+// Generate chatbot response for recipe requests (unlimited in development)
+router.post('/api/chatbot/recipe', async (req: AuthenticatedRequest, res) => {
   try {
     const { message, preferences, context, conversationId } = req.body;
     
@@ -42,10 +42,8 @@ router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (
 
     const result = await recipeChatbot.generateResponse(request, message);
 
-    // Track recipe generation for freemium model
-    if (!req.isGuest && req.user?.id) {
-      await storage.incrementRecipeUsage(req.user.id);
-    }
+    // Recipe generation tracking disabled in development mode
+    // Will be re-enabled after app publication
 
     res.json({
       success: true,
@@ -53,9 +51,7 @@ router.post('/api/chatbot/recipe', freemiumMiddleware, checkRecipeLimit, async (
       response: result.response,
       recipes: result.recipes || [],
       suggestions: result.suggestions || [],
-      timestamp: new Date().toISOString(),
-      usageStats: req.usageStats,
-      remainingFree: req.usageStats?.remainingFree || 0
+      timestamp: new Date().toISOString()
     });
 
   } catch (error: any) {

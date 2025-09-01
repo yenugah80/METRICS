@@ -36,8 +36,8 @@ export const generalRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    // Skip rate limiting for health checks
-    return req.path === '/health' || req.path === '/api/health';
+    // Skip rate limiting for health checks and in development mode
+    return req.path === '/health' || req.path === '/api/health' || process.env.NODE_ENV === 'development';
   }
 });
 
@@ -57,6 +57,10 @@ export const apiRateLimit = rateLimit({
   message: {
     error: 'API rate limit exceeded, please slow down.',
     retryAfter: '1 minute'
+  },
+  skip: (req) => {
+    // Skip rate limiting in development mode
+    return process.env.NODE_ENV === 'development';
   }
 });
 

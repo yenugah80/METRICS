@@ -206,6 +206,19 @@ export class AuthService {
 
 // Middleware to verify JWT token
 export async function verifyJWT(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  // DEVELOPMENT MODE: Skip authentication and provide mock user
+  if (process.env.NODE_ENV === 'development') {
+    req.user = {
+      id: 'dev-user-123',
+      email: 'developer@myfoodmatrix.com',
+      firstName: 'Development',
+      lastName: 'User',
+      profileImageUrl: null,
+      isPremium: true, // Give full access in development
+    };
+    return next();
+  }
+
   // Try to get token from Authorization header first, then from cookies
   const authHeader = req.headers.authorization;
   const headerToken = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN

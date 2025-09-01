@@ -216,10 +216,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error('No response from AI');
       }
 
-      // Consume voice session token for non-premium users
-      if (!req.user?.isPremium) {
-        await storage.decrementVoiceSessionTokens(userId, 1);
-      }
+      // Voice sessions are unlimited in development mode
+      // Token consumption disabled for development
 
       res.json({ response });
     } catch (error) {
@@ -765,35 +763,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Check voice analysis tokens for non-premium users
-      if (!user.isPremium) {
-        // Reset tokens if it's a new month
-        const now = new Date();
-        const lastReset = user.lastTokenReset ? new Date(user.lastTokenReset) : new Date();
-        
-        if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
-          await storage.updateUser(userId, {
-            voiceAnalysisTokens: 5,
-            lastTokenReset: now,
-          });
-          user.voiceAnalysisTokens = 5;
-        }
-
-        if ((user.voiceAnalysisTokens || 0) <= 0) {
-          return res.status(402).json({ 
-            error: "No voice analysis tokens remaining",
-            message: "You've used all your free voice analyses this month. Voice logging helps you log meals hands-free while cooking!",
-            tokensRemaining: user.voiceAnalysisTokens || 0,
-            upgradeUrl: "/upgrade",
-            premiumFeature: "voice_logging"
-          });
-        }
-
-        // Consume one voice token
-        await storage.updateUser(userId, {
-          voiceAnalysisTokens: (user.voiceAnalysisTokens || 0) - 1
-        });
-      }
+      // Voice analysis unlimited in development mode
+      // Token checks disabled for development
 
       // First get food analysis from AI  
       const foodAnalysis = await aiService.parseVoiceFood(audioText);
@@ -1108,10 +1079,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? await aiService.analyzeAllergens(foods || [], userProfile.allergens)
         : { isAllergenFree: true, detectedAllergens: [], severity: 'low' as const, warnings: [] };
 
-      let sustainabilityScore = null;
-      if (req.user.isPremium) {
-        sustainabilityScore = await aiService.calculateSustainabilityScore(foods || []);
-      }
+      // Sustainability score available to all users in development
+      let sustainabilityScore = await aiService.calculateSustainabilityScore(foods || []);
 
       await storage.createMealScore({
         mealId: meal.id,
@@ -1616,42 +1585,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Check token availability for non-premium users
-      if (!user.isPremium) {
-        // Reset tokens if it's a new month
-        const now = new Date();
-        const lastReset = user.lastTokenReset ? new Date(user.lastTokenReset) : new Date();
-        
-        if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
-          // Reset tokens for new month
-          await storage.updateUser(userId, {
-            aiAnalysisTokens: 20,
-            voiceAnalysisTokens: 5,
-            recipeGenerationTokens: 3,
-            lastTokenReset: now,
-          });
-          user.aiAnalysisTokens = 20;
-        }
-
-        if ((user.aiAnalysisTokens || 0) <= 0) {
-          return res.status(402).json({ 
-            error: "No analysis tokens remaining",
-            message: "You've used all your free AI analyses this month. Upgrade to Premium for unlimited analyses or buy more tokens.",
-            tokensRemaining: user.aiAnalysisTokens || 0,
-            upgradeUrl: "/upgrade",
-            tokenPackages: [
-              { name: "Starter Pack", tokens: 50, price: "$2.99" },
-              { name: "Power Pack", tokens: 200, price: "$9.99" },
-              { name: "Unlimited Monthly", tokens: "unlimited", price: "$6.99/month" }
-            ]
-          });
-        }
-
-        // Consume one token
-        await storage.updateUser(userId, {
-          aiAnalysisTokens: (user.aiAnalysisTokens || 0) - 1
-        });
-      }
+      // AI analysis unlimited in development mode
+      // Token checks disabled for development
 
       console.log("Starting food analysis of meal image...");
       
@@ -1666,11 +1601,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const nutritionAnalysis = await analyzeFoodImageWithNutrition(imageBase64, dietPreferences);
       
-      // Add token information to response for UI feedback
+      // Token information disabled in development mode
       nutritionAnalysis.tokenInfo = {
-        tokensRemaining: user.isPremium ? "unlimited" : ((user.aiAnalysisTokens || 0) - 1),
-        isPremium: user.isPremium,
-        resetDate: user.lastTokenReset
+        tokensRemaining: "unlimited",
+        isPremium: true,
+        resetDate: new Date()
       };
       
       console.log("Food analysis complete:", nutritionAnalysis);
@@ -2111,10 +2046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ETL System Administration Routes (for monitoring)
   app.get('/api/admin/etl/status', verifyJWT, async (req: any, res) => {
     try {
-      // Only allow premium users to access ETL status
-      if (!req.user.isPremium) {
-        return res.status(403).json({ message: "Premium subscription required" });
-      }
+      // ETL status available to all users in development mode
 
       const status = await etlSystem.getSystemStatus();
       res.json(status);
@@ -2126,10 +2058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/admin/etl/discover', verifyJWT, async (req: any, res) => {
     try {
-      // Only allow premium users to manually trigger discovery
-      if (!req.user.isPremium) {
-        return res.status(403).json({ message: "Premium subscription required" });
-      }
+      // ETL discovery available to all users in development mode
 
       const { ingredientName } = req.body;
       if (!ingredientName) {
