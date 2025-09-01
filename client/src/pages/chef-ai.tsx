@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,9 @@ import {
   AlertCircle,
   Trash2,
   Bookmark,
-  Plus
+  Plus,
+  Package,
+  ChefHat
 } from 'lucide-react';
 
 interface Message {
@@ -189,7 +191,7 @@ const NutritionBadge = ({ label, value, unit, color, icon }: {
 );
 
 // AI Response Card Component
-const ResponseCard = ({ title, children, icon, gradient }: {
+const ResponseCard = memo(({ title, children, icon, gradient }: {
   title: string;
   children: React.ReactNode;
   icon?: React.ReactNode;
@@ -206,7 +208,7 @@ const ResponseCard = ({ title, children, icon, gradient }: {
       {children}
     </CardContent>
   </Card>
-);
+));
 
 export default function ChefAI() {
   const [message, setMessage] = useState('');
@@ -428,11 +430,15 @@ export default function ChefAI() {
                       <p className="text-gray-600 mt-3 text-sm">ChefAI is thinking...</p>
                     </div>
                   ) : (
-                    messages.map((msg, index) => (
-                      <div key={index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-500`} style={{animationDelay: `${index * 100}ms`}}>
+                    messages.map((msg, index) => {
+                      // Pre-calculate animation delay for better performance
+                      const animationDelay = `${index * 100}ms`;
+                      
+                      return (
+                      <div key={msg.id || index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-500`} style={{animationDelay}}>
                         {/* Avatar */}
                         {msg.role === 'assistant' && (
-                          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 via-purple-500 to-teal-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-xl border-2 border-white">
+                          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white">
                             <Bot className="w-6 h-6 text-white" />
                           </div>
                         )}
@@ -442,10 +448,8 @@ export default function ChefAI() {
                           {/* User Message */}
                           {msg.role === 'user' && (
                             <div className="group">
-                              <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 text-white rounded-3xl rounded-tr-lg px-6 py-4 shadow-xl max-w-lg transform hover:scale-[1.02] transition-all duration-200 relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                <p className="text-sm leading-relaxed relative z-10">{msg.content}</p>
-                                <div className="absolute -top-2 -right-2 w-4 h-4 bg-white/20 rounded-full" />
+                              <div className="bg-blue-600 text-white rounded-3xl rounded-tr-lg px-6 py-4 shadow-lg max-w-lg hover:shadow-xl transition-shadow duration-200">
+                                <p className="text-sm leading-relaxed">{msg.content}</p>
                               </div>
                             </div>
                           )}
@@ -454,20 +458,15 @@ export default function ChefAI() {
                           {msg.role === 'assistant' && (
                             <div className="space-y-4">
                               {/* Main Response */}
-                              <div className="group bg-white/80 backdrop-blur-sm rounded-3xl rounded-tl-lg border border-gray-200/50 p-6 shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-green-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <div className="flex items-start gap-4 mb-4 relative z-10">
-                                  <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                              <div className="bg-white rounded-3xl rounded-tl-lg border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
+                                <div className="flex items-start gap-4 mb-4">
+                                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                                     <Sparkles className="w-4 h-4 text-white" />
                                   </div>
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <h4 className="font-bold text-gray-900 text-base bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">ChefAI</h4>
-                                      <div className="flex gap-1">
-                                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-100" />
-                                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse delay-200" />
-                                      </div>
+                                      <h4 className="font-bold text-blue-600 text-base">ChefAI</h4>
+                                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                                     </div>
                                     <div className="prose prose-sm text-gray-700 leading-relaxed max-w-none">
                                       {msg.content.split('\n').map((paragraph, i) => {
@@ -794,6 +793,44 @@ export default function ChefAI() {
                                       </div>
                                     )}
 
+                                    {/* Ingredients */}
+                                    {msg.responseCard.ingredients.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h5 className="font-semibold text-gray-800 text-sm flex items-center gap-2">
+                                          <Package className="w-4 h-4 text-blue-600" />
+                                          Ingredients
+                                        </h5>
+                                        <div className="space-y-1">
+                                          {msg.responseCard.ingredients.map((ingredient, i) => (
+                                            <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                                              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                                              {ingredient}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Preparation Steps */}
+                                    {msg.responseCard.preparation_steps.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h5 className="font-semibold text-gray-800 text-sm flex items-center gap-2">
+                                          <ChefHat className="w-4 h-4 text-purple-600" />
+                                          Instructions
+                                        </h5>
+                                        <div className="space-y-2">
+                                          {msg.responseCard.preparation_steps.map((step, i) => (
+                                            <div key={i} className="flex items-start gap-3 text-sm text-gray-700">
+                                              <div className="flex-shrink-0 w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs font-medium">
+                                                {i + 1}
+                                              </div>
+                                              <span className="leading-relaxed">{step}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
                                     {/* Health Benefits */}
                                     {msg.responseCard.health_benefits.length > 0 && (
                                       <div className="space-y-2">
@@ -878,7 +915,8 @@ export default function ChefAI() {
                           )}
                         </div>
                       </div>
-                    ))
+                      );
+                    })
                   )}
                   <div ref={messagesEndRef} />
                 </div>
