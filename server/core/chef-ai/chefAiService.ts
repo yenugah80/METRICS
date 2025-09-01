@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import { db } from '../../infrastructure/database/db';
 import { chefAiConversations, chefAiMessages, meals, mealItems, dailyNutrition, users } from '@shared/schema';
-import { eq, and, desc, gte, lte } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
