@@ -33,6 +33,7 @@ import dietPlanRoutes from './routes-diet-plans';
 import chefAiRoutes from './routes-chef-ai';
 import { initializeMealLoggingRoutes } from './routes-meal-logging';
 import { smartGptRoutes } from './routes-smart-gpt';
+import { recipeImportRoutes } from './routes-recipe-import';
 
 // Security and Performance Imports
 // Security imports temporarily disabled
@@ -371,6 +372,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // SmartGPT advanced AI analysis routes
   app.use(smartGptRoutes);
+
+  // Recipe import and training routes
+  app.use(recipeImportRoutes);
 
   // AI Systems Health Check
   app.get('/api/ai/health', async (req, res) => {
