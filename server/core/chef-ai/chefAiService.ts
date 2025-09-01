@@ -428,7 +428,7 @@ export class ChefAiService {
         conversationId,
         message: aiResponse.message,
         responseType: aiResponse.responseType,
-        responseCard: aiResponse.responseCard,
+        responseCard: aiResponse.responseCard || undefined,
         insights: aiResponse.insights,
         followUpQuestions: aiResponse.followUpQuestions,
       };
@@ -575,11 +575,11 @@ export class ChefAiService {
           dailyFat: user?.daily_fat_goal || 67,
         },
         userProfile: {
-          dietPreferences: user?.diet_preferences || [],
-          allergens: user?.allergens || [],
-          cuisinePreferences: user?.cuisine_preferences || [],
-          activityLevel: user?.activity_level || 'moderate',
-          healthGoals: user?.health_goals?.primary ? [user.health_goals.primary] : ['maintenance'],
+          dietPreferences: Array.isArray(user?.diet_preferences) ? user.diet_preferences : [],
+          allergens: Array.isArray(user?.allergens) ? user.allergens : [],
+          cuisinePreferences: Array.isArray(user?.cuisine_preferences) ? user.cuisine_preferences : [],
+          activityLevel: typeof user?.activity_level === 'string' ? user.activity_level : 'moderate',
+          healthGoals: user?.health_goals && typeof user.health_goals === 'object' && user.health_goals.primary ? [user.health_goals.primary] : ['maintenance'],
         },
         dietPlan: activePlan ? {
           questionnaire: activePlan.questionnaire_data,
@@ -665,7 +665,7 @@ export class ChefAiService {
         default:
           throw new Error(`Unknown function: ${functionName}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Function call error for ${functionName}:`, error);
       return { error: `Failed to execute ${functionName}: ${error.message}` };
     }
@@ -748,7 +748,6 @@ Respond in JSON format:
         model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
-        temperature: 0.7,
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{}');
