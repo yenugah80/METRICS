@@ -205,4 +205,29 @@ router.post('/api/diet-plans/:planId/adherence', verifyJWT, async (req: Authenti
   }
 });
 
+// Regenerate meals for existing plan (fix empty plans)
+router.post('/api/diet-plans/:planId/regenerate-meals', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { planId } = req.params;
+    
+    await dietPlanService.regenerateMealsForPlan(planId);
+    
+    res.json({
+      success: true,
+      message: 'Meals regenerated successfully!'
+    });
+  } catch (error: any) {
+    console.error('Error regenerating meals:', error);
+    res.status(500).json({
+      error: 'Failed to regenerate meals',
+      message: error.message
+    });
+  }
+});
+
 export default router;

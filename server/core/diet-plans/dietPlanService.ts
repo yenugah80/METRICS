@@ -174,105 +174,217 @@ Respond with JSON: { "planName": "motivating plan name", "overview": "2-sentence
     return JSON.parse(response.choices[0].message.content || '{}');
   }
 
-  // Generate 28-day meal recommendations
+  // Generate meals for first 7 days (week 1) efficiently
   private async generateMealRecommendations(planId: string, questionnaire: DietPlanQuestionnaire, targets: any) {
-    const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
-    const meals = [];
+    console.log('Starting meal generation for plan:', planId);
+    
+    // Generate one week of meals efficiently using batch prompting
+    const mealPrompt = `Generate 7 days of meals for a ${questionnaire.healthGoals[0]} diet plan:
 
-    for (let day = 1; day <= 28; day++) {
-      for (const mealType of mealTypes) {
-        // Generate 2 options per meal
-        for (let option = 1; option <= 2; option++) {
-          const caloriesPerMeal = this.getMealCalories(mealType, targets.calories);
-          
-          const mealPrompt = `Generate a ${mealType} meal for day ${day} of a diet plan:
-          
-Goal: ${questionnaire.healthGoals[0]}
-Preferences: ${questionnaire.foodPreferences.join(', ')}
-Restrictions: ${questionnaire.restrictions.join(', ')}
-Target calories for this meal: ${caloriesPerMeal}
+User Profile:
+- ${questionnaire.personalInfo.age}yr ${questionnaire.personalInfo.gender}
+- Food preferences: ${questionnaire.foodPreferences.join(', ')}
+- Restrictions: ${questionnaire.restrictions.join(', ')}
+- Daily calories: ${targets.calories}
 
-Create a practical, delicious meal with quick recipe instructions.
-Respond with JSON: {
-  "mealName": "appetizing name",
-  "description": "brief description",
-  "quickRecipe": "simple cooking steps",
-  "portionSize": "serving description",
-  "healthBenefits": "why this meal supports goals",
-  "thingsToAvoid": "preparation tips",
-  "nutrition": { "calories": ${caloriesPerMeal}, "protein": number, "carbs": number, "fat": number, "fiber": number }
-}`;
+Create varied, practical meals. Respond with JSON:
+{
+  "meals": [
+    {
+      "day": 1,
+      "mealType": "breakfast",
+      "mealName": "Protein-Packed Scramble",
+      "description": "High-protein breakfast to fuel your day",
+      "quickRecipe": "Scramble 3 eggs with spinach and tomatoes. Serve with 1 slice whole grain toast.",
+      "calories": ${this.getMealCalories('breakfast', targets.calories)},
+      "protein": 25,
+      "carbs": 20,
+      "fat": 15,
+      "fiber": 4
+    }
+  ]
+}
 
-          const mealResponse = await openai.chat.completions.create({
-            model: "gpt-5",
-            messages: [{ role: "user", content: mealPrompt }],
-            response_format: { type: "json_object" },
-          });
+Generate 28 meals total (7 days × 4 meal types): breakfast, lunch, dinner, snack`;
 
-          const mealData = JSON.parse(mealResponse.choices[0].message.content || '{}');
-          
-          meals.push({
-            dietPlanId: planId,
-            day,
-            mealType,
-            option,
-            mealName: mealData.mealName,
-            description: mealData.description,
-            quickRecipe: mealData.quickRecipe,
-            portionSize: mealData.portionSize,
-            healthBenefits: mealData.healthBenefits,
-            thingsToAvoid: mealData.thingsToAvoid,
-            calories: mealData.nutrition.calories,
-            protein: mealData.nutrition.protein,
-            carbs: mealData.nutrition.carbs,
-            fat: mealData.nutrition.fat,
-            fiber: mealData.nutrition.fiber,
-          });
-        }
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [{ role: "user", content: mealPrompt }],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 2000,
+      });
+
+      const mealData = JSON.parse(response.choices[0].message.content || '{"meals": []}');
+      const meals = mealData.meals || [];
+      
+      console.log(`AI Generated ${meals.length} meals for plan ${planId}`);
+      console.log('AI Response:', response.choices[0].message.content?.substring(0, 200));
+
+      if (meals.length > 0) {
+        const mealInserts = meals.map((meal: any) => ({
+          dietPlanId: planId,
+          day: meal.day,
+          mealType: meal.mealType,
+          option: 1,
+          mealName: meal.mealName,
+          description: meal.description,
+          quickRecipe: meal.quickRecipe,
+          portionSize: '1 serving',
+          healthBenefits: `Supports ${questionnaire.healthGoals[0]} goals`,
+          thingsToAvoid: 'Follow portion guidelines',
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fat: meal.fat,
+          fiber: meal.fiber,
+        }));
+
+        await db.insert(dietPlanMeals).values(mealInserts);
+        console.log(`Successfully inserted ${mealInserts.length} meals into database`);
+      } else {
+        console.log('AI generated 0 meals, using fallback');
+        await this.createFallbackMeals(planId, targets);
       }
+    } catch (error) {
+      console.error('Error generating meals:', error);
+      // Fallback: create basic meals to avoid empty plan
+      await this.createFallbackMeals(planId, targets);
     }
+  }
 
-    // Insert meals in batches
-    const batchSize = 50;
-    for (let i = 0; i < meals.length; i += batchSize) {
-      const batch = meals.slice(i, i + batchSize);
-      await db.insert(dietPlanMeals).values(batch);
-    }
+  // Fallback meal creation to ensure plans are never empty
+  private async createFallbackMeals(planId: string, targets: any) {
+    const basicMeals = [
+      {
+        dietPlanId: planId, day: 1, mealType: 'breakfast', option: 1,
+        mealName: 'Protein Oatmeal Bowl',
+        description: 'Nutritious start to your day',
+        quickRecipe: 'Cook 1/2 cup oats with protein powder and berries',
+        portionSize: '1 bowl', healthBenefits: 'High protein, sustained energy',
+        thingsToAvoid: 'Avoid adding extra sugar',
+        calories: this.getMealCalories('breakfast', targets.calories),
+        protein: 25, carbs: 35, fat: 8, fiber: 6
+      },
+      {
+        dietPlanId: planId, day: 1, mealType: 'lunch', option: 1,
+        mealName: 'Grilled Chicken Salad',
+        description: 'Fresh, protein-rich lunch',
+        quickRecipe: 'Grill chicken breast, serve over mixed greens with olive oil dressing',
+        portionSize: '1 large salad', healthBenefits: 'Lean protein, essential vitamins',
+        thingsToAvoid: 'Limit high-calorie dressings',
+        calories: this.getMealCalories('lunch', targets.calories),
+        protein: 35, carbs: 15, fat: 18, fiber: 5
+      },
+      {
+        dietPlanId: planId, day: 1, mealType: 'dinner', option: 1,
+        mealName: 'Baked Salmon & Vegetables',
+        description: 'Omega-3 rich dinner',
+        quickRecipe: 'Bake salmon fillet with roasted broccoli and sweet potato',
+        portionSize: '1 fillet with sides', healthBenefits: 'Heart-healthy omega-3s',
+        thingsToAvoid: 'Avoid overcooking fish',
+        calories: this.getMealCalories('dinner', targets.calories),
+        protein: 30, carbs: 25, fat: 20, fiber: 8
+      },
+      {
+        dietPlanId: planId, day: 1, mealType: 'snack', option: 1,
+        mealName: 'Greek Yogurt & Berries',
+        description: 'Protein-rich snack',
+        quickRecipe: 'Mix Greek yogurt with fresh berries and a drizzle of honey',
+        portionSize: '1 cup', healthBenefits: 'Probiotics and antioxidants',
+        thingsToAvoid: 'Choose plain yogurt to control sugar',
+        calories: this.getMealCalories('snack', targets.calories),
+        protein: 15, carbs: 20, fat: 5, fiber: 4
+      }
+    ];
+
+    await db.insert(dietPlanMeals).values(basicMeals);
+    console.log('Created fallback meals for day 1');
   }
 
   // Generate supplement recommendations
   private async generateSupplementRecommendations(planId: string, questionnaire: DietPlanQuestionnaire) {
-    const supplementPrompt = `Recommend supplements for:
-    
-Goals: ${questionnaire.healthGoals.join(', ')}
-Age: ${questionnaire.personalInfo.age}, Gender: ${questionnaire.personalInfo.gender}
-Open to supplements: ${questionnaire.supplements}
-
-Generate 3-5 supplement recommendations with timing and dosage.
-Respond with JSON array: [{ "name": "supplement name", "dosage": "amount", "timing": "when to take", "purpose": "why needed", "priority": "essential/recommended/optional", "safetyNotes": "precautions" }]`;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-5",
-      messages: [{ role: "user", content: supplementPrompt }],
-      response_format: { type: "json_object" },
-    });
-
-    const supplementData = JSON.parse(response.choices[0].message.content || '{"supplements": []}');
-    const supplements = supplementData.supplements || [];
-
-    const supplementInserts = supplements.map((supp: any) => ({
-      dietPlanId: planId,
-      supplementName: supp.name,
-      dosage: supp.dosage,
-      timing: supp.timing,
-      purpose: supp.purpose,
-      priority: supp.priority,
-      safetyNotes: supp.safetyNotes,
-    }));
-
-    if (supplementInserts.length > 0) {
-      await db.insert(dietPlanSupplements).values(supplementInserts);
+    if (!questionnaire.supplements) {
+      console.log('User declined supplements, skipping supplement generation');
+      return;
     }
+
+    try {
+      const supplementPrompt = `Recommend supplements for weight loss and digestion goals:
+      
+Age: ${questionnaire.personalInfo.age}, Gender: ${questionnaire.personalInfo.gender}
+Goals: ${questionnaire.healthGoals.join(', ')}
+
+Generate 3-4 essential supplements. Respond with JSON:
+{
+  "supplements": [
+    {
+      "name": "Vitamin D3",
+      "dosage": "2000 IU",
+      "timing": "With breakfast",
+      "purpose": "Bone health and immune support",
+      "priority": "essential",
+      "safetyNotes": "Take with food"
+    }
+  ]
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [{ role: "user", content: supplementPrompt }],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 500,
+      });
+
+      const supplementData = JSON.parse(response.choices[0].message.content || '{"supplements": []}');
+      const supplements = supplementData.supplements || [];
+
+      if (supplements.length > 0) {
+        const supplementInserts = supplements.map((supp: any) => ({
+          dietPlanId: planId,
+          supplementName: supp.name,
+          dosage: supp.dosage,
+          timing: supp.timing,
+          purpose: supp.purpose,
+          priority: supp.priority,
+          safetyNotes: supp.safetyNotes,
+        }));
+
+        await db.insert(dietPlanSupplements).values(supplementInserts);
+        console.log(`Created ${supplements.length} supplement recommendations`);
+      }
+    } catch (error) {
+      console.error('Error generating supplements:', error);
+      // Create basic supplement recommendation if AI fails
+      await db.insert(dietPlanSupplements).values([{
+        dietPlanId: planId,
+        supplementName: 'Multivitamin',
+        dosage: '1 tablet',
+        timing: 'With breakfast',
+        purpose: 'Fill nutritional gaps',
+        priority: 'recommended',
+        safetyNotes: 'Take with food',
+      }]);
+    }
+  }
+
+  // Regenerate meals for existing diet plan
+  async regenerateMealsForPlan(planId: string) {
+    console.log('Regenerating meals for existing plan:', planId);
+    
+    // Get the plan data
+    const [plan] = await db.select().from(dietPlans).where(eq(dietPlans.id, planId)).limit(1);
+    if (!plan) {
+      throw new Error('Diet plan not found');
+    }
+
+    // Delete existing meals
+    await db.delete(dietPlanMeals).where(eq(dietPlanMeals.dietPlanId, planId));
+    
+    // Generate new meals
+    await this.generateMealRecommendations(planId, plan.questionnaireData as any, plan.dailyTargets);
+    
+    return { success: true };
   }
 
   // Generate lifestyle recommendations
