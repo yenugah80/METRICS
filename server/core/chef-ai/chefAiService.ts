@@ -536,8 +536,7 @@ export class ChefAiService {
           daily_calorie_goal,
           daily_protein_goal,
           daily_carb_goal,
-          daily_fat_goal,
-          health_goals
+          daily_fat_goal
         FROM users 
         WHERE id = ${userId} 
         LIMIT 1
