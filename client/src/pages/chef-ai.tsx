@@ -151,15 +151,22 @@ export default function ChefAI() {
       return await apiRequest('POST', '/api/chef-ai/chat', payload);
     },
     onSuccess: (data: any) => {
-      // Only update activeConversationId if it's different (new conversation)
-      if (!activeConversationId) {
-        setActiveConversationId(data.conversationId);
+      const newConversationId = data.conversationId;
+      
+      // Update activeConversationId for new conversations OR ensure consistency
+      if (!activeConversationId || activeConversationId !== newConversationId) {
+        setActiveConversationId(newConversationId);
       }
       setMessage('');
       
-      // Invalidate and refetch conversations and messages
+      // Invalidate and refetch conversations list and the specific conversation
       queryClient.invalidateQueries({ queryKey: ['/api/chef-ai/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/chef-ai/conversations', data.conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/chef-ai/conversations', newConversationId] });
+      
+      // If this was an existing conversation, also invalidate the old one to be safe
+      if (activeConversationId && activeConversationId !== newConversationId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/chef-ai/conversations', activeConversationId] });
+      }
     },
     onError: (error: any) => {
       toast({
