@@ -9,7 +9,9 @@ function getOpenAIClient(): OpenAI {
       throw new Error("OpenAI API key is required for AI-powered food analysis. Please set OPENAI_API_KEY environment variable.");
     }
     openai = new OpenAI({ 
-      apiKey: process.env.OPENAI_API_KEY 
+      apiKey: process.env.OPENAI_API_KEY,
+      timeout: 15000, // 15 second timeout
+      maxRetries: 2
     });
   }
   return openai;
