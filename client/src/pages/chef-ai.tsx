@@ -458,14 +458,14 @@ export default function ChefAI() {
                                 </div>
                                 
                                 {/* Insights Section */}
-                                {msg.structuredData?.insights && msg.structuredData.insights.length > 0 && (
+                                {msg.insights && msg.insights.length > 0 && (
                                   <div className="relative z-10 bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-2xl border border-blue-100 mb-4">
                                     <div className="flex items-center gap-2 mb-3">
                                       <TrendingUp className="w-5 h-5 text-blue-600" />
                                       <h5 className="font-semibold text-gray-900">Key Insights</h5>
                                     </div>
                                     <div className="space-y-2">
-                                      {msg.structuredData.insights.map((insight: string, i: number) => (
+                                      {msg.insights.map((insight: string, i: number) => (
                                         <div key={i} className="flex items-start gap-2">
                                           <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
                                           <p className="text-sm text-gray-700">{insight}</p>
@@ -638,6 +638,7 @@ export default function ChefAI() {
                                       <Plus className="w-3 h-3 mr-1" />
                                       Add to Plan
                                     </Button>
+                                  </div>
                                   </div>
                                 </div>
                               )}
