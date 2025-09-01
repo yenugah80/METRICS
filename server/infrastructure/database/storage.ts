@@ -18,7 +18,6 @@ import {
   shoppingLists,
   shoppingListItems,
   userPoints,
-  achievements,
   userAchievements,
   type User,
   type UpsertUser,
@@ -44,8 +43,6 @@ import {
   type InsertShoppingListItem,
   type UserPoints,
   type InsertUserPoints,
-  type Achievement,
-  type InsertAchievement,
   type UserAchievement,
   type InsertUserAchievement,
 } from '../../../shared/schema';

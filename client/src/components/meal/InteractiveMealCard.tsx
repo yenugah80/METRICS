@@ -1,24 +1,30 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { 
-  Camera, 
-  RefreshCw, 
-  Check, 
-  Heart, 
+  ChefHat, 
   Clock, 
-  ChefHat,
-  Zap,
-  Leaf,
-  AlertCircle,
-  Plus,
-  Star
+  Flame, 
+  Zap, 
+  TrendingUp, 
+  Star,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Copy,
+  ExternalLink,
+  Target
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { format } from 'date-fns';
+import { Separator } from '@/components/ui/separator';
 
 interface InteractiveMealCardProps {
   mealId: string;

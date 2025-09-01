@@ -93,7 +93,7 @@ export class ChefAiService {
       await db.insert(chefAiMessages).values({
         conversationId,
         role: 'assistant',
-        content: aiResponse.response,
+        content: aiResponse.message,
         messageType: 'text',
         relatedMealIds: aiResponse.mealCards?.map((card: any) => card.mealId) || [],
         nutritionContext: {
@@ -117,7 +117,7 @@ export class ChefAiService {
 
       return {
         conversationId,
-        message: aiResponse.response,
+        message: aiResponse.message,
         recipeDetails: aiResponse.recipeDetails,
         mealCards: aiResponse.mealCards,
         insights: aiResponse.insights,
@@ -327,6 +327,7 @@ Keep responses concise and practical.`;
         followUpQuestions: parsedResponse.followUpQuestions || [],
         recipeDetails: parsedResponse.recipeDetails || null,
         confidence: parsedResponse.confidence || 0.8,
+        tokensUsed: completion.usage?.total_tokens ?? null,
         responseTime
       };
 

@@ -1,569 +1,515 @@
-import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useLocalAuth";
-import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { DynamicProgressRings } from "@/components/dashboard/DynamicProgressRings";
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { apiRequest } from '@/lib/queryClient';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 import { 
-  Apple, 
-  User, 
-  Crown, 
-  Camera, 
-  ScanLine, 
-  Mic, 
-  Plus,
-  Sparkles,
-  Leaf,
-  ShieldCheck,
-  Target,
+  Heart, 
+  Zap, 
+  Target, 
+  Calendar, 
+  TrendingUp, 
+  Award,
+  Camera,
+  Mic,
+  Activity,
+  Droplets,
+  Moon,
+  Footprints,
   ChefHat,
-  Home,
-  BarChart3,
-  Settings,
-  Zap,
-  Trophy,
-  Flame,
-  TrendingUp,
-  Calendar,
-  Activity
-} from "lucide-react";
+  User,
+  CheckCircle,
+  Clock,
+  CalendarDays,
+  Flame
+} from 'lucide-react';
+import { format } from 'date-fns';
+
+interface DashboardData {
+  user: {
+    firstName: string;
+    profileImageUrl?: string;
+    level: number;
+    xp: number;
+    currentStreak: number;
+  };
+  today: {
+    date: string;
+    calories: { consumed: number; goal: number; burned: number };
+    macros: { protein: number; carbs: number; fat: number };
+    steps: { count: number; goal: number };
+    water: { intake: number; goal: number };
+    sleep: { hours: number; quality: number };
+    weight: { current: number; target: number; trend: string };
+  };
+  workouts: Array<{
+    id: string;
+    name: string;
+    type: string;
+    duration: number;
+    progress: number;
+    difficulty: string;
+  }>;
+  meals: Array<{
+    id: string;
+    name: string;
+    mealType: string;
+    calories: number;
+    protein: number;
+    imageUrl?: string;
+    loggedAt: string;
+  }>;
+  recommendations: {
+    meals: Array<{
+      id: string;
+      name: string;
+      calories: number;
+      prepTime: number;
+      difficulty: string;
+      nutritionMatch: number;
+    }>;
+    exercises: Array<{
+      id: string;
+      name: string;
+      type: string;
+      duration: number;
+      difficulty: string;
+    }>;
+  };
+  achievements: Array<{
+    id: string;
+    title: string;
+    type: string;
+    progress: number;
+    isCompleted: boolean;
+    points: number;
+  }>;
+  activity: Array<{
+    id: string;
+    type: string;
+    message: string;
+    timestamp: string;
+    icon: string;
+  }>;
+}
+
+// Mock comprehensive dashboard data - will be replaced with real API calls
+const mockDashboardData: DashboardData = {
+  user: {
+    firstName: "Adam",
+    profileImageUrl: "/api/placeholder/profile.jpg",
+    level: 5,
+    xp: 2340,
+    currentStreak: 7
+  },
+  today: {
+    date: new Date().toISOString().split('T')[0],
+    calories: { consumed: 1240, goal: 2100, burned: 320 },
+    macros: { protein: 95, carbs: 140, fat: 45 },
+    steps: { count: 8050, goal: 10000 },
+    water: { intake: 1.8, goal: 2.5 },
+    sleep: { hours: 7.5, quality: 8 },
+    weight: { current: 78, target: 75, trend: "down" }
+  },
+  workouts: [
+    { id: "1", name: "Running", type: "cardio", duration: 30, progress: 75, difficulty: "medium" },
+    { id: "2", name: "Strength Training", type: "strength", duration: 45, progress: 100, difficulty: "hard" },
+    { id: "3", name: "Yoga", type: "flexibility", duration: 20, progress: 60, difficulty: "easy" }
+  ],
+  meals: [
+    { id: "1", name: "Scrambled Eggs with Spinach & Whole Grain Toast", mealType: "breakfast", calories: 380, protein: 24, loggedAt: "2025-09-01T08:30:00Z" },
+    { id: "2", name: "Grilled Chicken Salad with Avocado and Quinoa", mealType: "lunch", calories: 520, protein: 35, loggedAt: "2025-09-01T13:15:00Z" },
+    { id: "3", name: "Greek Yogurt with Mixed Berries and Almonds", mealType: "snack", calories: 180, protein: 15, loggedAt: "2025-09-01T16:00:00Z" }
+  ],
+  recommendations: {
+    meals: [
+      { id: "1", name: "Oatmeal with Almond Butter", calories: 380, prepTime: 10, difficulty: "easy", nutritionMatch: 0.92 },
+      { id: "2", name: "Grilled Chicken Wrap", calories: 450, prepTime: 15, difficulty: "easy", nutritionMatch: 0.88 },
+      { id: "3", name: "Salmon with Steamed Vegetables", calories: 520, prepTime: 25, difficulty: "medium", nutritionMatch: 0.95 }
+    ],
+    exercises: [
+      { id: "1", name: "Brisk Walking", type: "cardio", duration: 30, difficulty: "easy" },
+      { id: "2", name: "Bodyweight Squats", type: "strength", duration: 15, difficulty: "medium" },
+      { id: "3", name: "Dumbbell Squats", type: "strength", duration: 20, difficulty: "medium" }
+    ]
+  },
+  achievements: [
+    { id: "1", title: "7 Day Streak", type: "consistency", progress: 100, isCompleted: true, points: 500 },
+    { id: "2", title: "Hydration Hero", type: "wellness", progress: 75, isCompleted: false, points: 250 },
+    { id: "3", title: "Macro Master", type: "nutrition", progress: 85, isCompleted: false, points: 300 }
+  ],
+  activity: [
+    { id: "1", type: "notification", message: "Congratulations! You've completed 75% of your cardio session for flexibility improvement.", timestamp: "2025-09-01T14:30:00Z", icon: "award" },
+    { id: "2", type: "milestone", message: "You've completed our 3rd workout session for flexibility improvement.", timestamp: "2025-09-01T12:00:00Z", icon: "target" },
+    { id: "3", type: "progress", message: "Cardio progress completed - 7.5 km completed out of 8 km goal for endurance improvement.", timestamp: "2025-09-01T09:15:00Z", icon: "activity" }
+  ]
+};
 
 export default function Dashboard() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [isScanning, setIsScanning] = useState(false);
-  const [showScanModal, setShowScanModal] = useState(false);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast]);
-
-  // Fetch real-time dashboard data
-  const { data: nutritionData, refetch: refetchNutrition } = useQuery({
-    queryKey: ["/api/dashboard/nutrition-today"],
-    enabled: isAuthenticated,
+  // In production, this would fetch real data
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ['/api/dashboard/comprehensive'],
+    queryFn: () => Promise.resolve(mockDashboardData), // Mock for now
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const { data: todayMeals = [], refetch: refetchMeals } = useQuery({
-    queryKey: ["/api/meals/today"],
-    enabled: isAuthenticated,
-  });
-
-  const { data: recipes = [] } = useQuery({
-    queryKey: ["/api/recipes"],
-    enabled: isAuthenticated,
-  });
-
-  // Meal scanning mutation
-  const scanMealMutation = useMutation({
-    mutationFn: async (imageFile: File) => {
-      const formData = new FormData();
-      formData.append('image', imageFile);
-      return apiRequest('POST', '/api/meals/scan-image', formData);
-    },
-    onSuccess: (data) => {
+  const handleScanMeal = () => {
+    setIsScanning(true);
+    // Simulate scanning process
+    setTimeout(() => {
+      setIsScanning(false);
       toast({
         title: "Meal Scanned Successfully!",
-        description: `Found ${data.analysis?.mealName || 'food'} with ${data.analysis?.nutritionData?.calories || 0} calories`,
+        description: "Grilled Salmon (380 cal, 35g protein) added to your log.",
       });
-      // Automatically log the meal
-      logMealMutation.mutate(data.analysis);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Scan Failed",
-        description: error.message || "Failed to scan meal. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Meal logging mutation
-  const logMealMutation = useMutation({
-    mutationFn: async (mealData: any) => {
-      return apiRequest('POST', '/api/meals/log', {
-        ...mealData,
-        loggedDate: new Date().toISOString().split('T')[0],
-        source: 'scan',
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Meal Logged!",
-        description: "Your nutrition dashboard has been updated.",
-      });
-      // Refresh dashboard data
-      refetchNutrition();
-      refetchMeals();
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Log Meal",
-        description: error.message || "Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  if (isLoading || !isAuthenticated || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  // Use real nutrition data from the API
-  const consumed = (nutritionData as any)?.data?.consumed || {};
-  const goals = (nutritionData as any)?.data?.goals || {};
-  const percentages = (nutritionData as any)?.data?.percentages || {};
-  
-  const dailyCalories = consumed.calories || 0;
-  const dailyProtein = consumed.protein || 0;
-  const dailyCarbs = consumed.carbs || 0;
-  const dailyFat = consumed.fat || 0;
-  const nutritionScore = 85; // Default good score
-  const nutritionGrade = dailyCalories > 0 ? "B+" : "Start Logging";
-
-  // Use goals from the API or fallback to user defaults
-  const calorieGoal = goals.calories || user?.dailyCalorieGoal || 2000;
-  const proteinGoal = goals.protein || user?.dailyProteinGoal || 150;
-  const carbGoal = goals.carbs || user?.dailyCarbGoal || 200;
-  const fatGoal = goals.fat || user?.dailyFatGoal || 67;
-
-  // Use real progress percentages from API
-  const calorieProgress = percentages.calories || 0;
-  const proteinProgress = percentages.protein || 0;
-  const carbProgress = percentages.carbs || 0;
-  const fatProgress = percentages.fat || 0;
-
-  // Meal scanning handlers
-  const handleScanMeal = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment'; // Use rear camera on mobile
-    input.onchange = (e: any) => {
-      const file = e.target?.files?.[0];
-      if (file) {
-        setIsScanning(true);
-        scanMealMutation.mutate(file);
-        setTimeout(() => setIsScanning(false), 3000);
-      }
-    };
-    input.click();
+    }, 2000);
   };
 
   const handleVoiceLog = () => {
     toast({
       title: "Voice Logging",
-      description: "Voice meal logging feature coming soon! Use the scan feature for now.",
+      description: "Voice meal logging feature coming soon!",
     });
   };
 
-  // Generate coaching insights based on real data
-  const getCoachingInsight = () => {
-    if (dailyCalories === 0) {
-      return "👩‍🍳 No meals logged yet — tap Scan Meal and I'll analyze it instantly!";
-    }
-    
-    if (dailyProtein < proteinGoal * 0.5) {
-      return `Protein boost needed! Add ${Math.round(proteinGoal - dailyProtein)}g more protein today. Try Greek yogurt for easy gains.`;
-    }
-    
-    if (calorieProgress > 80) {
-      return `Excellent! You're ${Math.round(calorieProgress)}% to your calorie goal. Your nutrition looks balanced today.`;
-    }
-    
-    if (calorieProgress < 40) {
-      return `You have ${Math.round(calorieGoal - dailyCalories)} calories left. Perfect time for a nutritious meal!`;
-    }
-    
-    return `Great progress! You're ${Math.round(calorieProgress)}% to your goal. Keep the momentum going.`;
-  };
+  if (isLoading || !dashboardData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-600">Loading your nutrition dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const data = dashboardData;
+  const calorieProgress = (data.today.calories.consumed / data.today.calories.goal) * 100;
+  const stepsProgress = (data.today.steps.count / data.today.steps.goal) * 100;
+  const waterProgress = (data.today.water.intake / data.today.water.goal) * 100;
+  const proteinProgress = (data.today.macros.protein / 150) * 100; // Assuming 150g protein goal
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <main className="max-w-4xl mx-auto p-4 space-y-6">
-        {/* 1. HERO: Coaching Summary Banner - Natural Colors */}
-        <div className="bg-gradient-to-r from-slate-600 to-slate-700 text-white p-5 rounded-2xl shadow-lg">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-white/15 rounded-full flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div className="flex-1">
-              <h2 className="font-bold text-lg mb-1">Your AI Nutrition Coach</h2>
-              <p className="text-white/90 leading-relaxed">
-                {getCoachingInsight()}
-              </p>
-            </div>
-            {dailyCalories > 0 && (
-              <div className="text-right">
-                <div className="text-3xl font-bold">{nutritionGrade}</div>
-                <div className="text-sm opacity-80">Today's Grade</div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="max-w-7xl mx-auto p-4 space-y-6">
+        
+        {/* Header - Personal Greeting */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                {data.user.firstName.charAt(0)}
               </div>
-            )}
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Hello, {data.user.firstName}!</h1>
+                <p className="text-gray-600">Let's begin our journey to better health today.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-sm text-gray-500">Level {data.user.level}</div>
+                <div className="text-lg font-bold text-purple-600">{data.user.xp} XP</div>
+              </div>
+              <div className="text-center p-3 bg-orange-50 rounded-xl border border-orange-200">
+                <CalendarDays className="w-6 h-6 text-orange-600 mx-auto mb-1" />
+                <div className="text-sm font-bold text-orange-600">{format(selectedDate, 'MMM')}</div>
+                <div className="text-lg font-bold text-orange-800">{format(selectedDate, 'd')}</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* 2. PRODUCTION-GRADE DYNAMIC PROGRESS TRACKING */}
-        <DynamicProgressRings userId={user?.id} />
-
-        {/* 2.5. MACRO RINGS DISPLAY */}
-        <Card className="border-0 shadow-lg bg-white">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {/* Calories Ring - Natural Coral */}
-              <div className="text-center">
-                <div className="relative w-28 h-28 mx-auto mb-3">
-                  <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50" cy="50" r="40"
-                      fill="transparent"
-                      stroke="#f1f5f9"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="50" cy="50" r="40"
-                      fill="transparent"
-                      stroke="#dc7626"
-                      strokeWidth="8"
-                      strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - calorieProgress / 100)}`}
-                      className="transition-all duration-1000 ease-out"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl font-bold text-amber-700">{Math.round(dailyCalories)}</span>
-                    <span className="text-xs text-gray-500">kcal</span>
-                  </div>
-                </div>
-                <p className="text-sm font-semibold text-gray-800">Calories</p>
-                <p className="text-xs text-gray-500">{Math.round(calorieProgress)}% of {calorieGoal}</p>
-              </div>
-              
-              {/* Protein Ring */}
-              <div className="text-center">
-                <div className="relative w-28 h-28 mx-auto mb-3">
-                  <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50" cy="50" r="40"
-                      fill="transparent"
-                      stroke="#dbeafe"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="50" cy="50" r="40"
-                      fill="transparent"
-                      stroke="#3b82f6"
-                      strokeWidth="8"
-                      strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - proteinProgress / 100)}`}
-                      className="transition-all duration-1000 ease-out"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl font-bold text-blue-600">{Math.round(dailyProtein)}</span>
-                    <span className="text-xs text-gray-500">g</span>
-                  </div>
-                </div>
-                <p className="text-sm font-semibold text-gray-800">Protein</p>
-                <p className="text-xs text-gray-500">{Math.round(proteinProgress)}% of {proteinGoal}g</p>
-              </div>
-              
-              {/* Carbs Ring */}
-              <div className="text-center">
-                <div className="relative w-28 h-28 mx-auto mb-3">
-                  <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50" cy="50" r="40"
-                      fill="transparent"
-                      stroke="#f3e8ff"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="50" cy="50" r="40"
-                      fill="transparent"
-                      stroke="#8b5cf6"
-                      strokeWidth="8"
-                      strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - carbProgress / 100)}`}
-                      className="transition-all duration-1000 ease-out"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl font-bold text-purple-600">{Math.round(dailyCarbs)}</span>
-                    <span className="text-xs text-gray-500">g</span>
-                  </div>
-                </div>
-                <p className="text-sm font-semibold text-gray-800">Carbs</p>
-                <p className="text-xs text-gray-500">{Math.round(carbProgress)}% of {carbGoal}g</p>
-              </div>
-              
-              {/* Fat Ring */}
-              <div className="text-center">
-                <div className="relative w-28 h-28 mx-auto mb-3">
-                  <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50" cy="50" r="40"
-                      fill="transparent"
-                      stroke="#fed7aa"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="50" cy="50" r="40"
-                      fill="transparent"
-                      stroke="#f97316"
-                      strokeWidth="8"
-                      strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - fatProgress / 100)}`}
-                      className="transition-all duration-1000 ease-out"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl font-bold text-orange-600">{Math.round(dailyFat)}</span>
-                    <span className="text-xs text-gray-500">g</span>
-                  </div>
-                </div>
-                <p className="text-sm font-semibold text-gray-800">Fat</p>
-                <p className="text-xs text-gray-500">{Math.round(fatProgress)}% of {fatGoal}g</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 3. AI GUIDANCE: Smart Recommendations */}
-        <Card className="border-0 shadow-lg bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-indigo-500" />
-                Smart AI Coach
-              </h2>
-              <Button variant="outline" size="sm" className="text-xs hover:bg-indigo-50" data-testid="button-refresh-recommendations">
-                New Tips
-              </Button>
-            </div>
+        {/* Main Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left Column - Key Metrics */}
+          <div className="lg:col-span-2 space-y-6">
             
-            <div className="space-y-3">
-              {/* Protein Recommendation */}
-              {dailyProtein < proteinGoal * 0.7 && (
-                <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Target className="w-5 h-5 text-blue-600" />
+            {/* Quick Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Weight */}
+              <Card className="border-0 shadow-sm bg-white">
+                <CardContent className="p-4 text-center">
+                  <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-full mx-auto mb-2">
+                    <Activity className="w-5 h-5 text-green-600" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-blue-900">Protein Boost Needed</p>
-                    <p className="text-sm text-blue-700">Add {Math.round(proteinGoal - dailyProtein)}g more protein today. Try Greek yogurt (150g) for +18g protein.</p>
+                  <div className="text-2xl font-bold text-gray-900">{data.today.weight.current}</div>
+                  <div className="text-sm text-gray-500">kg</div>
+                  <div className="text-xs text-green-600 flex items-center justify-center gap-1 mt-1">
+                    <TrendingUp className="w-3 h-3" />
+                    -2% this week
                   </div>
-                  <Badge className="bg-blue-100 text-blue-700 border-blue-300">
-                    +18g
-                  </Badge>
-                </div>
-              )}
-              
-              {/* Calorie Balance Recommendation */}
-              {dailyCalories < calorieGoal * 0.6 && (
-                <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <ChefHat className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-green-900">Ready for Your Next Meal</p>
-                    <p className="text-sm text-green-700">You have {Math.round(calorieGoal - dailyCalories)} calories left. Perfect time for a balanced lunch!</p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-700 border-green-300">
-                    +{Math.round(calorieGoal - dailyCalories)}
-                  </Badge>
-                </div>
-              )}
-              
-              {/* Empty State Recommendation */}
-              {(!Array.isArray(todayMeals) || todayMeals.length === 0) && (
-                <div className="flex items-center gap-3 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <Camera className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-indigo-900">Start Your Journey</p>
-                    <p className="text-sm text-indigo-700">Snap a photo of your meal and I'll analyze nutrition, safety, and environmental impact instantly!</p>
-                  </div>
-                  <Button size="sm" className="bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => window.location.href = '/camera'}>
-                    <Plus className="w-4 h-4 mr-1" /> Log Meal
-                  </Button>
-                </div>
-              )}
-              
-              {/* Achievement Motivation */}
-              {dailyCalories > 0 && (
-                <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-yellow-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-yellow-900">Earn +50 XP</p>
-                    <p className="text-sm text-yellow-700">Log one more meal today to complete your daily streak and earn bonus XP!</p>
-                  </div>
-                  <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
-                    +50 XP
-                  </Badge>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
 
-        {/* 4. MOTIVATION: Gamification & Achievements */}
-        <Card className="border-0 shadow-lg bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-yellow-500" />
-                Achievements & Progress
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* XP Progress */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Crown className="w-5 h-5 text-yellow-600" />
-                    <span className="font-semibold text-gray-900">Level {user?.level || 1}</span>
+              {/* Steps */}
+              <Card className="border-0 shadow-sm bg-white">
+                <CardContent className="p-4 text-center">
+                  <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full mx-auto mb-2">
+                    <Footprints className="w-5 h-5 text-blue-600" />
                   </div>
-                  <span className="text-sm text-gray-600">{user?.xp || 0} XP</span>
-                </div>
-                <Progress value={((user?.xp || 0) % 1000) / 10} className="h-3 mb-2" />
-                <p className="text-xs text-gray-600">{1000 - ((user?.xp || 0) % 1000)} XP to next level</p>
-              </div>
-              
-              {/* Streak Counter */}
-              <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-xl border border-red-200">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-red-500" />
-                    <span className="font-semibold text-gray-900">Daily Streak</span>
-                  </div>
-                  <span className="text-sm text-gray-600">{user?.currentStreak || 0} days</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl font-bold text-red-600">{user?.currentStreak || 0}</span>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-600">Best: {user?.longestStreak || 0} days</p>
-                    <p className="text-xs text-red-600">Keep it going!</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="text-2xl font-bold text-gray-900">{data.today.steps.count.toLocaleString()}</div>
+                  <div className="text-sm text-gray-500">steps</div>
+                  <div className="text-xs text-blue-600">{Math.round(stepsProgress)}% of goal</div>
+                </CardContent>
+              </Card>
 
-        {/* 5. HISTORY: Recent Meals */}
-        <Card className="border-0 shadow-lg bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Today's Meals</h2>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-2 hover:bg-gray-50"
-                onClick={() => window.location.href = '/camera'}
-                data-testid="button-add-meal"
-              >
-                <Plus className="w-4 h-4" />
-                Add Meal
-              </Button>
+              {/* Sleep */}
+              <Card className="border-0 shadow-sm bg-white">
+                <CardContent className="p-4 text-center">
+                  <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-full mx-auto mb-2">
+                    <Moon className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">{data.today.sleep.hours}</div>
+                  <div className="text-sm text-gray-500">hours</div>
+                  <div className="text-xs text-purple-600">Quality: {data.today.sleep.quality}/10</div>
+                </CardContent>
+              </Card>
+
+              {/* Water */}
+              <Card className="border-0 shadow-sm bg-white">
+                <CardContent className="p-4 text-center">
+                  <div className="flex items-center justify-center w-10 h-10 bg-cyan-100 rounded-full mx-auto mb-2">
+                    <Droplets className="w-5 h-5 text-cyan-600" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">{data.today.water.intake}</div>
+                  <div className="text-sm text-gray-500">L of {data.today.water.goal}L</div>
+                  <Progress value={waterProgress} className="h-1 mt-2" />
+                </CardContent>
+              </Card>
             </div>
-            
-            <div className="space-y-3">
-              {Array.isArray(todayMeals) && todayMeals.length > 0 ? (
-                (todayMeals as any[]).map((meal: any) => (
-                  <div key={meal.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 capitalize">{meal.name}</h4>
-                        <p className="text-sm text-gray-600 mb-2">{meal.mealType} • {new Date(meal.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                        <div className="flex gap-4 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                            {Math.round(meal.nutrition?.total_calories || 0)} cal
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                            {Math.round(meal.nutrition?.total_protein || 0)}g protein
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                            {Math.round(meal.nutrition?.total_carbs || 0)}g carbs
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          (meal.nutrition?.nutrition_score || 0) >= 80 ? 'bg-green-100 text-green-700' :
-                          (meal.nutrition?.nutrition_score || 0) >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {Math.round(meal.nutrition?.nutrition_score || 0)} health
-                        </div>
+
+            {/* Nutrition Overview */}
+            <Card className="border-0 shadow-sm bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ChefHat className="w-5 h-5 text-orange-500" />
+                  Today's Nutrition
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Calories Circle */}
+                  <div className="text-center">
+                    <div className="relative w-32 h-32 mx-auto">
+                      <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f3f4f6" strokeWidth="8" />
+                        <circle
+                          cx="50" cy="50" r="40"
+                          fill="transparent"
+                          stroke="#f97316"
+                          strokeWidth="8"
+                          strokeDasharray={`${2 * Math.PI * 40}`}
+                          strokeDashoffset={`${2 * Math.PI * 40 * (1 - calorieProgress / 100)}`}
+                          className="transition-all duration-1000 ease-out"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-2xl font-bold text-orange-600">{data.today.calories.consumed}</span>
+                        <span className="text-xs text-gray-500">of {data.today.calories.goal}</span>
                       </div>
                     </div>
+                    <p className="font-semibold text-gray-800 mt-2">Calories</p>
+                    <p className="text-sm text-gray-600">{Math.round(calorieProgress)}% of goal</p>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                  <Camera className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="font-semibold text-gray-900 mb-2">No meals logged today</h3>
-                  <p className="text-sm text-gray-600 mb-4">👩‍🍳 Start your nutrition journey — snap a photo and I'll analyze it instantly!</p>
-                  <Button 
-                    className="bg-indigo-500 hover:bg-indigo-600 text-white"
-                    onClick={() => window.location.href = '/camera'}
-                    data-testid="button-start-logging"
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
-                    Log Your First Meal
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Quick Action Bar */}
-        <div className="grid grid-cols-3 gap-4">
+                  {/* Macro Breakdown */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Protein</span>
+                      <span className="text-sm font-bold text-blue-600">{data.today.macros.protein}g</span>
+                    </div>
+                    <Progress value={proteinProgress} className="h-2" />
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Carbs</span>
+                      <span className="text-sm font-bold text-green-600">{data.today.macros.carbs}g</span>
+                    </div>
+                    <Progress value={70} className="h-2" />
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Fat</span>
+                      <span className="text-sm font-bold text-orange-600">{data.today.macros.fat}g</span>
+                    </div>
+                    <Progress value={65} className="h-2" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Workout Progress */}
+            <Card className="border-0 shadow-sm bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-yellow-500" />
+                  Workout Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-4">
+                  {data.workouts.map((workout, index) => (
+                    <div key={workout.id} className="text-center p-4 bg-gray-50 rounded-xl">
+                      <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${
+                        workout.type === 'cardio' ? 'bg-green-100' :
+                        workout.type === 'strength' ? 'bg-orange-100' : 'bg-purple-100'
+                      }`}>
+                        {workout.type === 'cardio' ? <Heart className="w-6 h-6 text-green-600" /> :
+                         workout.type === 'strength' ? <Zap className="w-6 h-6 text-orange-600" /> :
+                         <Activity className="w-6 h-6 text-purple-600" />}
+                      </div>
+                      <h4 className="font-semibold text-gray-800 mb-1">{workout.name}</h4>
+                      <p className="text-sm text-gray-600 mb-2">{workout.progress}% ({workout.difficulty})</p>
+                      <Progress value={workout.progress} className="h-2" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Activity & Recommendations */}
+          <div className="space-y-6">
+            
+            {/* Recent Activity */}
+            <Card className="border-0 shadow-sm bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-gray-600" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.activity.map((item) => (
+                  <div key={item.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      {item.icon === 'award' ? <Award className="w-4 h-4 text-green-600" /> :
+                       item.icon === 'target' ? <Target className="w-4 h-4 text-blue-600" /> :
+                       <Activity className="w-4 h-4 text-purple-600" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-800 leading-relaxed">{item.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">{format(new Date(item.timestamp), 'HH:mm')}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Recommendations */}
+            <Card className="border-0 shadow-sm bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-indigo-500" />
+                  Recommended
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="meals" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="meals">Meals</TabsTrigger>
+                    <TabsTrigger value="exercises">Exercises</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="meals" className="space-y-3 mt-4">
+                    {data.recommendations.meals.slice(0, 3).map((meal) => (
+                      <div key={meal.id} className="p-3 border border-gray-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-medium text-gray-800 text-sm">{meal.name}</h4>
+                          <Badge variant="outline" className="text-xs">{meal.calories} cal</Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <Clock className="w-3 h-3" />
+                          <span>{meal.prepTime} min</span>
+                          <span>•</span>
+                          <span className="capitalize">{meal.difficulty}</span>
+                          <span>•</span>
+                          <span className="text-green-600">{Math.round(meal.nutritionMatch * 100)}% match</span>
+                        </div>
+                      </div>
+                    ))}
+                  </TabsContent>
+                  
+                  <TabsContent value="exercises" className="space-y-3 mt-4">
+                    {data.recommendations.exercises.map((exercise) => (
+                      <div key={exercise.id} className="p-3 border border-gray-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-medium text-gray-800 text-sm">{exercise.name}</h4>
+                          <Badge variant="outline" className="text-xs">{exercise.duration} min</Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <Activity className="w-3 h-3" />
+                          <span className="capitalize">{exercise.type}</span>
+                          <span>•</span>
+                          <span className="capitalize">{exercise.difficulty}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+
+            {/* Achievements */}
+            <Card className="border-0 shadow-sm bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-yellow-500" />
+                  Achievements
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {data.achievements.map((achievement) => (
+                  <div key={achievement.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      achievement.isCompleted ? 'bg-green-100' : 'bg-gray-200'
+                    }`}>
+                      {achievement.isCompleted ? 
+                        <CheckCircle className="w-5 h-5 text-green-600" /> :
+                        <Clock className="w-5 h-5 text-gray-500" />
+                      }
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-800 text-sm">{achievement.title}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Progress value={achievement.progress} className="h-1 flex-1" />
+                        <span className="text-xs text-gray-600">{achievement.progress}%</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-purple-600">+{achievement.points}</div>
+                      <div className="text-xs text-gray-500">XP</div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button 
-            className={`${isScanning ? 'bg-green-500' : 'bg-gradient-to-br from-green-500 to-emerald-600'} hover:from-green-600 hover:to-emerald-700 text-white p-6 h-auto rounded-xl shadow-lg transition-all duration-300`}
             onClick={handleScanMeal}
-            disabled={isScanning || scanMealMutation.isPending}
-            data-testid="button-scan-meal"
+            disabled={isScanning}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-6 h-auto rounded-xl shadow-lg transition-all duration-200"
+            data-testid="button-scan"
           >
             <div className="text-center">
               {isScanning ? (
-                <div className="w-8 h-8 mx-auto mb-2 animate-spin border-2 border-white border-t-transparent rounded-full" />
+                <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2" />
               ) : (
-                <ScanLine className="w-8 h-8 mx-auto mb-2" />
+                <Camera className="w-8 h-8 mx-auto mb-2" />
               )}
               <span className="text-sm font-medium">
                 {isScanning ? 'Scanning...' : 'Scan Meal'}
@@ -587,15 +533,15 @@ export default function Dashboard() {
             variant="outline"
             className="border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 p-6 h-auto rounded-xl shadow-lg transition-all duration-200"
             onClick={() => window.location.href = '/profile'}
-            data-testid="button-goals"
+            data-testid="button-profile"
           >
             <div className="text-center">
-              <Target className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">Set Goals</span>
+              <User className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+              <span className="text-sm font-medium text-blue-700">Profile</span>
             </div>
           </Button>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

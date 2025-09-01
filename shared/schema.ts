@@ -13,6 +13,7 @@ import {
   real,
   date,
   unique,
+  time,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -473,6 +474,112 @@ export const userGoals = pgTable("user_goals", {
 }));
 
 // Daily nutrition tracking
+// === ADVANCED TRACKING SYSTEMS FOR PRODUCTION-GRADE DASHBOARD ===
+
+// Daily activity tracking for comprehensive wellness monitoring
+export const dailyTracking = pgTable("daily_tracking", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  date: date("date").notNull(),
+  
+  // Physical Activity Metrics
+  steps: integer("steps").default(0),
+  stepsGoal: integer("steps_goal").default(10000),
+  activeMinutes: integer("active_minutes").default(0),
+  caloriesBurned: integer("calories_burned").default(0),
+  
+  // Sleep Quality Metrics
+  sleepHours: real("sleep_hours"),
+  sleepQuality: integer("sleep_quality"), // 1-10 scale
+  bedTime: time("bed_time"),
+  wakeTime: time("wake_time"),
+  
+  // Hydration Tracking
+  waterIntake: real("water_intake").default(0), // in liters
+  waterGoal: real("water_goal").default(2.5), // in liters
+  
+  // Weight & Measurements
+  weight: real("weight"),
+  bodyFat: real("body_fat_percentage"),
+  muscleMass: real("muscle_mass"),
+  
+  // Energy & Mood
+  energyLevel: integer("energy_level"), // 1-10 scale
+  moodScore: integer("mood_score"), // 1-10 scale
+  stressLevel: integer("stress_level"), // 1-10 scale
+  
+  // Achievement Tracking
+  dailyStreak: integer("daily_streak").default(0),
+  goalsCompleted: integer("goals_completed").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Workout tracking for fitness integration
+export const workouts = pgTable("workouts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // "cardio", "strength", "flexibility", "sports"
+  duration: integer("duration"), // in minutes
+  caloriesBurned: integer("calories_burned"),
+  difficulty: varchar("difficulty", { length: 20 }), // "easy", "medium", "hard"
+  
+  // Exercise-specific metrics
+  exercises: jsonb("exercises").$type<Array<{
+    name: string;
+    sets?: number;
+    reps?: number;
+    weight?: number;
+    duration?: number;
+    distance?: number;
+  }>>(),
+  
+  // Progress tracking
+  completionPercentage: integer("completion_percentage").default(100),
+  personalRecord: boolean("personal_record").default(false),
+  notes: text("notes"),
+  
+  // Performance metrics
+  heartRateAvg: integer("heart_rate_avg"),
+  heartRateMax: integer("heart_rate_max"),
+  
+  startedAt: timestamp("started_at").notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Achievement system for gamification
+export const userAchievements = pgTable("user_achievements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // "streak", "milestone", "challenge", "nutrition"
+  title: varchar("title", { length: 100 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 50 }), // "fitness", "nutrition", "consistency"
+  points: integer("points").default(0),
+  level: integer("level").default(1),
+  
+  // Achievement criteria
+  target: jsonb("target").$type<{
+    value: number;
+    unit: string;
+    timeframe?: string;
+  }>(),
+  
+  // Progress tracking
+  progress: real("progress").default(0),
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  
+  // Visual elements
+  iconType: varchar("icon_type", { length: 50 }),
+  badgeColor: varchar("badge_color", { length: 20 }),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const dailyNutrition = pgTable("daily_nutrition", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
@@ -808,44 +915,8 @@ export const userPoints = pgTable("user_points", {
   totalPointsIdx: index("user_points_total_idx").on(table.totalPoints),
 }));
 
-// Achievements table
-export const achievements = pgTable("achievements", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  name: varchar("name").notNull(),
-  description: text("description"),
-  icon: varchar("icon"),
-  category: varchar("category"), // nutrition, consistency, exploration, social
-  
-  // Requirements
-  pointsRequired: integer("points_required"),
-  conditionType: varchar("condition_type"), // streak, meals_logged, recipes_tried
-  conditionValue: integer("condition_value"),
-  
-  // Rewards
-  pointsReward: integer("points_reward").default(0),
-  badgeColor: varchar("badge_color").default('blue'),
-  
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  categoryIdx: index("achievements_category_idx").on(table.category),
-  conditionIdx: index("achievements_condition_idx").on(table.conditionType),
-}));
 
 // User Achievements (junction table)
-export const userAchievements = pgTable("user_achievements", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  achievementId: varchar("achievement_id").references(() => achievements.id).notNull(),
-  
-  unlockedAt: timestamp("unlocked_at").defaultNow(),
-  isDisplayed: boolean("is_displayed").default(true),
-}, (table) => ({
-  userIdIdx: index("user_achievements_user_id_idx").on(table.userId),
-  achievementIdIdx: index("user_achievements_achievement_id_idx").on(table.achievementId),
-  unlockedIdx: index("user_achievements_unlocked_idx").on(table.unlockedAt),
-}));
 
 // System metrics for health monitoring
 export const systemMetrics = pgTable("system_metrics", {
@@ -911,10 +982,6 @@ export const userAchievementsRelations = relations(userAchievements, ({ one }) =
   user: one(users, {
     fields: [userAchievements.userId],
     references: [users.id],
-  }),
-  achievement: one(achievements, {
-    fields: [userAchievements.achievementId],
-    references: [achievements.id],
   }),
 }));
 
@@ -1289,8 +1356,6 @@ export type ShoppingListItem = typeof shoppingListItems.$inferSelect;
 export type InsertShoppingListItem = typeof shoppingListItems.$inferInsert;
 export type UserPoints = typeof userPoints.$inferSelect;
 export type InsertUserPoints = typeof userPoints.$inferInsert;
-export type Achievement = typeof achievements.$inferSelect;
-export type InsertAchievement = typeof achievements.$inferInsert;
 export type UserAchievement = typeof userAchievements.$inferSelect;
 export type InsertUserAchievement = typeof userAchievements.$inferInsert;
 
