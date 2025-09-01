@@ -1,7 +1,8 @@
 import OpenAI from 'openai';
 import { db } from '../../infrastructure/database/db';
-import { dietPlans, dietPlanMeals, dietPlanSupplements, dietPlanLifestyle, users } from '@shared/schema';
-import { eq, and } from 'drizzle-orm';
+import { dietPlans, dietPlanMeals, dietPlanSupplements, dietPlanLifestyle, users, meals, mealItems, foods } from '@shared/schema';
+import { eq, and, desc } from 'drizzle-orm';
+import { targetCalculator } from '../nutrition/targetCalculator';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -51,8 +52,8 @@ export class DietPlanService {
         throw new Error('User not found');
       }
 
-      // Calculate nutritional targets based on questionnaire
-      const targets = this.calculateNutritionalTargets(questionnaire);
+      // Calculate proper nutritional targets using BMR science
+      const targets = await this.calculateNutritionalTargets(userId, questionnaire);
       
       // Generate AI-powered plan name and recommendations
       const aiPlanResponse = await this.generateAIPlan(questionnaire, targets);
@@ -73,8 +74,8 @@ export class DietPlanService {
         isActive: true,
       }).returning();
 
-      // Generate 28-day meal recommendations
-      await this.generateMealRecommendations(newPlan.id, questionnaire, targets);
+      // Generate personalized 28-day meal recommendations
+      await this.generateMealRecommendations(newPlan.id, userId, questionnaire, targets);
       
       // Generate supplement recommendations
       await this.generateSupplementRecommendations(newPlan.id, questionnaire);
@@ -96,58 +97,80 @@ export class DietPlanService {
     }
   }
 
-  // Calculate nutritional targets based on questionnaire
-  private calculateNutritionalTargets(questionnaire: DietPlanQuestionnaire) {
-    const { personalInfo, healthGoals, physicalActivity } = questionnaire;
-    
-    // Calculate BMR using Mifflin-St Jeor equation
-    let bmr: number;
-    if (personalInfo.gender.toLowerCase() === 'male') {
-      bmr = (10 * personalInfo.weight) + (6.25 * personalInfo.height) - (5 * personalInfo.age) + 5;
-    } else {
-      bmr = (10 * personalInfo.weight) + (6.25 * personalInfo.height) - (5 * personalInfo.age) - 161;
+  // Calculate nutritional targets using proper BMR/TDEE science
+  private async calculateNutritionalTargets(userId: string, questionnaire: DietPlanQuestionnaire) {
+    // Get user's actual profile data
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) {
+      throw new Error('User not found');
     }
-    
-    // Activity multiplier
-    const activityLevel = physicalActivity.includes('high') ? 1.7 : 
-                         physicalActivity.includes('moderate') ? 1.5 : 1.3;
-    
-    let tdee = bmr * activityLevel;
-    
-    // Adjust based on goals
-    if (healthGoals.includes('weight_loss')) {
-      tdee *= 0.85; // 15% deficit
-    } else if (healthGoals.includes('muscle_gain')) {
-      tdee *= 1.1; // 10% surplus
+
+    // Update user profile with questionnaire data if missing
+    if (!user.weight || !user.height || !user.age) {
+      await db.update(users)
+        .set({
+          weight: questionnaire.personalInfo.weight,
+          height: questionnaire.personalInfo.height,
+          age: questionnaire.personalInfo.age,
+          gender: questionnaire.personalInfo.gender,
+          activityLevel: questionnaire.physicalActivity[0] || 'moderate',
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
     }
-    
-    // Macro distribution based on goals and preferences
-    let proteinPercent = 25, carbPercent = 45, fatPercent = 30;
-    
-    if (healthGoals.includes('muscle_gain')) {
-      proteinPercent = 30;
-      carbPercent = 40;
-      fatPercent = 30;
-    } else if (healthGoals.includes('diabetes')) {
-      proteinPercent = 25;
-      carbPercent = 35;
-      fatPercent = 40;
-    }
-    
+
+    // Calculate proper targets using BMR science
+    const updatedUser = {
+      ...user,
+      weight: user.weight || questionnaire.personalInfo.weight,
+      height: user.height || questionnaire.personalInfo.height,
+      age: user.age || questionnaire.personalInfo.age,
+      gender: user.gender || questionnaire.personalInfo.gender,
+      activityLevel: user.activityLevel || questionnaire.physicalActivity[0] || 'moderate',
+    };
+
+    const goalType = questionnaire.healthGoals[0] || 'weight_loss';
+    const targets = targetCalculator.calculatePersonalizedTargets(updatedUser as any, goalType);
+
+    // Update user's targets in database
+    await targetCalculator.updateUserTargets(userId, targets);
+
+    // Return with micronutrients
     return {
-      calories: Math.round(tdee),
-      protein: Math.round((tdee * proteinPercent / 100) / 4), // 4 cal per gram
-      carbs: Math.round((tdee * carbPercent / 100) / 4),
-      fat: Math.round((tdee * fatPercent / 100) / 9), // 9 cal per gram
-      fiber: Math.max(25, Math.round(tdee / 80)), // 1g per 80 calories minimum
+      calories: targets.calories,
+      protein: targets.protein,
+      carbs: targets.carbs,
+      fat: targets.fat,
+      fiber: targets.fiber,
       micronutrients: {
-        iron: personalInfo.gender.toLowerCase() === 'female' ? 18 : 8,
-        calcium: personalInfo.age > 50 ? 1200 : 1000,
+        iron: updatedUser.gender?.toLowerCase() === 'male' ? 8 : 18,
+        calcium: updatedUser.age! < 50 ? 1000 : 1200,
+        vitaminC: 90,
         vitaminD: 20,
-        vitaminC: personalInfo.gender.toLowerCase() === 'male' ? 90 : 75,
-        potassium: 3500,
-        magnesium: personalInfo.gender.toLowerCase() === 'male' ? 400 : 320,
-      }
+        magnesium: updatedUser.gender?.toLowerCase() === 'male' ? 400 : 310,
+        potassium: 3500
+      },
+      explanation: targets.explanation
+    };
+  }
+
+  // Get user's logged food preferences for personalization
+  private async getUserFoodPreferences(userId: string) {
+    // Get user's most frequently logged foods for personalization
+    const loggedFoods = await db.select({
+      foodName: foods.name,
+      category: foods.category,
+    })
+    .from(meals)
+    .innerJoin(mealItems, eq(meals.id, mealItems.mealId))
+    .innerJoin(foods, eq(mealItems.foodId, foods.id))
+    .where(eq(meals.userId, userId))
+    .limit(20);
+
+    return {
+      preferredFoods: loggedFoods.map(f => f.foodName),
+      preferredCategories: [...new Set(loggedFoods.map(f => f.category))],
+      hasLoggingHistory: loggedFoods.length > 0
     };
   }
 
@@ -174,18 +197,34 @@ Respond with JSON: { "planName": "motivating plan name", "overview": "2-sentence
     return JSON.parse(response.choices[0].message.content || '{}');
   }
 
-  // Generate meals for first 7 days (week 1) efficiently
-  private async generateMealRecommendations(planId: string, questionnaire: DietPlanQuestionnaire, targets: any) {
-    console.log('Starting meal generation for plan:', planId);
+  // Generate personalized meals based on user preferences and logged history
+  private async generateMealRecommendations(planId: string, userId: string, questionnaire: DietPlanQuestionnaire, targets: any) {
+    console.log('Starting personalized meal generation for plan:', planId);
     
-    // Generate one week of meals efficiently using batch prompting
-    const mealPrompt = `Generate 7 days of meals for a ${questionnaire.healthGoals[0]} diet plan:
+    // Get user's food preferences from logged meals
+    const userPreferences = await this.getUserFoodPreferences(userId);
+    
+    // Create personalized AI prompt based on user's actual preferences
+    let personalizedPrompt = `Generate 7 days of personalized meals for a ${questionnaire.healthGoals[0]} diet plan:
 
 User Profile:
 - ${questionnaire.personalInfo.age}yr ${questionnaire.personalInfo.gender}
 - Food preferences: ${questionnaire.foodPreferences.join(', ')}
 - Restrictions: ${questionnaire.restrictions.join(', ')}
 - Daily calories: ${targets.calories}
+- BMR-calculated protein: ${targets.protein}g, carbs: ${targets.carbs}g, fat: ${targets.fat}g`;
+
+    if (userPreferences.hasLoggingHistory) {
+      personalizedPrompt += `
+- User's favorite foods: ${userPreferences.preferredFoods.slice(0, 10).join(', ')}
+- Preferred food categories: ${userPreferences.preferredCategories.join(', ')}
+IMPORTANT: Include variations of their favorite foods in meal recommendations.`;
+    } else {
+      personalizedPrompt += `
+- No previous logging history - create diverse, approachable meals`;
+    }
+
+    personalizedPrompt += `
 
 Create varied, practical meals. Respond with JSON:
 {
@@ -210,7 +249,7 @@ Generate 28 meals total (7 days × 4 meal types): breakfast, lunch, dinner, snac
     try {
       const response = await openai.chat.completions.create({
         model: "gpt-5",
-        messages: [{ role: "user", content: mealPrompt }],
+        messages: [{ role: "user", content: personalizedPrompt }],
         response_format: { type: "json_object" },
         max_completion_tokens: 2000,
       });
@@ -382,7 +421,7 @@ Generate 3-4 essential supplements. Respond with JSON:
     await db.delete(dietPlanMeals).where(eq(dietPlanMeals.dietPlanId, planId));
     
     // Generate new meals
-    await this.generateMealRecommendations(planId, plan.questionnaireData as any, plan.dailyTargets);
+    await this.generateMealRecommendations(planId, plan.userId, plan.questionnaireData as any, plan.dailyTargets);
     
     return { success: true };
   }

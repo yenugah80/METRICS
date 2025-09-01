@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { verifyJWT, type AuthenticatedRequest } from '../../infrastructure/auth/authService';
 import { dietPlanService, type DietPlanQuestionnaire } from '../../core/diet-plans/dietPlanService';
+import { targetCalculator } from '../../core/nutrition/targetCalculator';
 
 const router = Router();
 
@@ -225,6 +226,62 @@ router.post('/api/diet-plans/:planId/regenerate-meals', verifyJWT, async (req: A
     console.error('Error regenerating meals:', error);
     res.status(500).json({
       error: 'Failed to regenerate meals',
+      message: error.message
+    });
+  }
+});
+
+// Recalculate nutrition targets based on current profile
+router.post('/api/nutrition/recalculate-targets', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { goalType = 'weight_loss' } = req.body;
+    
+    // Get user from database with current profile
+    const { db } = await import('../../infrastructure/database/db');
+    const { users } = await import('../../../shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    if (!user.weight || !user.height || !user.age) {
+      return res.status(400).json({ 
+        error: 'Missing profile data', 
+        message: 'Please complete your profile (weight, height, age) to calculate accurate targets.' 
+      });
+    }
+    
+    // Calculate new targets
+    const targets = targetCalculator.calculatePersonalizedTargets(user, goalType);
+    
+    // Update user's targets
+    await targetCalculator.updateUserTargets(userId, targets);
+    
+    res.json({
+      success: true,
+      targets: {
+        calories: targets.calories,
+        protein: targets.protein,
+        carbs: targets.carbs,
+        fat: targets.fat,
+        fiber: targets.fiber,
+        bmr: targets.bmr,
+        tdee: targets.tdee,
+        explanation: targets.explanation
+      },
+      message: 'Nutrition targets recalculated based on your current profile!'
+    });
+  } catch (error: any) {
+    console.error('Error recalculating targets:', error);
+    res.status(500).json({
+      error: 'Failed to recalculate targets',
       message: error.message
     });
   }

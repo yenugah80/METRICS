@@ -278,7 +278,7 @@ Keep responses concise and practical.`;
       messages: messages as any,
       response_format: { type: "json_object" },
       max_completion_tokens: 400, // Reduced for faster responses
-      temperature: 0.7, // Add some creativity
+      // GPT-5 only supports default temperature of 1
     });
 
     const responseTime = (Date.now() - startTime) / 1000;

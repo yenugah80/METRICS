@@ -18,7 +18,10 @@ import {
   Plus,
   CheckCircle,
   Star,
-  Clock
+  Clock,
+  RefreshCw,
+  Calculator,
+  Info
 } from 'lucide-react';
 
 interface DietPlan {
@@ -50,6 +53,7 @@ export default function DietPlan() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showTargetCalculation, setShowTargetCalculation] = useState(false);
 
   // Fetch active diet plan
   const { data: planData, isLoading: planLoading } = useQuery({
@@ -82,6 +86,28 @@ export default function DietPlan() {
   const adherenceMutation = useMutation({
     mutationFn: async (planId: string) => {
       return await apiRequest('POST', `/api/diet-plans/${planId}/adherence`);
+    },
+  });
+
+  // Recalculate nutrition targets
+  const recalculateTargetsMutation = useMutation({
+    mutationFn: async (goalType: string = 'weight_loss') => {
+      return await apiRequest('POST', '/api/nutrition/recalculate-targets', { goalType });
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/diet-plans/active'] });
+      toast({
+        title: "Targets Updated!",
+        description: data.message + ` New calories: ${data.targets.calories}`,
+      });
+      setShowTargetCalculation(true);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Recalculation Failed",
+        description: error.message || "Unable to recalculate targets. Please check your profile is complete.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -165,10 +191,30 @@ export default function DietPlan() {
         {/* Progress Overview */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-blue-600" />
-              Daily Targets
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-blue-600" />
+                Daily Targets
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => recalculateTargetsMutation.mutate('weight_loss')}
+                disabled={recalculateTargetsMutation.isPending}
+                className="flex items-center gap-2"
+                data-testid="button-recalculate-targets"
+              >
+                {recalculateTargetsMutation.isPending ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Calculator className="w-4 h-4" />
+                )}
+                Recalculate
+              </Button>
             </CardTitle>
+            <CardDescription>
+              BMR-based targets calculated from your profile data
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -188,6 +234,22 @@ export default function DietPlan() {
                 </div>
               ))}
             </div>
+            
+            {showTargetCalculation && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">BMR-Based Calculation:</p>
+                    <p className="text-xs leading-relaxed">
+                      Your targets are calculated using the Mifflin-St Jeor equation for BMR (Basal Metabolic Rate), 
+                      then adjusted for your activity level and weight loss goals. This ensures scientifically accurate 
+                      nutrition recommendations rather than generic defaults.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
