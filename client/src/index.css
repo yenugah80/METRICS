@@ -69,17 +69,26 @@
   --nutrition-fat: hsl(24, 95%, 53%); /* Orange for fat */
   --nutrition-eco: hsl(142, 76%, 36%); /* Green for sustainability */
   
-  /* Professional Gradients - Reduced Usage */
-  --gradient-primary: linear-gradient(135deg, hsl(231, 48%, 48%) 0%, hsl(220, 70%, 50%) 100%);
-  --gradient-hero: linear-gradient(135deg, hsl(213, 94%, 68%) 0%, hsl(231, 48%, 48%) 100%);
+  /* Market-Optimized Gradients - Trust & Wellness */
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); /* Trust blue */
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Nature green */
+  --gradient-warning: linear-gradient(135deg, #f97316 0%, #ea580c 100%); /* Energy orange */
+  --gradient-info: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); /* Calming teal */
+  --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); /* Premium purple */
+  --gradient-hero: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #0d9488 100%); /* Trust progression */
   --gradient-surface: linear-gradient(135deg, hsl(210, 20%, 98%) 0%, hsl(0, 0%, 100%) 100%);
   
-  /* Subtle Professional Glow Effects */
-  --glow-primary: 0 0 20px hsla(213, 94%, 68%, 0.15), 0 0 40px hsla(200, 100%, 75%, 0.08);
-  --glow-secondary: 0 0 20px hsla(158, 58%, 72%, 0.15), 0 0 40px hsla(170, 65%, 78%, 0.08);
-  --glow-success: 0 0 20px hsla(142, 76%, 73%, 0.15), 0 0 40px hsla(158, 68%, 78%, 0.08);
-  --glow-info: 0 0 20px hsla(199, 89%, 75%, 0.15), 0 0 40px hsla(213, 85%, 80%, 0.08);
-  --glow-warning: 0 0 20px hsla(45, 93%, 75%, 0.15), 0 0 40px hsla(38, 88%, 78%, 0.08);
+  /* Engaging Card Gradients */
+  --gradient-light-premium: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(16, 185, 129, 0.08) 100%);
+  --gradient-card-wellness: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(13, 148, 136, 0.08) 100%);
+  --gradient-card-energy: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(245, 158, 11, 0.08) 100%);
+  
+  /* Market-Optimized Glow Effects - Engagement Focused */
+  --glow-primary: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 40px rgba(59, 130, 246, 0.08);
+  --glow-secondary: 0 0 20px rgba(139, 92, 246, 0.15), 0 0 40px rgba(139, 92, 246, 0.08);
+  --glow-success: 0 0 20px rgba(16, 185, 129, 0.15), 0 0 40px rgba(16, 185, 129, 0.08);
+  --glow-info: 0 0 20px rgba(13, 148, 136, 0.15), 0 0 40px rgba(13, 148, 136, 0.08);
+  --glow-warning: 0 0 20px rgba(249, 115, 22, 0.15), 0 0 40px rgba(249, 115, 22, 0.08);
   
   /* Premium Light Intensive Glows */
   --glow-light-premium: 0 0 30px hsla(200, 100%, 85%, 0.3), 0 0 60px hsla(180, 90%, 88%, 0.15), 0 0 90px hsla(160, 80%, 90%, 0.08);
@@ -222,13 +231,13 @@
   }
   
   .btn-premium {
-    background: var(--gradient-success);
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     backdrop-filter: blur(20px);
-    border: 1px solid hsla(142, 76%, 73%, 0.3);
+    border: 1px solid #f97316;
     color: white;
     font-weight: 700;
     border-radius: 18px;
-    box-shadow: var(--glow-success), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3), 0 0 40px rgba(249, 115, 22, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 16px;
     padding: 16px 32px;
@@ -250,8 +259,9 @@
   
   .btn-premium:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 16px 48px rgba(234, 179, 8, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    border-color: rgba(234, 179, 8, 0.5);
+    box-shadow: 0 16px 48px rgba(249, 115, 22, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    border-color: #ea580c;
+    background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
   }
   
   .btn-premium:hover::before {
@@ -260,7 +270,7 @@
   
   .btn-premium:active {
     transform: translateY(-1px) scale(1.02);
-    box-shadow: 0 8px 24px rgba(234, 179, 8, 0.35);
+    box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35);
   }
   
   .btn-outline {

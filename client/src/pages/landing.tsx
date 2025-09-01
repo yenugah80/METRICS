@@ -27,7 +27,7 @@ export default function Landing() {
             
             <h1 className="mt-4 text-[44px] md:text-[56px] font-semibold leading-[1.05] tracking-[-0.02em] text-neutral-900 mb-6">
               Stop guessing what's in your food. 
-              <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent"> Know instantly.</span>
+              <span className="bg-gradient-to-r from-blue-600 via-teal-600 to-green-600 bg-clip-text text-transparent"> Know instantly.</span>
             </h1>
             
             <p className="mx-auto mt-4 max-w-[720px] text-[18px] leading-7 text-neutral-600 mb-8">
@@ -62,7 +62,7 @@ export default function Landing() {
         <section className="mb-24">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-neutral-900 mb-4">
-              The nutrition tracking nightmare is <span className="text-red-600">finally over</span>
+              The nutrition tracking nightmare is <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent font-bold">finally over</span>
             </h2>
             <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
               We solved the biggest problems that make other nutrition apps frustrating and unreliable
@@ -72,10 +72,10 @@ export default function Landing() {
           <div className="mx-auto w-[min(1100px,92%)]">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Problem 1: Inaccurate Food Data */}
-              <Card className="glow-card-hero group">
+              <Card className="border-0 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-all duration-500 group">
                 <CardContent className="p-8 relative z-10">
                   <div className="text-center">
-                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500" style={{ background: 'var(--gradient-warning)', boxShadow: 'var(--glow-warning)' }}>
+                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500 bg-gradient-to-r from-blue-500 to-blue-600" style={{ boxShadow: 'var(--glow-primary)' }}>
                       <AlertTriangle className="w-8 h-8 text-white drop-shadow-lg" />
                     </div>
                     <h3 className="text-xl font-bold text-neutral-900 mb-4">Unreliable Food Data</h3>
@@ -95,10 +95,10 @@ export default function Landing() {
               </Card>
 
               {/* Problem 2: Time-Consuming Logging */}
-              <Card className="glow-card-hero group">
+              <Card className="border-0 bg-gradient-to-br from-teal-50 to-teal-100 shadow-lg hover:shadow-xl transition-all duration-500 group">
                 <CardContent className="p-8 relative z-10">
                   <div className="text-center">
-                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500" style={{ background: 'var(--gradient-info)', boxShadow: 'var(--glow-info)' }}>
+                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500 bg-gradient-to-r from-teal-500 to-teal-600" style={{ boxShadow: 'var(--glow-info)' }}>
                       <Clock className="w-8 h-8 text-white drop-shadow-lg" />
                     </div>
                     <h3 className="text-xl font-bold text-neutral-900 mb-4">Tedious Manual Entry</h3>
@@ -118,10 +118,10 @@ export default function Landing() {
               </Card>
 
               {/* Problem 3: No Health Context */}
-              <Card className="glow-card-hero group">
+              <Card className="border-0 bg-gradient-to-br from-green-50 to-green-100 shadow-lg hover:shadow-xl transition-all duration-500 group">
                 <CardContent className="p-8 relative z-10">
                   <div className="text-center">
-                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500" style={{ background: 'var(--gradient-primary)', boxShadow: 'var(--glow-primary)' }}>
+                    <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-500 bg-gradient-to-r from-green-500 to-green-600" style={{ boxShadow: 'var(--glow-success)' }}>
                       <HelpCircle className="w-8 h-8 text-white drop-shadow-lg" />
                     </div>
                     <h3 className="text-xl font-bold text-neutral-900 mb-4">No Personal Context</h3>
@@ -144,7 +144,7 @@ export default function Landing() {
         </section>
 
         {/* Unique Scientific Advantages Section */}
-        <section className="mb-24 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 py-16 rounded-3xl">
+        <section className="mb-24 py-16 rounded-3xl" style={{ background: 'var(--gradient-light-premium)' }}>
           <div className="mx-auto w-[min(1100px,92%)]">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-neutral-900 mb-4">
@@ -156,33 +156,33 @@ export default function Landing() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <Card className="feature-card-primary text-center p-8 group">
+              <Card className="border-0 bg-gradient-to-br from-green-50 to-green-100 text-center p-8 group shadow-lg hover:shadow-xl transition-all duration-500">
                 <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-primary)', boxShadow: 'var(--glow-primary)' }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg bg-gradient-to-r from-green-500 to-green-600" style={{ boxShadow: 'var(--glow-success)' }}>
                     <Zap className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">Scan a meal now</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">See your score, drivers, and greener swaps in 10 seconds</p>
+                  <h3 className="font-bold text-neutral-900 mb-3">🍽️ Scan a meal now</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">See your score, insights, and eco-friendly swaps in 10 seconds</p>
                 </CardContent>
               </Card>
               
-              <Card className="feature-card-primary text-center p-8 group">
+              <Card className="border-0 bg-gradient-to-br from-teal-50 to-teal-100 text-center p-8 group shadow-lg hover:shadow-xl transition-all duration-500">
                 <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-success)', boxShadow: 'var(--glow-success)' }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg bg-gradient-to-r from-teal-500 to-teal-600" style={{ boxShadow: 'var(--glow-info)' }}>
                     <Globe className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">Make one tiny tweak</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Watch kcal, sodium, and CO₂ drop live</p>
+                  <h3 className="font-bold text-neutral-900 mb-3">🌍 Make one tiny tweak</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Watch calories, sodium, and CO₂ drop instantly</p>
                 </CardContent>
               </Card>
               
-              <Card className="feature-card-primary text-center p-8 group">
+              <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100 text-center p-8 group shadow-lg hover:shadow-xl transition-all duration-500">
                 <CardContent className="p-0 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg" style={{ background: 'var(--gradient-warning)', boxShadow: 'var(--glow-warning)' }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg bg-gradient-to-r from-purple-500 to-purple-600" style={{ boxShadow: 'var(--glow-secondary)' }}>
                     <Beaker className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="font-bold text-neutral-900 mb-3">Set your health profile</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Get PCOS/diabetes-smart guidance instantly</p>
+                  <h3 className="font-bold text-neutral-900 mb-3">💜 Set your health profile</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Get personalized guidance for PCOS, diabetes, and your goals</p>
                 </CardContent>
               </Card>
             </div>
@@ -202,33 +202,16 @@ export default function Landing() {
 
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
             {/* Instant Photo Analysis - Premium Light Design */}
-            <Card className="border-0 rounded-3xl overflow-hidden relative group" style={{ 
-              background: 'var(--gradient-light-premium)', 
-              boxShadow: 'var(--glow-light-premium)',
-              backdropFilter: 'blur(25px)',
-              border: '2px solid rgba(255, 255, 255, 0.6)'
-            }}>
+            <Card className="border-0 rounded-3xl overflow-hidden relative group bg-gradient-to-br from-blue-50 to-teal-100 shadow-2xl hover:shadow-3xl transition-all duration-500">
               <div className="absolute inset-0 transition-all duration-500" style={{
                 background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(200, 230, 255, 0.15) 100%)'
               }}></div>
               <CardContent className="p-12 relative z-10">
                 <div className="mb-8">
-                  <Badge className="mb-6 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide" style={{
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 248, 255, 0.9) 100%)',
-                    color: 'hsl(210, 100%, 40%)',
-                    border: '1px solid rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(15px)',
-                    boxShadow: '0 8px 32px rgba(200, 220, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
-                  }}>
+                  <Badge className="mb-6 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide bg-gradient-to-r from-blue-500 to-teal-500 text-white shadow-lg border border-blue-300">
                     COMPUTER VISION AI
                   </Badge>
-                  <h3 className="text-4xl font-bold mb-6" style={{ 
-                    background: 'linear-gradient(135deg, hsl(220, 100%, 25%) 0%, hsl(200, 90%, 35%) 50%, hsl(180, 80%, 40%) 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    textShadow: '0 2px 4px rgba(200, 220, 255, 0.3)'
-                  }}>
+                  <h3 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-teal-600 to-green-600 bg-clip-text text-transparent">
                     3-Second Food
                     <br />
                     Recognition
@@ -270,15 +253,9 @@ export default function Landing() {
                 </div>
                 
                 <Button 
-                  className="w-full mt-8 font-bold py-4 rounded-2xl border-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+                  className="w-full mt-8 font-bold py-4 rounded-2xl border-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xl hover:from-orange-600 hover:to-red-600"
                   onClick={() => navigate('/camera')}
                   data-testid="button-try-camera"
-                  style={{
-                    background: 'linear-gradient(135deg, hsl(220, 100%, 60%) 0%, hsl(200, 90%, 65%) 50%, hsl(180, 80%, 70%) 100%)',
-                    color: 'white',
-                    boxShadow: '0 12px 40px hsla(200, 90%, 60%, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4)',
-                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
-                  }}
                 >
                   Try Photo Analysis Now
                 </Button>
@@ -286,20 +263,20 @@ export default function Landing() {
             </Card>
 
             {/* Smart Recommendations */}
-            <Card className="feature-card-hero border-0 rounded-3xl overflow-hidden">
+            <Card className="border-0 rounded-3xl overflow-hidden bg-gradient-to-br from-green-50 to-emerald-100 shadow-2xl hover:shadow-3xl transition-all duration-500">
               <CardContent className="p-12">
                 <div className="mb-8">
-                  <Badge className="mb-6 bg-gradient-to-r from-emerald-50 to-blue-50 text-emerald-700 border-emerald-200 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide">
+                  <Badge className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-green-300 px-8 py-4 rounded-2xl font-bold text-sm tracking-wide shadow-lg">
                     SMART INSIGHTS
                   </Badge>
-                  <h3 className="professional-heading text-4xl font-bold mb-6 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                    Actionable
+                  <h3 className="text-4xl font-bold mb-6 bg-gradient-to-r from-green-600 via-teal-600 to-blue-600 bg-clip-text text-transparent">
+                    ✨ Smart
                     <br />
                     Recommendations
                   </h3>
-                  <p className="body-text text-lg leading-relaxed mb-8 text-gray-700">
-                    Intelligent recommendations powered by machine learning provide personalized guidance. 
-                    Discover optimal food swaps, health improvements, and eco-friendly alternatives tailored to your goals.
+                  <p className="text-lg leading-relaxed mb-8 text-gray-700">
+                    🤖 AI-powered recommendations provide personalized guidance. 
+                    Discover optimal food swaps, health improvements, and eco-friendly alternatives tailored to your lifestyle.
                   </p>
                 </div>
                 
@@ -324,14 +301,14 @@ export default function Landing() {
           {/* Secondary Features Grid - Clean Design */}
           <div className="grid md:grid-cols-3 gap-8">
             {/* Voice Logging */}
-            <Card className="feature-card-premium border-0 rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-yellow-50/50 to-orange-50/50 backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group">
+            <Card className="border-0 rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-orange-50 to-yellow-100 hover:shadow-2xl transition-all duration-500 group">
               <CardContent className="p-10 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-100/20 to-orange-100/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                 <div className="relative z-10">
-                  <Badge className="mb-6 bg-gradient-to-r from-yellow-400/40 to-orange-400/40 text-yellow-800 border-yellow-300/60 px-6 py-3 text-sm rounded-full font-bold tracking-wide shadow-lg backdrop-blur-sm">
+                  <Badge className="mb-6 bg-gradient-to-r from-orange-500 to-yellow-500 text-white border-orange-300 px-6 py-3 text-sm rounded-full font-bold tracking-wide shadow-lg">
                     PREMIUM FEATURE
                   </Badge>
-                  <h3 className="professional-heading text-2xl font-bold mb-6 bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                  <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">
                     Voice-Powered Logging
                   </h3>
                   <p className="body-text text-gray-700 leading-relaxed mb-6">
@@ -349,14 +326,14 @@ export default function Landing() {
             </Card>
 
             {/* Sustainability Analysis */}
-            <Card className="feature-card-primary border-0 rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-green-50/50 to-teal-50/50 backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group">
+            <Card className="border-0 rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-green-50 to-emerald-100 hover:shadow-2xl transition-all duration-500 group">
               <CardContent className="p-10 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-green-100/20 to-teal-100/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                 <div className="relative z-10">
-                  <Badge className="mb-6 bg-gradient-to-r from-green-400/40 to-emerald-400/40 text-green-800 border-green-300/60 px-6 py-3 text-sm rounded-full font-bold tracking-wide shadow-lg backdrop-blur-sm">
+                  <Badge className="mb-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-green-300 px-6 py-3 text-sm rounded-full font-bold tracking-wide shadow-lg">
                     ECO TRACKING
                   </Badge>
-                  <h3 className="professional-heading text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                     Environmental Impact
                   </h3>
                   <p className="body-text text-gray-700 leading-relaxed mb-6">
@@ -374,14 +351,14 @@ export default function Landing() {
             </Card>
 
             {/* Advanced Analytics */}
-            <Card className="feature-card-primary border-0 rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/50 backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group">
+            <Card className="border-0 rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-50 to-indigo-100 hover:shadow-2xl transition-all duration-500 group">
               <CardContent className="p-10 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-indigo-100/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                 <div className="relative z-10">
-                  <Badge className="mb-6 bg-gradient-to-r from-blue-400/40 to-indigo-400/40 text-blue-800 border-blue-300/60 px-6 py-3 text-sm rounded-full font-bold tracking-wide shadow-lg backdrop-blur-sm">
+                  <Badge className="mb-6 bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-blue-300 px-6 py-3 text-sm rounded-full font-bold tracking-wide shadow-lg">
                     ANALYTICS PLATFORM
                   </Badge>
-                  <h3 className="professional-heading text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                     Health Trend Analysis
                   </h3>
                   <p className="body-text text-gray-700 leading-relaxed mb-6">
