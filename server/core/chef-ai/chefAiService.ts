@@ -283,6 +283,35 @@ export interface ChefAiChatResponse {
   }>;
   insights?: string[];
   followUpQuestions?: string[];
+  responseCard?: {
+    title: string;
+    summary: string;
+    macros: {
+      calories_kcal: number | null;
+      protein_g: number | null;
+      carbs_g: number | null;
+      fat_g: number | null;
+    };
+    micros: {
+      fiber_g: number | null;
+      iron_mg: number | null;
+      calcium_mg: number | null;
+      vitamin_c_mg: number | null;
+    };
+    portion_size: string | null;
+    allergens: string[];
+    diet_flags: {
+      keto: boolean;
+      vegan: boolean;
+      vegetarian: boolean;
+      gluten_free: boolean;
+      pcos_friendly: boolean;
+    };
+    ingredients: string[];
+    preparation_steps: string[];
+    health_benefits: string[];
+    warnings: string[];
+  };
 }
 
 export interface NutritionContext {
@@ -679,6 +708,27 @@ export class ChefAiService {
     };
   }
 
+  // Extract readable content from malformed JSON responses
+  private extractReadableContent(responseContent: string, userMessage: string): string {
+    try {
+      // Try to extract the response field even from partial JSON
+      const responseMatch = responseContent.match(/"response"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s);
+      if (responseMatch) {
+        return responseMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      }
+      
+      // If that fails, look for readable text content
+      const textMatch = responseContent.match(/["']([^"']{50,})["']/);
+      if (textMatch) {
+        return textMatch[1];
+      }
+      
+      return `I understand you're asking about "${userMessage}". Let me help you with that! Could you please rephrase your question so I can give you the best answer?`;
+    } catch (error) {
+      return `I'm here to help with nutrition and meal planning! What would you like to know about "${userMessage}"?`;
+    }
+  }
+
   // Generate dynamic, personalized AI response with smart conversation awareness
   private async generateContextualResponse(
     userMessage: string,
@@ -795,16 +845,47 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
         console.error('JSON parsing error in generateContextualResponse:', jsonError);
         console.error('Response content:', responseContent);
         
-        // Return a structured error response if JSON parsing fails
-        parsedResponse = {
-          response: "I apologize, but I'm having technical difficulties with the response format. Please try your request again.",
-          insights: ["Technical issue with response format"],
-          followUpQuestions: ["Would you like to try asking again?"],
-          confidence: 0.5,
-          verification_status: "error_input",
-          data_sources: [],
-          safety_analysis: "Unable to process due to technical error"
-        };
+        // Try to repair malformed JSON by fixing common issues
+        let repairedContent = responseContent;
+        try {
+          // Fix unterminated strings by adding closing quotes
+          if (repairedContent.includes('"') && !repairedContent.endsWith('"}}') && !repairedContent.endsWith('"}')) {
+            const lastQuoteIndex = repairedContent.lastIndexOf('"');
+            const afterLastQuote = repairedContent.substring(lastQuoteIndex + 1);
+            if (!afterLastQuote.includes('"') && !afterLastQuote.includes('}')) {
+              repairedContent = repairedContent + '"}';
+            }
+          }
+          
+          // Try parsing the repaired content
+          parsedResponse = JSON.parse(repairedContent);
+          console.log('Successfully repaired malformed JSON response');
+        } catch (repairError) {
+          console.error('Failed to repair JSON:', repairError);
+          
+          // Extract whatever readable content we can and create a fallback response
+          const fallbackMessage = this.extractReadableContent(responseContent, userMessage);
+          
+          parsedResponse = {
+            response: fallbackMessage,
+            response_card: {
+              title: "ChefAI Response",
+              summary: fallbackMessage,
+              macros: { calories_kcal: null, protein_g: null, carbs_g: null, fat_g: null },
+              micros: { fiber_g: null, iron_mg: null, calcium_mg: null, vitamin_c_mg: null },
+              portion_size: null,
+              allergens: [],
+              diet_flags: { keto: false, vegan: false, vegetarian: false, gluten_free: false, pcos_friendly: false },
+              ingredients: [],
+              preparation_steps: [],
+              health_benefits: [],
+              warnings: ["Response format issue - please try again"]
+            },
+            insights: ["I had trouble formatting this response properly"],
+            followUpQuestions: ["Would you like to ask about something specific?"],
+            confidence: 0.3
+          };
+        }
       }
       const responseTime = Date.now() - startTime;
       
@@ -814,6 +895,7 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
         message: parsedResponse.response || "I'm here to help with your nutrition goals!",
         responseType: requestType,
         structuredData: parsedResponse.structuredData || null,
+        responseCard: parsedResponse.response_card || null,
         insights: parsedResponse.insights || [],
         followUpQuestions: parsedResponse.followUpQuestions || [],
         recipeDetails: parsedResponse.recipeDetails || null,
@@ -1035,9 +1117,38 @@ ${baseContext}
 
 RESPONSE FORMAT (required JSON):
 {
-  "response": "[Start with warm acknowledgment] I love that you're asking about [topic]! [Comprehensive, detailed response with explanations, tips, and specific guidance. Include their actual numbers when relevant. Be as helpful and thorough as ChatGPT would be, but focused on food/nutrition. Use conversational language and show genuine enthusiasm for helping them.]",
-  "insights": ["Rich insights with specific data: 'You've had 85g protein today - that's 85% of your goal!', 'Your fiber intake is excellent this week!', 'This meal would add 15g protein and keep you perfectly on track'"],
-  "followUpQuestions": ["Engaging, contextual questions: 'Want me to suggest some protein-rich snacks for later?', 'Should I create a full meal plan around this?', 'Curious about the health benefits of any specific ingredients?'"],
+  "response": "[Friendly chat bubble text] Great choice! [Food name] is [brief nutritional summary]. [Key benefit or tip].",
+  "response_card": {
+    "title": "string",
+    "summary": "string", 
+    "macros": {
+      "calories_kcal": "number|null",
+      "protein_g": "number|null", 
+      "carbs_g": "number|null",
+      "fat_g": "number|null"
+    },
+    "micros": {
+      "fiber_g": "number|null",
+      "iron_mg": "number|null",
+      "calcium_mg": "number|null", 
+      "vitamin_c_mg": "number|null"
+    },
+    "portion_size": "string|null",
+    "allergens": ["string"],
+    "diet_flags": {
+      "keto": false,
+      "vegan": false,
+      "vegetarian": true,
+      "gluten_free": false,
+      "pcos_friendly": true  
+    },
+    "ingredients": ["string"],
+    "preparation_steps": ["string"],
+    "health_benefits": ["string"], 
+    "warnings": ["string"]
+  },
+  "insights": ["Rich insights with specific data using actual user numbers"],
+  "followUpQuestions": ["Engaging, contextual questions"],
   "confidence": 0.95
 }`;
     }

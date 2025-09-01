@@ -1,0 +1,131 @@
+ey Issues (Brutal Truth)
+1. Overloaded System Prompt
+
+Your buildSystemPrompt() is massive and reads more like a policy doc than an instruction.
+
+gpt-4o-mini (esp. smaller models) choke on long, complex prompts → they skip parts, hallucinate, or produce malformed JSON.
+
+You’re mixing Markdown prose, rules, JSON schema, emojis → which increases failure chances.
+
+👉 Fix: Strip the system prompt to essential behavioral rules + strict JSON schema. Keep the educational/chef voice in the assistant messages, not system.
+
+2. JSON Parsing Fragility
+
+You rely on JSON.parse(responseContent) → if the model adds extra commentary, trailing commas, or Markdown fences → 💥 boom.
+
+Your “repair” logic is too simplistic (adding "}" is duct tape, not robust).
+
+👉 Fix:
+
+Always request response_format: { type: "json_object" } (you already do it in tool follow-up, but not initial call).
+
+Wrap parsing with Zod / TypeBox validation → auto-repair with a JSON repair lib if schema fails.
+
+3. Function Call Handling
+
+You’re correctly using tools, but after first pass:
+
+You don’t always feed tool outputs back properly.
+
+Example: you attach tool results → but then parse response.content only (ignoring merged content).
+
+This often results in null or malformed structured responses.
+
+👉 Fix:
+
+After tool execution, enforce:
+
+response_format: { type: "json_object" } in both calls.
+
+Don’t parse .content raw → always validate against expected schema.
+
+4. Too Many Moving Parts
+
+You’ve bolted nutrition, safety, sustainability, recipes, plans into one monolithic class.
+
+The AI is expected to juggle meal planning, cooking tips, strict schema, function calling in a single completion.
+
+This complexity → higher risk of malformed responses.
+
+👉 Fix:
+
+Split flows:
+
+meal_plan_handler
+
+recipe_handler
+
+analysis_handler
+
+Keep system prompts minimal & purpose-specific.
+
+5. Mismatch Between “response” and “structuredData”
+
+You expect both "response": "friendly text" AND structuredData: {...}.
+
+GPT often only gives one or the other.
+
+You sometimes save only .message but log .structuredData separately → schema drift risk.
+
+👉 Fix:
+
+Decide: either always wrap everything in one JSON root (easier) OR accept dual-channel (text + JSON). Right now, you’re stuck between both worlds.
+
+6. Schema Explosion
+
+Your ChefAiChatResponse + nested mealPlan, recipe, mealCards, insights… is gigantic.
+
+GPT-4o-mini isn’t great at filling deeply nested schemas reliably.
+
+That’s why you’re seeing “technical difficulties with the response format.”
+
+👉 Fix:
+
+Start small: response + structuredData.mealPlan OR response + structuredData.recipe.
+
+Expand gradually once stable.
+
+7. Lack of Hard Guardrails
+
+You tell GPT not to fabricate… but without enforced schema + validation, it will anyway.
+
+Your "NO FABRICATION" rule is just text → the model treats it as a suggestion, not a guarantee.
+
+👉 Fix:
+
+Use verify_food_nutrition() for every food fact.
+
+If GPT returns nutrition directly, discard it unless it came from a tool call.
+
+⚡ Brutal Summary
+
+Your biggest enemy here isn’t OpenAI — it’s complexity and schema drift:
+
+System prompt too long → model ignores rules.
+
+Schema too deep → model can’t reliably fill it.
+
+Function call loop fragile → mis-parsing outputs.
+
+Too many responsibilities in one flow → GPT derails.
+
+✅ What I’d Do
+
+Cut system prompt → to 20% of current size.
+
+Keep JSON schema + 5 rules max.
+
+Always enforce response_format: { type: "json_object" }.
+
+Split flows:
+
+Meal plan mode
+
+Recipe mode
+
+Analysis mode
+(use detectRequestType() like you already have).
+
+Validate JSON with Zod → reject malformed → auto-repair with secondary pass.
+
+Shrink schema → only response + macros + insights at first. Expand once stable.

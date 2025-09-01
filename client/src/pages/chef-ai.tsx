@@ -134,6 +134,35 @@ interface Message {
     metrics?: string[];
     insights?: string[];
   };
+  responseCard?: {
+    title: string;
+    summary: string;
+    macros: {
+      calories_kcal: number | null;
+      protein_g: number | null;
+      carbs_g: number | null;
+      fat_g: number | null;
+    };
+    micros: {
+      fiber_g: number | null;
+      iron_mg: number | null;
+      calcium_mg: number | null;
+      vitamin_c_mg: number | null;
+    };
+    portion_size: string | null;
+    allergens: string[];
+    diet_flags: {
+      keto: boolean;
+      vegan: boolean;
+      vegetarian: boolean;
+      gluten_free: boolean;
+      pcos_friendly: boolean;
+    };
+    ingredients: string[];
+    preparation_steps: string[];
+    health_benefits: string[];
+    warnings: string[];
+  };
 }
 
 interface Conversation {
@@ -689,6 +718,118 @@ export default function ChefAI() {
                                 </div>
                               )}
                               
+                              {/* Structured Response Card */}
+                              {msg.responseCard && (
+                                <Card className="border-0 rounded-2xl shadow-lg bg-gradient-to-br from-white via-blue-50/30 to-green-50/30">
+                                  <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                      <Utensils className="w-5 h-5 text-blue-600" />
+                                      {msg.responseCard.title}
+                                    </CardTitle>
+                                    <CardDescription className="text-gray-600">
+                                      {msg.responseCard.summary}
+                                    </CardDescription>
+                                  </CardHeader>
+                                  <CardContent className="space-y-4">
+                                    {/* Macros Section */}
+                                    {(msg.responseCard.macros.calories_kcal || msg.responseCard.macros.protein_g || msg.responseCard.macros.carbs_g || msg.responseCard.macros.fat_g) && (
+                                      <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-xl">
+                                        <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                          <BarChart3 className="w-4 h-4 text-blue-600" />
+                                          Nutrition Facts
+                                        </h5>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                          {msg.responseCard.macros.calories_kcal && (
+                                            <div className="text-center p-3 bg-white/80 rounded-lg">
+                                              <div className="text-lg font-bold text-orange-600">{msg.responseCard.macros.calories_kcal}</div>
+                                              <div className="text-xs text-gray-600">Calories</div>
+                                            </div>
+                                          )}
+                                          {msg.responseCard.macros.protein_g && (
+                                            <div className="text-center p-3 bg-white/80 rounded-lg">
+                                              <div className="text-lg font-bold text-green-600">{msg.responseCard.macros.protein_g}g</div>
+                                              <div className="text-xs text-gray-600">Protein</div>
+                                            </div>
+                                          )}
+                                          {msg.responseCard.macros.carbs_g && (
+                                            <div className="text-center p-3 bg-white/80 rounded-lg">
+                                              <div className="text-lg font-bold text-blue-600">{msg.responseCard.macros.carbs_g}g</div>
+                                              <div className="text-xs text-gray-600">Carbs</div>
+                                            </div>
+                                          )}
+                                          {msg.responseCard.macros.fat_g && (
+                                            <div className="text-center p-3 bg-white/80 rounded-lg">
+                                              <div className="text-lg font-bold text-purple-600">{msg.responseCard.macros.fat_g}g</div>
+                                              <div className="text-xs text-gray-600">Fat</div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Diet Flags */}
+                                    {Object.values(msg.responseCard.diet_flags).some(flag => flag) && (
+                                      <div className="space-y-2">
+                                        <h5 className="font-semibold text-gray-800 text-sm">Diet Compatibility</h5>
+                                        <div className="flex flex-wrap gap-2">
+                                          {msg.responseCard.diet_flags.keto && <Badge className="bg-orange-100 text-orange-700">Keto-Friendly</Badge>}
+                                          {msg.responseCard.diet_flags.vegan && <Badge className="bg-green-100 text-green-700">Vegan</Badge>}
+                                          {msg.responseCard.diet_flags.vegetarian && <Badge className="bg-green-100 text-green-700">Vegetarian</Badge>}
+                                          {msg.responseCard.diet_flags.gluten_free && <Badge className="bg-blue-100 text-blue-700">Gluten-Free</Badge>}
+                                          {msg.responseCard.diet_flags.pcos_friendly && <Badge className="bg-purple-100 text-purple-700">PCOS-Friendly</Badge>}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Allergens Warning */}
+                                    {msg.responseCard.allergens.length > 0 && (
+                                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                        <div className="flex items-center gap-2 text-orange-800 font-medium mb-1">
+                                          <AlertCircle className="w-4 h-4" />
+                                          Allergen Warning
+                                        </div>
+                                        <div className="text-sm text-orange-700">
+                                          Contains: {msg.responseCard.allergens.join(', ')}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Health Benefits */}
+                                    {msg.responseCard.health_benefits.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h5 className="font-semibold text-gray-800 text-sm flex items-center gap-2">
+                                          <Leaf className="w-4 h-4 text-green-600" />
+                                          Health Benefits
+                                        </h5>
+                                        <div className="space-y-1">
+                                          {msg.responseCard.health_benefits.map((benefit, i) => (
+                                            <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                                              <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                                              {benefit}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Warnings */}
+                                    {msg.responseCard.warnings.length > 0 && (
+                                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                        <div className="flex items-center gap-2 text-red-800 font-medium mb-1">
+                                          <AlertCircle className="w-4 h-4" />
+                                          Important Notes
+                                        </div>
+                                        <div className="space-y-1">
+                                          {msg.responseCard.warnings.map((warning, i) => (
+                                            <div key={i} className="text-sm text-red-700">{warning}</div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              )}
+
                               {/* Insights Cards */}
                               {msg.insights && msg.insights.length > 0 && (
                                 <div className="space-y-2">
