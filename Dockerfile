@@ -19,7 +19,7 @@ RUN npm install --frozen-lockfile
 COPY client ./client
 COPY shared ./shared
 COPY tailwind.config.ts ./
-COPY config/ ./config/
+COPY postcss.config.js ./
 COPY components.json ./
 
 # Build client application
