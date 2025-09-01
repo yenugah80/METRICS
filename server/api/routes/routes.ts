@@ -31,6 +31,7 @@ import { eq } from "drizzle-orm";
 // Recipe routes integrated directly in ChefAI and main routes
 import dietPlanRoutes from './routes-diet-plans';
 import chefAiRoutes from './routes-chef-ai';
+import { initializeMealLoggingRoutes } from './routes-meal-logging';
 
 // Security and Performance Imports
 // Security imports temporarily disabled
@@ -366,6 +367,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ChefAI conversational coaching routes
   app.use(chefAiRoutes);
+
+  // Meal logging and scanner integration routes
+  initializeMealLoggingRoutes(app);
 
   // Object storage routes for meal images
   app.get("/objects/:objectPath(*)", verifyJWT, async (req: AuthenticatedRequest, res) => {

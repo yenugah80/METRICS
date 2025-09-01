@@ -1,0 +1,340 @@
+the UI is pretty, but it’s behaving like a mock. To make it functional you need to replace every “fake” surface (hard-coded values, placeholder arrays, static cards) with a real data pipeline + contracts + mutations. Below is a concrete, end-to-end plan you can hand to your developer. It includes data contracts, DB schema, API routes, server logic, and client wiring (React Query) for Diet Plan, Meal Scan/Log, Dashboard, and ChefAI.
+
+0) Non-negotiables (turn a demo into a product)
+
+One source of truth: Postgres (or Firestore) — no computed values in the UI.
+
+Typed contracts between FE/BE (Zod or TypeBox). No any, no mock.
+
+Deterministic recompute: every time a meal is saved/edited, recalc daily totals, plan compliance, streaks, and cache them.
+
+Idempotent APIs + background jobs for heavy tasks (image → nutrition).
+
+Feature flags off for mocks. If an endpoint returns static data, block merge.
+
+1) Minimal DB schema (production-safe)
+-- users
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email TEXT UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- profile & targets
+CREATE TABLE profiles (
+  user_id UUID PRIMARY KEY REFERENCES users(id),
+  height_cm INT, weight_kg NUMERIC, sex TEXT, dob DATE,
+  activity_level TEXT,
+  calorie_target INT, protein_g INT, carbs_g INT, fat_g INT, fiber_g INT,
+  preferences JSONB,       -- diet type, cuisines
+  allergens   JSONB        -- ["peanuts","dairy"]
+);
+
+-- meals (user-logged or AI-scanned)
+CREATE TABLE meals (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  source TEXT,           -- "scan" | "manual" | "import"
+  name TEXT,
+  eaten_at TIMESTAMPTZ,
+  items JSONB,           -- [{fdc_id, qty_g, macros:{kcal, p, c, f, fiber}}]
+  totals JSONB,          -- {kcal, p, c, f, fiber, sodium, sugar}
+  photo_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- diet plan (28-day or rolling)
+CREATE TABLE diet_plans (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  start_date DATE,
+  end_date DATE,
+  meta JSONB             -- goal, theme, generation params
+);
+
+CREATE TABLE plan_meals (
+  id UUID PRIMARY KEY,
+  plan_id UUID REFERENCES diet_plans(id),
+  day_index INT,         -- 0..27
+  slot TEXT,             -- "breakfast"|"lunch"|"dinner"|"snack-1"... 
+  recipe JSONB,          -- canonical recipe/items per serving
+  per_serving JSONB,     -- {kcal,p,c,f,fiber}
+  serving_count NUMERIC,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- match plan ↔ eaten
+CREATE TABLE meal_matches (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  plan_meal_id UUID REFERENCES plan_meals(id),
+  meal_id UUID REFERENCES meals(id),
+  match_score NUMERIC,   -- 0..1
+  status TEXT            -- "matched"|"swapped"|"skipped"
+);
+
+-- daily aggregates (write-behind cache)
+CREATE TABLE daily_totals (
+  user_id UUID,
+  day DATE,
+  totals JSONB,          -- {kcal,p,c,f,fiber}
+  target JSONB,          -- cached profile targets for that date
+  compliance JSONB,      -- {plan_pct, protein_pct,...}
+  PRIMARY KEY(user_id, day),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- chefai conversations
+CREATE TABLE chefai_conversations (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  title TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE chefai_messages (
+  id UUID PRIMARY KEY,
+  conversation_id UUID REFERENCES chefai_conversations(id),
+  role TEXT,             -- "user"|"assistant"
+  content TEXT,
+  payload JSONB,         -- recipe cards, insights, follow-ups
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+2) Contracts (Zod) — no more mock types
+// shared/contracts.ts
+import { z } from "zod";
+
+export const Macros = z.object({
+  kcal: z.number().nonnegative(),
+  p: z.number().nonnegative(),  // protein g
+  c: z.number().nonnegative(),  // carbs g
+  f: z.number().nonnegative(),  // fat g
+  fiber: z.number().nonnegative().optional().default(0),
+});
+
+export const MealItem = z.object({
+  fdcId: z.string().optional(),
+  name: z.string(),
+  qty_g: z.number().positive(),
+  macros: Macros
+});
+
+export const MealCreate = z.object({
+  name: z.string(),
+  eatenAt: z.string(), // ISO
+  items: z.array(MealItem),
+  photoUrl: z.string().url().optional()
+});
+
+export const PlanGenerate = z.object({
+  startDate: z.string(),  // ISO date
+  days: z.number().min(1).max(28),
+  goal: z.enum(["weight_loss","muscle_gain","balanced","diabetes","pcos"]),
+});
+
+export type TMealCreate = z.infer<typeof MealCreate>;
+export type TPlanGenerate = z.infer<typeof PlanGenerate>;
+
+3) Critical API routes (Express/Remix/Nest – pick your stack)
+Meals
+// POST /api/meals
+// body: MealCreate
+// returns: { mealId }
+
+
+Validates with Zod, writes meals, enqueues recalcDailyTotals(userId, day).
+
+// GET /api/meals?day=2025-09-01
+// returns: { meals: Meal[] }
+
+Diet Plan
+// POST /api/diet-plans/generate
+// body: PlanGenerate
+// returns: { planId }
+
+
+Builds 7/28 days using rules (targets, preferences, allergens), persists to diet_plans + plan_meals.
+
+// GET /api/diet-plans/active?day=YYYY-MM-DD
+// returns: { plan, today: {meals: [...]}, compliance }
+
+// POST /api/diet-plans/match
+// body: { mealId, planMealId }
+// returns: { status: "matched"|"swapped", matchScore }
+
+
+Creates meal_matches, then recalcDailyTotals.
+
+Dashboard
+// GET /api/dashboard/today
+// returns: {
+//   targets: Macros,
+//   consumed: Macros,
+//   remaining: Macros,
+//   planCompliancePct: number,
+//   coachTips: string[]
+// }
+
+
+Reads daily_totals. If missing, computes on the fly, caches.
+
+ChefAI
+// POST /api/chef-ai/chat
+// body: { message: string, conversationId?: string }
+// returns: { conversationId, messages: [...], payload?: {...} }
+
+
+Pass user profile + today totals + active plan as system or tool context.
+
+Save both user & assistant messages.
+
+4) Recalc engine (the glue — runs on every meal change)
+async function recalcDailyTotals(userId: string, day: string) {
+  const meals = await db.meals.find({ userId, eaten_at_between: day });
+  const totals = sumMacros(meals);
+  const targets = await getTargetsForDay(userId, day);
+  const compliance = await computeCompliance(userId, day, totals, targets);
+  await db.dailyTotals.upsert({ userId, day, totals, target: targets, compliance });
+}
+
+
+computeCompliance considers plan matches in meal_matches.
+This makes dashboard rings & coach tips real.
+
+5) Frontend wiring (React Query) — replace dummy state
+Diet plan view (today)
+const { data: today } = useQuery({
+  queryKey: ['dashboard','today'],
+  queryFn: () => api.get('/api/dashboard/today')
+});
+
+const { data: plan } = useQuery({
+  queryKey: ['plan','active', day],
+  queryFn: () => api.get(`/api/diet-plans/active?day=${day}`)
+});
+
+const matchMutation = useMutation({
+  mutationFn: (body: {mealId: string, planMealId: string}) =>
+    api.post('/api/diet-plans/match', body),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dashboard','today'] })
+});
+
+
+Meal cards show Match/Swap buttons.
+
+On click → call matchMutation → dashboard updates instantly.
+
+Meal logging (from scanner or manual)
+const createMeal = useMutation({
+  mutationFn: (payload: TMealCreate) => api.post('/api/meals', payload),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['dashboard','today'] });
+    queryClient.invalidateQueries({ queryKey: ['meals',{day}] });
+  }
+});
+
+ChefAI context
+
+When sending a message, include context:
+
+const ctx = await api.get('/api/dashboard/today');   // targets/consumed/remaining
+const plan = await api.get(`/api/diet-plans/active?day=${todayISO}`);
+
+await api.post('/api/chef-ai/chat', {
+  message,
+  context: {
+    profile: ...,            // diet, allergens
+    remaining: ctx.remaining,
+    planToday: plan.today
+  }
+});
+
+
+On the server, force the assistant to return a typed payload:
+
+/* system prompt (short) */
+You are ChefAI. Always return JSON blocks for actions:
+- recipe_card
+- plan_adjustment
+- tip_list
+Schema: { type: "recipe_card"|..., data: {...} }
+
+
+Parse with Zod; save payload into chefai_messages.payload and render cards.
+
+6) Replace “fake” Smart Recommendations
+
+Server route:
+
+// GET /api/recommendations/today
+// returns top 3 actions based on remaining macros + preferences + allergens
+
+
+Logic:
+
+If remaining.p > 30g → suggest high-protein items that don’t violate allergens.
+
+If fat exceeded → suggest low-fat swaps for planned meals.
+
+If sodium too high → suggest no-sodium variants.
+
+This route powers the purple “Smart AI Recommendations” box with real math, not lorem foods.
+
+7) Kill mocks with automated tests (fast to add)
+
+Contract tests (supertest): every route returns schema-valid payload.
+
+Scenario tests:
+
+Create plan → log breakfast → match → dashboard shows updated rings & compliance.
+
+Swap lunch → compliance drops; recommendations update.
+
+No “static cards” allowed: any UI card must be backed by an API call.
+
+8) Data sources (nutrition)
+
+Start with USDA FDC + OpenFoodFacts. Build a single fdc_lookup(term|barcode) service and cache items (Redis).
+
+During scan → vision → candidates → pick best match → store fdcId per item for repeat accuracy.
+
+9) Performance & UX polish
+
+Use optimistic UI for matching/swapping.
+
+Server-side pagination for chat history and meal history.
+
+Add WebSocket events (meal.created, totals.updated) to live-update rings.
+
+10) “Definition of Done” (what “functional” means)
+
+No static data in any card. All dashboard numbers match DB.
+
+Logging a meal changes dashboard within 500ms.
+
+Diet plan shows today, with Match/Swap that updates compliance %.
+
+ChefAI answers reference your data (remaining macros, plan items) in every reply.
+
+Recommendations never violate allergens/preferences.
+
+Every route has Zod validation and automated tests.
+
+If you implement only these 6 endpoints + recalc engine, your app stops being a mock:
+
+POST /api/meals
+
+GET /api/meals?day=...
+
+POST /api/diet-plans/generate
+
+GET /api/diet-plans/active?day=...
+
+POST /api/diet-plans/match
+
+GET /api/dashboard/today
+
+Wire every card to one of these, and your UI becomes a living system.

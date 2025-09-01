@@ -27,6 +27,221 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
+// Meal Logging & Scanner Integration Tables
+
+// Daily meal logs - stores all scanned/logged meals
+export const mealLogs = pgTable("meal_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  loggedDate: date("logged_date").notNull(), // Date the meal was eaten (YYYY-MM-DD)
+  mealType: varchar("meal_type", { length: 20 }).notNull(), // breakfast, lunch, dinner, snack
+  
+  // Meal identification
+  mealName: text("meal_name").notNull(),
+  description: text("description"),
+  source: varchar("source", { length: 20 }).default("scan"), // scan, manual, voice, import
+  
+  // Structured nutrition data (converted from scan/input)
+  nutritionData: jsonb("nutrition_data").$type<{
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber?: number;
+    sodium?: number;
+    sugar?: number;
+    ingredients?: Array<{
+      name: string;
+      amount: number;
+      unit: string;
+      fdcId?: string;
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+    }>;
+  }>().notNull(),
+  
+  // Photo and metadata
+  photoUrl: varchar("photo_url"),
+  confidence: real("confidence").default(0.95), // AI confidence in analysis
+  
+  // Matching and completion status
+  isCompleted: boolean("is_completed").default(true),
+  wasMatched: boolean("was_matched").default(false), // Matched to planned meal
+  matchedPlanMealId: varchar("matched_plan_meal_id"), // Reference to planned meal if matched
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_meal_logs_user_date").on(table.userId, table.loggedDate),
+  index("idx_meal_logs_meal_type").on(table.mealType),
+]);
+
+// Meal matching history - tracks automatic matching between scanned and planned meals
+export const mealMatches = pgTable("meal_matches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  mealLogId: varchar("meal_log_id").notNull().references(() => mealLogs.id, { onDelete: "cascade" }),
+  planMealId: varchar("plan_meal_id").notNull(), // Reference to diet plan meal
+  
+  // Matching algorithm results
+  matchScore: real("match_score").notNull(), // 0.0 to 1.0 confidence score
+  matchType: varchar("match_type", { length: 20 }).notNull(), // automatic, manual, rejected
+  
+  // Matching criteria used
+  matchFactors: jsonb("match_factors").$type<{
+    nameMatch: number;
+    calorieMatch: number;
+    macroMatch: number;
+    timingMatch: number;
+    ingredientMatch?: number;
+  }>(),
+  
+  // User feedback
+  userConfirmed: boolean("user_confirmed"), // User approved the match
+  userFeedback: varchar("user_feedback", { length: 50 }), // correct, wrong_meal, wrong_portion, etc.
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_meal_matches_user").on(table.userId),
+  index("idx_meal_matches_score").on(table.matchScore),
+]);
+
+// My Meals - saved favorite meals for quick reuse
+export const myMeals = pgTable("my_meals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Meal details
+  mealName: text("meal_name").notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 20 }).default("custom"), // breakfast, lunch, dinner, snack, custom
+  
+  // Nutrition (standardized per serving)
+  nutritionData: jsonb("nutrition_data").$type<{
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber?: number;
+    sodium?: number;
+    sugar?: number;
+    servingSize: string;
+    servingUnit: string;
+    ingredients?: Array<{
+      name: string;
+      amount: number;
+      unit: string;
+      fdcId?: string;
+    }>;
+  }>().notNull(),
+  
+  // Usage tracking for AI learning
+  timesUsed: integer("times_used").default(0),
+  lastUsed: timestamp("last_used"),
+  avgRating: real("avg_rating"), // User satisfaction 1-5
+  
+  // Recipe and preparation
+  prepTime: integer("prep_time"), // minutes
+  cookTime: integer("cook_time"), // minutes
+  difficulty: varchar("difficulty", { length: 10 }).default("easy"), // easy, medium, hard
+  instructions: text("instructions"),
+  
+  // Tags and metadata
+  tags: jsonb("tags").$type<string[]>().default([]),
+  photoUrl: varchar("photo_url"),
+  isRecipe: boolean("is_recipe").default(false), // Recipe vs simple meal
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_my_meals_user").on(table.userId),
+  index("idx_my_meals_category").on(table.category),
+  index("idx_my_meals_usage").on(table.timesUsed),
+]);
+
+// Meal swaps tracking - for AI learning and plan adaptation
+export const mealSwaps = pgTable("meal_swaps", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Original and replacement meals
+  originalPlanMealId: varchar("original_plan_meal_id").notNull(), // What was planned
+  swappedToMealId: varchar("swapped_to_meal_id"), // What they actually ate (meal_logs.id)
+  swappedToMyMealId: varchar("swapped_to_my_meal_id"), // Or a saved "My Meal"
+  
+  // Swap metadata
+  swapReason: varchar("swap_reason", { length: 30 }).notNull(), // preference, unavailable, time, health, etc.
+  swapDate: date("swap_date").notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 0-6 for pattern analysis
+  mealType: varchar("meal_type", { length: 20 }).notNull(),
+  
+  // Nutrition comparison (for AI learning)
+  originalNutrition: jsonb("original_nutrition").$type<{
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  }>(),
+  swappedNutrition: jsonb("swapped_nutrition").$type<{
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  }>(),
+  
+  // User satisfaction tracking
+  userRating: integer("user_rating"), // 1-5 stars for the swap
+  wouldRepeat: boolean("would_repeat"), // Would make this swap again
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_meal_swaps_user").on(table.userId),
+  index("idx_meal_swaps_reason").on(table.swapReason),
+  index("idx_meal_swaps_date").on(table.swapDate),
+]);
+
+// Daily nutrition aggregates - real-time dashboard data
+export const dailyNutritionLogs = pgTable("daily_nutrition_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  logDate: date("log_date").notNull(),
+  
+  // Aggregated totals from meal_logs
+  totalCalories: integer("total_calories").default(0),
+  totalProtein: real("total_protein").default(0),
+  totalCarbs: real("total_carbs").default(0),
+  totalFat: real("total_fat").default(0),
+  totalFiber: real("total_fiber").default(0),
+  totalSodium: real("total_sodium").default(0),
+  
+  // Progress tracking
+  calorieGoal: integer("calorie_goal").notNull(),
+  proteinGoal: real("protein_goal").notNull(),
+  carbGoal: real("carb_goal").notNull(),
+  fatGoal: real("fat_goal").notNull(),
+  
+  // Meal completion tracking
+  mealsLogged: integer("meals_logged").default(0),
+  mealsPlanned: integer("meals_planned").default(0),
+  planComplianceScore: real("plan_compliance_score").default(0), // 0-1
+  
+  // AI insights
+  aiInsights: jsonb("ai_insights").$type<{
+    summary: string;
+    recommendations: string[];
+    alerts: string[];
+    macroBalance: "good" | "high_carb" | "high_fat" | "high_protein" | "low_calorie";
+  }>(),
+  
+  lastUpdated: timestamp("last_updated").defaultNow(),
+}, (table) => [
+  unique("unique_user_date").on(table.userId, table.logDate),
+  index("idx_daily_nutrition_user").on(table.userId),
+  index("idx_daily_nutrition_date").on(table.logDate),
+]);
+
 // Users table with comprehensive profile data
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
