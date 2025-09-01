@@ -21,16 +21,8 @@ router.post('/api/chef-ai/chat', verifyJWT, async (req: AuthenticatedRequest, re
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    // Check if user has access to ChefAI (Plus or Premium)
-    const user = req.user;
-    if (!user.isPremium && !user.isTrialActive) {
-      // For now, make ChefAI available to Plus users too
-      // In production, you might want to restrict to Premium only
-      return res.status(403).json({ 
-        error: 'Upgrade required',
-        message: 'ChefAI is available to Plus and Premium subscribers. Upgrade to chat with your personal nutrition coach!'
-      });
-    }
+    // ChefAI is now available to all users
+    // Premium subscription checks removed for better user experience
 
     const validatedData = chatMessageSchema.parse(req.body);
     

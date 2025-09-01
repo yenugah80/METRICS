@@ -32,14 +32,8 @@ router.post('/api/diet-plans/generate', verifyJWT, async (req: AuthenticatedRequ
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    // Check if user has premium access
-    const user = req.user;
-    if (!user.isPremium && !user.isTrialActive) {
-      return res.status(403).json({ 
-        error: 'Premium subscription required',
-        message: 'Diet Plans are available exclusively to Premium subscribers. Upgrade now to create your personalized nutrition plan!'
-      });
-    }
+    // Diet Plans are now available to all users
+    // Premium subscription checks removed for better user experience
 
     const questionnaire = questionnaireSchema.parse(req.body);
     
