@@ -1,0 +1,105 @@
+Diet Plan
+Premium Feature: The Diet Plan is available exclusively to Premium subscribers.
+
+Overview
+NutriScan's Diet Plan feature creates a personalized nutrition strategy tailored to your unique needs, preferences, and health goals. Your custom diet plan includes meal suggestions, supplement recommendations, and lifestyle guidance to help you achieve optimal health.
+
+Key Features
+Personalized Plans: Custom diet plans based on your specific health goals
+Smart Recommendations: Nutritionally balanced meal suggestions
+Progress Tracking: Visual indicators of your adherence to the plan
+28-Day Cycles: Renewable plans that adjust with your changing needs
+Creating Your Diet Plan
+To create your personalized diet plan:
+
+Navigate to the Diet Plan tab in the bottom navigation bar
+Complete the comprehensive questionnaire (see details below)
+Wait for the system to generate your customized plan (typically 1-2 minutes)
+Review your personalized recommendations across three categories: Diet Plan, Supplements, and Lifestyle
+Questionnaire Categories
+The Diet Plan questionnaire collects information about:
+
+Category	Information Collected
+Personal Information	First Name, Last Name, Age, Gender
+Physical Profile	Height, Weight
+Health Goals	Weight Loss, Muscle Gain, Diabetes Management, Pregnancy, PCOS, Viral/Flu Recovery
+Goal Details	Specific aspects of your selected health goal
+Lifestyle & Feelings	Current lifestyle and emotional well-being
+Food Preferences	Vegetarian, Non-vegetarian, Vegan, or Mixed
+Food Restrictions	Allergies or specific foods to avoid
+Eating Schedule	Your preferred meal times
+Diet Preparation	How you typically prepare meals
+Physical Activity	Type and frequency of exercise
+Eating Patterns	Regular eating habits and behaviors
+Supplements	Openness to nutritional supplements
+Current Diet	Foods currently in your kitchen or regular consumption
+TIP
+
+Be as detailed and honest as possible when completing the questionnaire. The more accurate information you provide, the more effective your diet plan will be.
+
+Using Your Diet Plan
+Once generated, your diet plan includes:
+
+1. Overview Dashboard
+Duration: Shows start and end dates for your 28-day plan
+Progress Bar: Visual indicator of your current position in the plan
+Daily Targets: Recommended intake for macros (protein, carbs, fat) and key micronutrients
+2. Three Navigation Tabs
+Diet Plan: Daily meal recommendations based on your eating schedule
+Supplements: Suggested nutritional supplements to support your goals
+Lifestyle: Recommendations for habits and activities that complement your diet
+3. Meal Recommendations
+For each meal time in your schedule, you'll receive:
+
+Two meal options to choose from
+Complete nutritional information for each option
+Meal Details
+Tap on any meal to view a detailed breakdown:
+
+Quick Recipe: Simple instructions for preparation
+Portion Size: Recommended serving amount
+Health Benefits: How this meal supports your goals
+Things to Avoid: Foods or preparation methods to skip
+Nutrition Breakdown: Complete nutritional profile
+Tracking Your Progress
+Your diet plan integrates with your meal tracking:
+
+The home screen displays progress toward your daily targets
+Pie charts show your macro consumption throughout the day
+Red indicators appear if you exceed carb or fat targets
+The Insights calendar view shows your plan adherence over time
+Updating Your Diet Plan
+Diet plans are valid for 28 days. After this period, you should renew or modify your plan:
+
+Tap the Edit Plan button in the Diet Plan tab, or
+Go to Profile > Edit Diet Plan
+Complete the questionnaire again with any updated information
+Submit to generate a fresh 28-day plan
+WARNING
+
+Any changes to your health status, weight, or goals should prompt an update to your diet plan, even before the 28-day period ends.
+
+Tips for Success
+Consistency is key: Try to follow your plan as consistently as possible
+Log all meals: Scan all your meals to accurately track progress
+Review regularly: Check your progress toward targets daily
+Be patient: Nutritional changes take time to show results
+Adjust as needed: If a meal doesn't work for you, try the alternate option
+Common Questions
+How often should I update my diet plan?
+We recommend updating your plan every 28 days, or whenever you experience significant changes in weight, health status, or goals.
+
+Can I customize individual meals?
+While you can't edit the suggested meals directly, each mealtime offers two options to choose from. You can also ask Monika, our nutritionist, for acceptable substitutions.
+
+How does the Diet Plan work with my meal scanning?
+Your scanned meals are compared against your diet plan targets, helping you see how your actual consumption aligns with your nutritional goals.
+
+What if I have a specific dietary restriction?
+The questionnaire includes a section for food restrictions and allergies, which the system will factor into your plan recommendations.
+
+Pager
+Previous page
+Insights
+Next page
+Subscription

@@ -1,0 +1,142 @@
+What You Can Scan
+
+MyFoodMatrix recognizes a wide variety of foods:
+
+Meals – Home-cooked dishes, restaurant plates, grain bowls
+
+Snacks – Crackers, fruit, spreads, small appetizers
+
+Regional Foods – Indian, Asian, Mediterranean, Latin American, traditional cuisines
+
+Packaged Foods – Barcodes for snacks, desserts, ready-to-eat meals
+
+Drinks – Coffee, tea, smoothies, soft drinks, juices, water
+
+Alcohol – Beer, wine, cocktails, spirits
+
+Fast Food – Burgers, pizza, fries, sandwiches, takeaway
+
+Raw Foods – Fruits, vegetables, grains, seeds, nuts
+
+Supplements – Protein powders, capsules, herbal products
+
+💡 Our AI is continuously improving. If something looks off, you can adjust items after scanning.
+
+📷 Scanning Process
+Step 1: Capture Your Meal
+
+From Home, tap Log Meal → Camera
+
+Take a clear photo of your meal
+
+After your first 2 scans, you’ll be prompted to fill out a Food Preference Form for personalization
+
+Step 2: Refine Your Image
+Action	Description	How to Use
+Crop	Focus only on the food	Drag the selection box
+Add Text	Enter meal details	Tap the text field
+Voice Input	Describe your meal out loud	Tap 🎤 and speak clearly
+Retake	Take another photo	Tap “Retake”
+Step 3: Processing
+
+Our AI identifies:
+
+Individual foods
+
+Portion sizes
+
+Nutrition breakdown
+
+Health, safety, and eco insights
+
+⚠️ Errors may occur if:
+
+The image doesn’t contain food
+
+Network connection is unstable
+
+📊 Nutrition Details
+
+Once processed, you’ll see:
+
+Macronutrients – Calories, Protein, Carbs, Fat
+
+Micronutrients – Top vitamins & minerals (e.g., Fiber, Potassium, Calcium)
+
+NutriScore – Color-coded grade (A–E) for meal quality
+
+Eco Impact – Carbon + water footprint
+
+Safety Check – Allergen alerts + safety tips
+
+🛠️ Customization Options
+
+Edit Meal Name → Make titles specific
+
+Adjust Portions → Use + / – for servings
+
+Remove Items → Delete foods not in the meal
+
+Add Missing Items → Type or speak to add extra items
+
+🔍 Advanced Features
+Nutrition Breakdown & Ask More
+
+Tap “Nutrition Breakdown & Ask More”
+
+See full nutrition details
+
+Ask specific AI-powered questions like:
+
+“Is this meal good for weight loss?”
+
+“How does this impact my protein goal today?”
+
+📖 Meal Management
+
+Delete Meals: Long press → Delete → Confirm
+
+Copy Meals: For repeated meals (e.g., daily breakfast)
+
+Long press on meal → Copy to Today
+
+💡 Saves time when logging repeat meals like shakes or oats!
+
+📈 Meal Insights
+
+Every scan contributes to personalized insights:
+
+Calendar View: Color-coded NutriScores (A–E) per day
+
+Progress Metrics: Trends across days, weeks, months
+
+Location Data: Where you ate (optional with location on)
+
+❓ FAQ Highlights
+
+Food not recognized? Add/edit manually
+
+Accuracy? Within ±10–15% depending on portion adjustments
+
+Scanning non-food? Returns error (no logging)
+
+Data privacy? Photos are stored securely and never sold
+
+✅ Best Practices for Scans
+
+Take photos in bright light
+
+Shoot from above
+
+Separate items slightly on the plate
+
+Include full plate for portion accuracy
+
+Add details with text/voice for cooking style (e.g., grilled, fried, steamed)
+
+📞 Need Help?
+
+Go to Profile → Contact Support for assistance.
+
+⚡ Key Difference vs Competitors:
+Unlike MyFitnessPal or Cronometer, MyFoodMatrix doesn’t just track → it analyzes, grades, and guides with eco + safety + gamified XP impact.

@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
@@ -25,10 +26,10 @@ import {
   Settings,
   Zap,
   Trophy,
-  Flame
+  Fire
 } from "lucide-react";
 
-export default function Dashboard() {
+export default function HomePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
 
@@ -110,10 +111,39 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Apple className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-900">MyFoodMatrics</h1>
+          </div>
+          <div className="flex items-center space-x-2">
+            {user?.isPremium && (
+              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                <Crown className="w-3 h-3 mr-1" />
+                Premium
+              </Badge>
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-8 h-8 rounded-full"
+              onClick={() => window.location.href = '/api/logout'}
+              data-testid="button-profile"
+            >
+              <User className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
       <main className="max-w-4xl mx-auto p-4 space-y-6">
         {/* 1. HERO: Coaching Summary Banner */}
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-5 rounded-2xl shadow-xl">
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-5 rounded-2xl shadow-lg">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-6 h-6" />
@@ -126,7 +156,7 @@ export default function Dashboard() {
             </div>
             {dailyCalories > 0 && (
               <div className="text-right">
-                <div className="text-3xl font-bold">{nutritionGrade}</div>
+                <div className="text-2xl font-bold">{nutritionGrade}</div>
                 <div className="text-sm opacity-80">Today's Grade</div>
               </div>
             )}
@@ -134,7 +164,7 @@ export default function Dashboard() {
         </div>
 
         {/* 2. HERO: Apple Fitness-Style Progress Rings */}
-        <Card className="border-0 shadow-xl bg-white">
+        <Card className="border-0 shadow-lg bg-white">
           <CardContent className="p-6">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Daily Progress</h2>
@@ -312,7 +342,7 @@ export default function Dashboard() {
               )}
               
               {/* Empty State Recommendation */}
-              {(!Array.isArray(todayMeals) || todayMeals.length === 0) && (
+              {(todayMeals?.length || 0) === 0 && (
                 <div className="flex items-center gap-3 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
                   <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
                     <Camera className="w-5 h-5 text-indigo-600" />
@@ -321,7 +351,7 @@ export default function Dashboard() {
                     <p className="font-semibold text-indigo-900">Start Your Journey</p>
                     <p className="text-sm text-indigo-700">Snap a photo of your meal and I'll analyze nutrition, safety, and environmental impact instantly!</p>
                   </div>
-                  <Button size="sm" className="bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => window.location.href = '/camera'}>
+                  <Button size="sm" className="bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => window.location.href = '/meal-camera'}>
                     <Plus className="w-4 h-4 mr-1" /> Log Meal
                   </Button>
                 </div>
@@ -358,7 +388,7 @@ export default function Dashboard() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* XP Progress */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200">
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Crown className="w-5 h-5 text-yellow-600" />
@@ -366,21 +396,21 @@ export default function Dashboard() {
                   </div>
                   <span className="text-sm text-gray-600">{user?.xp || 0} XP</span>
                 </div>
-                <Progress value={((user?.xp || 0) % 1000) / 10} className="h-3 mb-2" />
+                <Progress value={((user?.xp || 0) % 1000) / 10} className="h-2 mb-2" />
                 <p className="text-xs text-gray-600">{1000 - ((user?.xp || 0) % 1000)} XP to next level</p>
               </div>
               
               {/* Streak Counter */}
-              <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-xl border border-red-200">
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-xl">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-red-500" />
+                    <Fire className="w-5 h-5 text-red-500" />
                     <span className="font-semibold text-gray-900">Daily Streak</span>
                   </div>
                   <span className="text-sm text-gray-600">{user?.currentStreak || 0} days</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-3xl font-bold text-red-600">{user?.currentStreak || 0}</span>
+                  <span className="text-2xl font-bold text-red-600">{user?.currentStreak || 0}</span>
                   <div className="flex-1">
                     <p className="text-xs text-gray-600">Best: {user?.longestStreak || 0} days</p>
                     <p className="text-xs text-red-600">Keep it going!</p>
@@ -400,7 +430,7 @@ export default function Dashboard() {
                 variant="outline" 
                 size="sm" 
                 className="flex items-center gap-2 hover:bg-gray-50"
-                onClick={() => window.location.href = '/camera'}
+                onClick={() => window.location.href = '/meal-camera'}
                 data-testid="button-add-meal"
               >
                 <Plus className="w-4 h-4" />
@@ -409,9 +439,9 @@ export default function Dashboard() {
             </div>
             
             <div className="space-y-3">
-              {Array.isArray(todayMeals) && todayMeals.length > 0 ? (
+              {(todayMeals as any[]).length > 0 ? (
                 (todayMeals as any[]).map((meal: any) => (
-                  <div key={meal.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer">
+                  <div key={meal.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <h4 className="font-semibold text-gray-900 capitalize">{meal.name}</h4>
@@ -432,74 +462,5 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          (meal.nutrition?.nutrition_score || 0) >= 80 ? 'bg-green-100 text-green-700' :
-                          (meal.nutrition?.nutrition_score || 0) >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {Math.round(meal.nutrition?.nutrition_score || 0)} health
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                  <Camera className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="font-semibold text-gray-900 mb-2">No meals logged today</h3>
-                  <p className="text-sm text-gray-600 mb-4">👩‍🍳 Start your nutrition journey — snap a photo and I'll analyze it instantly!</p>
-                  <Button 
-                    className="bg-indigo-500 hover:bg-indigo-600 text-white"
-                    onClick={() => window.location.href = '/camera'}
-                    data-testid="button-start-logging"
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
-                    Log Your First Meal
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Action Bar */}
-        <div className="grid grid-cols-3 gap-4">
-          <Button 
-            className="bg-indigo-500 hover:bg-indigo-600 text-white p-6 h-auto rounded-xl shadow-lg"
-            onClick={() => window.location.href = '/camera'}
-            data-testid="button-camera"
-          >
-            <div className="text-center">
-              <Camera className="w-8 h-8 mx-auto mb-2" />
-              <span className="text-sm font-medium">Camera</span>
-            </div>
-          </Button>
-          
-          <Button 
-            variant="outline"
-            className="border-2 border-gray-200 hover:bg-gray-50 p-6 h-auto rounded-xl shadow-lg"
-            onClick={() => window.location.href = '/voice-logging'}
-            data-testid="button-voice"
-          >
-            <div className="text-center">
-              <Mic className="w-8 h-8 mx-auto mb-2 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">Voice</span>
-            </div>
-          </Button>
-          
-          <Button 
-            variant="outline"
-            className="border-2 border-gray-200 hover:bg-gray-50 p-6 h-auto rounded-xl shadow-lg"
-            onClick={() => window.location.href = '/profile'}
-            data-testid="button-goals"
-          >
-            <div className="text-center">
-              <Target className="w-8 h-8 mx-auto mb-2 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">Goals</span>
-            </div>
-          </Button>
-        </div>
-      </main>
-    </div>
-  );
-}
+                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${\n                          (meal.nutrition?.nutrition_score || 0) >= 80 ? 'bg-green-100 text-green-700' :\n                          (meal.nutrition?.nutrition_score || 0) >= 60 ? 'bg-yellow-100 text-yellow-700' :\n                          'bg-red-100 text-red-700'\n                        }`}>\n                          {Math.round(meal.nutrition?.nutrition_score || 0)} health\n                        </div>\n                      </div>\n                    </div>\n                  </div>\n                ))\n              ) : (\n                <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">\n                  <Camera className="w-12 h-12 mx-auto mb-4 text-gray-400" />\n                  <h3 className="font-semibold text-gray-900 mb-2">No meals logged today</h3>\n                  <p className="text-sm text-gray-600 mb-4">👩‍🍳 Start your nutrition journey — snap a photo and I'll analyze it instantly!</p>\n                  <Button \n                    className="bg-indigo-500 hover:bg-indigo-600 text-white"\n                    onClick={() => window.location.href = '/meal-camera'}\n                    data-testid="button-start-logging"\n                  >\n                    <Camera className="w-4 h-4 mr-2" />\n                    Log Your First Meal\n                  </Button>\n                </div>\n              )}\n            </div>\n          </CardContent>\n        </Card>\n\n        {/* Quick Action Bar */}\n        <div className="grid grid-cols-3 gap-4">\n          <Button \n            className="bg-indigo-500 hover:bg-indigo-600 text-white p-4 h-auto rounded-xl shadow-lg"\n            onClick={() => window.location.href = '/meal-camera'}\n            data-testid="button-camera"\n          >\n            <div className="text-center">\n              <Camera className="w-6 h-6 mx-auto mb-2" />\n              <span className="text-sm font-medium">Camera</span>\n            </div>\n          </Button>\n          \n          <Button \n            variant="outline"\n            className="border-2 border-gray-200 hover:bg-gray-50 p-4 h-auto rounded-xl shadow-lg"\n            data-testid="button-voice"\n          >\n            <div className="text-center">\n              <Mic className="w-6 h-6 mx-auto mb-2 text-gray-600" />\n              <span className="text-sm font-medium text-gray-700">Voice</span>\n            </div>\n          </Button>\n          
+          <Button \n            variant="outline"\n            className="border-2 border-gray-200 hover:bg-gray-50 p-4 h-auto rounded-xl shadow-lg"\n            onClick={() => window.location.href = '/profile'}\n            data-testid="button-goals"\n          >\n            <div className="text-center">\n              <Target className="w-6 h-6 mx-auto mb-2 text-gray-600" />\n              <span className="text-sm font-medium text-gray-700">Goals</span>\n            </div>\n          </Button>\n        </div>\n      </main>\n    </div>\n  );\n}
