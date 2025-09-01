@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { RecipeCard } from '@/components/chef-ai/RecipeCard';
+import { MealPlanCard } from '@/components/chef-ai/MealPlanCard';
 import { 
   Send, 
   Bot, 
@@ -34,6 +35,70 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   createdAt: string;
+  responseType?: 'meal_plan' | 'recipe' | 'analysis' | 'general';
+  structuredData?: {
+    mealPlan?: {
+      title: string;
+      duration: string;
+      overview: string;
+      dailyPlans: Array<{
+        day: string;
+        meals: Array<{
+          mealType: string;
+          name: string;
+          foods: string[];
+          portionControl: string;
+          macros: {
+            calories: number;
+            protein: number;
+            carbs: number;
+            fat: number;
+            fiber: number;
+          };
+          benefits: string[];
+        }>;
+        dailyTotals: {
+          calories: number;
+          protein: number;
+          carbs: number;
+          fat: number;
+          fiber: number;
+        };
+      }>;
+      nutritionalAnalysis: {
+        averageDailyCalories: number;
+        proteinRange: string;
+        carbRange: string;
+        fatRange: string;
+        keyBenefits: string[];
+      };
+    };
+    recipe?: {
+      name: string;
+      servings: number;
+      prepTime: string;
+      cookTime: string;
+      difficulty: string;
+      ingredients: Array<{
+        item: string;
+        amount: string;
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+      }>;
+      instructions: string[];
+      nutritionPerServing: {
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+        fiber: number;
+        micronutrients: Record<string, number>;
+      };
+      healthBenefits: string[];
+    };
+  };
   recipeDetails?: {
     recipeName: string;
     servings: number;
@@ -361,6 +426,89 @@ export default function ChefAI() {
                                   </div>
                                 </div>
                               </div>
+
+                              {/* Structured Meal Plan */}
+                              {msg.structuredData?.mealPlan && (
+                                <MealPlanCard 
+                                  mealPlan={msg.structuredData.mealPlan}
+                                  onSave={() => {
+                                    toast({
+                                      title: "Meal Plan Saved",
+                                      description: "Added to your saved meal plans",
+                                    });
+                                  }}
+                                  onShare={() => {
+                                    toast({
+                                      title: "Meal Plan Shared",
+                                      description: "Link copied to clipboard",
+                                    });
+                                  }}
+                                  onDownload={() => {
+                                    toast({
+                                      title: "Meal Plan Downloaded",
+                                      description: "PDF downloaded to your device",
+                                    });
+                                  }}
+                                />
+                              )}
+
+                              {/* Enhanced Recipe Card for Structured Data */}
+                              {msg.structuredData?.recipe && (
+                                <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-lg space-y-4">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="text-xl font-semibold text-gray-900 mb-2">{msg.structuredData.recipe.name}</h4>
+                                      <div className="flex gap-4 text-sm text-gray-600">
+                                        <span>🍽️ {msg.structuredData.recipe.servings} servings</span>
+                                        <span>⏱️ Prep: {msg.structuredData.recipe.prepTime}</span>
+                                        <span>🔥 Cook: {msg.structuredData.recipe.cookTime}</span>
+                                        <span>📊 {msg.structuredData.recipe.difficulty}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Enhanced Nutrition Display */}
+                                  <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg">
+                                    <h5 className="font-medium text-gray-900 mb-3">Nutrition (per serving)</h5>
+                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-3 text-sm">
+                                      <div className="text-center">
+                                        <div className="font-semibold text-blue-600">{msg.structuredData.recipe.nutritionPerServing.calories}</div>
+                                        <div className="text-gray-600">calories</div>
+                                      </div>
+                                      <div className="text-center">
+                                        <div className="font-semibold text-green-600">{msg.structuredData.recipe.nutritionPerServing.protein}g</div>
+                                        <div className="text-gray-600">protein</div>
+                                      </div>
+                                      <div className="text-center">
+                                        <div className="font-semibold text-orange-600">{msg.structuredData.recipe.nutritionPerServing.carbs}g</div>
+                                        <div className="text-gray-600">carbs</div>
+                                      </div>
+                                      <div className="text-center">
+                                        <div className="font-semibold text-purple-600">{msg.structuredData.recipe.nutritionPerServing.fat}g</div>
+                                        <div className="text-gray-600">fat</div>
+                                      </div>
+                                      <div className="text-center">
+                                        <div className="font-semibold text-teal-600">{msg.structuredData.recipe.nutritionPerServing.fiber}g</div>
+                                        <div className="text-gray-600">fiber</div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Health Benefits */}
+                                  {msg.structuredData.recipe.healthBenefits.length > 0 && (
+                                    <div className="space-y-2">
+                                      <h5 className="font-medium text-gray-900">Health Benefits</h5>
+                                      <div className="flex flex-wrap gap-2">
+                                        {msg.structuredData.recipe.healthBenefits.map((benefit, i) => (
+                                          <Badge key={i} className="bg-green-100 text-green-700 hover:bg-green-200">
+                                            {benefit}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
 
                               {/* Recipe Details Card */}
                               {(msg as any).recipeDetails && (

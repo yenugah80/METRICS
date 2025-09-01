@@ -18,6 +18,70 @@ export interface ChefAiChatRequest {
 export interface ChefAiChatResponse {
   conversationId: string;
   message: string;
+  responseType?: 'meal_plan' | 'recipe' | 'analysis' | 'general';
+  structuredData?: {
+    mealPlan?: {
+      title: string;
+      duration: string;
+      overview: string;
+      dailyPlans: Array<{
+        day: string;
+        meals: Array<{
+          mealType: string;
+          name: string;
+          foods: string[];
+          portionControl: string;
+          macros: {
+            calories: number;
+            protein: number;
+            carbs: number;
+            fat: number;
+            fiber: number;
+          };
+          benefits: string[];
+        }>;
+        dailyTotals: {
+          calories: number;
+          protein: number;
+          carbs: number;
+          fat: number;
+          fiber: number;
+        };
+      }>;
+      nutritionalAnalysis: {
+        averageDailyCalories: number;
+        proteinRange: string;
+        carbRange: string;
+        fatRange: string;
+        keyBenefits: string[];
+      };
+    };
+    recipe?: {
+      name: string;
+      servings: number;
+      prepTime: string;
+      cookTime: string;
+      difficulty: string;
+      ingredients: Array<{
+        item: string;
+        amount: string;
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+      }>;
+      instructions: string[];
+      nutritionPerServing: {
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+        fiber: number;
+        micronutrients: Record<string, number>;
+      };
+      healthBenefits: string[];
+    };
+  };
   recipeDetails?: {
     recipeName: string;
     servings: number;
@@ -248,7 +312,36 @@ export class ChefAiService {
     };
   }
 
-  // Generate contextual AI response with nutrition insights using OpenAI GPT
+  // Detect the type of request and determine response approach
+  private detectRequestType(message: string): 'meal_plan' | 'recipe' | 'analysis' | 'general' {
+    const lowerMessage = message.toLowerCase();
+    
+    // Meal plan indicators
+    if (lowerMessage.includes('meal plan') || lowerMessage.includes('weekly plan') || 
+        lowerMessage.includes('daily plan') || lowerMessage.includes('day meal') ||
+        (lowerMessage.includes('plan') && (lowerMessage.includes('week') || lowerMessage.includes('day'))) ||
+        lowerMessage.includes('weekly menu') || lowerMessage.includes('menu plan')) {
+      return 'meal_plan';
+    }
+    
+    // Recipe indicators
+    if (lowerMessage.includes('recipe') || lowerMessage.includes('how to make') ||
+        lowerMessage.includes('ingredients') || lowerMessage.includes('cooking') ||
+        lowerMessage.includes('preparation') || lowerMessage.includes('instructions')) {
+      return 'recipe';
+    }
+    
+    // Analysis indicators
+    if (lowerMessage.includes('analyze') || lowerMessage.includes('compare') ||
+        lowerMessage.includes('nutrition') || lowerMessage.includes('calories') ||
+        lowerMessage.includes('macros') || lowerMessage.includes('progress')) {
+      return 'analysis';
+    }
+    
+    return 'general';
+  }
+
+  // Generate contextual AI response with professional nutrition guidance
   private async generateContextualResponse(
     userMessage: string,
     context: NutritionContext,
@@ -256,59 +349,10 @@ export class ChefAiService {
     userId: string
   ) {
     const startTime = Date.now();
+    const requestType = this.detectRequestType(userMessage);
     
-    // Conversational prompt for natural, step-by-step interactions
-    const systemPrompt = `You are ChefAI, a friendly nutrition coach who loves chatting about food! You're like a supportive friend who happens to know a lot about nutrition and cooking. Your goal is to have natural, engaging conversations - not dump information.
-
-## User Context:
-- Goals: ${context.userGoals.dailyCalories} cal, ${context.userGoals.dailyProtein}g protein, ${context.userGoals.dailyCarbs}g carbs, ${context.userGoals.dailyFat}g fat
-- Today: ${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} calories (${Math.round((context.dailyTotals.totalCalories / context.userGoals.dailyCalories) * 100)}%)
-- Recent activity: ${context.recentMeals.length} meals this week
-
-## Your Conversation Style:
-- Chat like a best friend who loves food - warm, excited, helpful!
-- PRIORITIZE ACTION: When users ask for specific things (meal plans, recipes, suggestions), provide them immediately 
-- Ask questions ONLY when you need clarification or after giving helpful content
-- Use casual language: "Hey!", "Ooh!", "That sounds amazing!", "Here's what I'm thinking!"
-- Balance friendliness with being helpful - don't let chat get in the way of results
-- Give actionable content first, then ask if they want adjustments
-
-## Critical Rules:
-1. For SPECIFIC requests (like "400-calorie lunch recipe" or "quick breakfast ideas"), provide content immediately
-2. For BROAD/VAGUE requests (like "meal plan", "help me eat healthy", "I need meal suggestions"), YOU MUST ask essential missing details FIRST:
-   - What meal types? (breakfast, lunch, dinner, or all?)
-   - Any cuisine preferences? (Indian, Mediterranean, etc.)
-   - Any dietary needs? (vegetarian, low-carb, diabetes-friendly, etc.)
-3. NEVER generate full meal plans without knowing these essentials
-4. Once you have essential info, provide detailed helpful content
-5. Ask maximum 2-3 essential questions, then deliver results
-
-Example GREAT response for SPECIFIC request:
-"Hey! I've got some perfect lunch ideas! 😊
-
-How about a Mediterranean quinoa bowl? It's around 450 calories with 18g protein - super filling and tasty! Or if you want something lighter, a chickpea salad with pita is amazing and takes 5 minutes.
-
-Which one sounds good? I can give you the quick recipe!"
-
-Example GREAT response for BROAD request (meal plan):
-"Hey! I'd love to help you with a meal plan! 😊 To make it perfect for you, I need to know:
-- What meals do you want planned? (breakfast, lunch, dinner, or all three?)
-- Any cuisine preferences? (Indian, Mediterranean, etc.)
-- Any dietary needs I should know about?
-
-Once I know this, I'll create an amazing personalized plan for you!"
-
-Example BAD response (too many questions):
-"Hey! Looking for lunch ideas? What kind of flavors are you in the mood for? Something spicy, light, filling, protein-heavy, or maybe something quick? What ingredients do you have?..."
-
-Respond in JSON:
-{
-  "response": "Friendly, conversational response - no info dumping!",
-  "insights": ["Brief, casual insight"],
-  "followUpQuestions": ["Natural follow-up question"],
-  "confidence": 0.9,
-  "recipeDetails": null
-}`;
+    // Professional, comprehensive prompt system
+    const systemPrompt = this.buildSystemPrompt(requestType, context);
 
     try {
       // Get conversation history context
@@ -330,8 +374,8 @@ Respond in JSON:
           }
         ],
         response_format: { type: "json_object" },
-        max_tokens: 800,
-        temperature: 0.7,
+        max_tokens: requestType === 'meal_plan' ? 2000 : 1200, // More tokens for comprehensive plans
+        temperature: requestType === 'meal_plan' ? 0.3 : 0.7, // Lower temperature for structured plans
       });
 
       const response = completion.choices[0].message.content;
@@ -346,6 +390,8 @@ Respond in JSON:
       
       return {
         message: parsedResponse.response || "I'm here to help with your nutrition goals!",
+        responseType: requestType,
+        structuredData: parsedResponse.structuredData || null,
         insights: parsedResponse.insights || [],
         followUpQuestions: parsedResponse.followUpQuestions || [],
         recipeDetails: parsedResponse.recipeDetails || null,
@@ -366,6 +412,183 @@ Respond in JSON:
         confidence: 0.6,
         responseTime: Date.now() - startTime
       };
+    }
+  }
+
+  // Build comprehensive system prompts based on request type
+  private buildSystemPrompt(requestType: 'meal_plan' | 'recipe' | 'analysis' | 'general', context: NutritionContext): string {
+    const baseContext = `## User Nutrition Profile:
+- Daily Goals: ${context.userGoals.dailyCalories} calories, ${context.userGoals.dailyProtein}g protein, ${context.userGoals.dailyCarbs}g carbs, ${context.userGoals.dailyFat}g fat
+- Current Progress: ${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} calories (${Math.round((context.dailyTotals.totalCalories / context.userGoals.dailyCalories) * 100)}%)
+- Weekly Activity: ${context.recentMeals.length} meals logged, Average: ${Math.round(context.weeklyTrends.avgCalories)} cal/day`;
+
+    switch (requestType) {
+      case 'meal_plan':
+        return `You are a professional nutrition AI assistant specializing in comprehensive meal planning. You provide structured, detailed meal plans with precise nutritional analysis comparable to industry-leading nutrition platforms.
+
+${baseContext}
+
+## Core Capabilities:
+- Generate complete multi-day meal plans with exact nutritional breakdowns
+- Provide professional table-formatted responses with organized data
+- Calculate precise macro and micronutrient values for each meal
+- Offer immediate comprehensive solutions for complex requests
+- Adapt meal plans instantly based on dietary requirements
+
+## Response Requirements:
+1. **Immediate Comprehensive Response**: For meal plan requests, provide complete plans immediately without asking clarifying questions
+2. **Professional Structure**: Use organized formatting with clear meal breakdowns
+3. **Precise Nutrition**: Calculate exact calories, protein, carbs, fat, and fiber for each meal
+4. **Practical Portions**: Provide specific portion sizes and measurements
+5. **Health Benefits**: Include relevant nutritional benefits for each meal
+
+## Response Format:
+Provide responses in this JSON structure:
+{
+  "response": "Professional introduction with plan overview",
+  "structuredData": {
+    "mealPlan": {
+      "title": "[Plan Name]",
+      "duration": "[Number of days]",
+      "overview": "Brief plan description",
+      "dailyPlans": [
+        {
+          "day": "Day 1",
+          "meals": [
+            {
+              "mealType": "Breakfast",
+              "name": "[Meal Name]",
+              "foods": ["food1", "food2", "food3"],
+              "portionControl": "Specific portions and measurements",
+              "macros": {
+                "calories": 350,
+                "protein": 25,
+                "carbs": 35,
+                "fat": 12,
+                "fiber": 8
+              },
+              "benefits": ["health benefit 1", "health benefit 2"]
+            }
+          ],
+          "dailyTotals": {
+            "calories": 1950,
+            "protein": 145,
+            "carbs": 185,
+            "fat": 65,
+            "fiber": 35
+          }
+        }
+      ],
+      "nutritionalAnalysis": {
+        "averageDailyCalories": 1950,
+        "proteinRange": "140-160g",
+        "carbRange": "180-200g",
+        "fatRange": "60-70g",
+        "keyBenefits": ["benefit1", "benefit2"]
+      }
+    }
+  },
+  "insights": ["Professional nutritional insights"],
+  "confidence": 0.95
+}`;
+
+      case 'recipe':
+        return `You are a professional nutrition AI assistant specializing in detailed recipe creation with comprehensive nutritional analysis.
+
+${baseContext}
+
+## Recipe Development Expertise:
+- Create detailed recipes with exact ingredient measurements
+- Calculate precise nutritional values per serving
+- Provide step-by-step cooking instructions
+- Include health benefits and nutritional highlights
+- Optimize recipes for user's nutritional goals
+
+## Response Format:
+Provide responses in this JSON structure:
+{
+  "response": "Professional recipe introduction",
+  "structuredData": {
+    "recipe": {
+      "name": "[Recipe Name]",
+      "servings": 4,
+      "prepTime": "15 minutes",
+      "cookTime": "25 minutes",
+      "difficulty": "Easy",
+      "ingredients": [
+        {
+          "item": "ingredient name",
+          "amount": "1 cup",
+          "calories": 150,
+          "protein": 8,
+          "carbs": 20,
+          "fat": 5
+        }
+      ],
+      "instructions": ["Step 1", "Step 2"],
+      "nutritionPerServing": {
+        "calories": 385,
+        "protein": 28,
+        "carbs": 35,
+        "fat": 18,
+        "fiber": 6,
+        "micronutrients": {
+          "vitamin_c": 45,
+          "iron": 8,
+          "calcium": 150
+        }
+      },
+      "healthBenefits": ["High protein for muscle building", "Rich in fiber for digestion"]
+    }
+  },
+  "insights": ["Nutritional insights about the recipe"],
+  "confidence": 0.9
+}`;
+
+      case 'analysis':
+        return `You are a professional nutrition AI assistant specializing in comprehensive nutritional analysis and personalized recommendations.
+
+${baseContext}
+
+## Analysis Capabilities:
+- Provide detailed nutritional progress assessments
+- Compare current intake to optimal nutrition targets
+- Identify nutritional gaps and opportunities
+- Offer evidence-based recommendations
+- Track trends and provide actionable insights
+
+## Response Approach:
+- Be direct and data-driven with clear analysis
+- Provide specific numbers and percentages
+- Highlight both strengths and areas for improvement
+- Give actionable next steps
+
+Respond in JSON:
+{
+  "response": "Professional analysis with specific data points",
+  "insights": ["Data-driven insights with specific numbers"],
+  "followUpQuestions": ["Relevant analytical questions"],
+  "confidence": 0.9
+}`;
+
+      default: // 'general'
+        return `You are a professional nutrition AI assistant providing helpful, accurate nutrition guidance and food recommendations.
+
+${baseContext}
+
+## Communication Style:
+- Professional yet approachable
+- Provide specific, actionable advice
+- Focus on practical solutions
+- Give immediate helpful responses
+
+Respond in JSON:
+{
+  "response": "Helpful, professional response",
+  "insights": ["Relevant nutrition insights"],
+  "followUpQuestions": ["Helpful follow-up questions"],
+  "confidence": 0.85
+}`;
     }
   }
 

@@ -7,7 +7,7 @@ const router = Router();
 
 // Chat message schema for validation
 const chatMessageSchema = z.object({
-  message: z.string().min(1).max(500),
+  message: z.string().min(1).max(2000), // Increased limit for comprehensive meal plans
   messageType: z.enum(['text', 'voice']).optional(),
   voiceTranscript: z.string().optional(),
   conversationId: z.string().nullable().optional(),
