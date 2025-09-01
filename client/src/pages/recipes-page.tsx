@@ -14,10 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { ChefHat, Globe, Clock, Users, Star, Utensils, BookOpen, Search, Heart, FolderOpen, ShoppingCart, Calendar, Filter } from 'lucide-react';
-import { RecipeChatbot } from '@/components/recipe-chatbot';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 
 interface CuisineInfo {
   name: string;
@@ -67,6 +67,7 @@ export default function RecipesPage() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [selectedCuisine, setSelectedCuisine] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -261,7 +262,18 @@ export default function RecipesPage() {
                 </p>
               </CardHeader>
               <CardContent>
-                <RecipeChatbot />
+                <div className="text-center space-y-4">
+                  <p className="text-gray-600">
+                    Get personalized recipe suggestions from ChefAI, your nutrition coach!
+                  </p>
+                  <Button 
+                    onClick={() => setLocation('/chef-ai')}
+                    className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+                  >
+                    <ChefHat className="w-4 h-4 mr-2" />
+                    Chat with ChefAI
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -776,7 +788,18 @@ export default function RecipesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <RecipeChatbot />
+              <div className="text-center space-y-4">
+                <p className="text-gray-600">
+                  Create custom recipes with ChefAI using real user data and personalized nutrition goals!
+                </p>
+                <Button 
+                  onClick={() => setLocation('/chef-ai')}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                >
+                  <Utensils className="w-4 h-4 mr-2" />
+                  Generate with ChefAI
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
