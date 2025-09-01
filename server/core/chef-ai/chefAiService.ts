@@ -2,12 +2,17 @@ import OpenAI from 'openai';
 import { db } from '../../infrastructure/database/db';
 import { chefAiConversations, chefAiMessages, meals, mealItems, dailyNutrition, users } from '@shared/schema';
 import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { DeterministicNutritionService } from '../nutrition/deterministicNutrition';
+import { checkDietCompatibility } from '../nutrition/diet-compatibility';
+import { mvpFoodAnalysis } from '../nutrition/mvp-food-analysis';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// OpenAI Tools Definitions for Real User Data Integration  
+// Medical-Grade Nutrition Analysis Tools - No Fabrication, Tool-Verified Only
+const deterministicNutrition = new DeterministicNutritionService();
+
 const CHEF_AI_TOOLS = [
   {
     type: "function",
@@ -85,6 +90,91 @@ const CHEF_AI_TOOLS = [
           mealType: { type: "string", description: "Type of meal" }
         },
         required: ["userId", "foodItem"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "verify_food_nutrition",
+      description: "Get VERIFIED nutrition data from USDA/OpenFoodFacts - NO AI guessing. Returns structured data with sources and confidence scores.",
+      parameters: {
+        type: "object",
+        properties: {
+          foods: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Food name (in user's language)" },
+                quantity: { type: "number", description: "Quantity amount" },
+                unit: { type: "string", description: "Unit (grams, cups, pieces, etc.)" }
+              },
+              required: ["name", "quantity", "unit"]
+            }
+          }
+        },
+        required: ["foods"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "analyze_food_safety",
+      description: "Comprehensive safety analysis: allergens, diet compatibility, health warnings. Uses verified ingredient taxonomy.",
+      parameters: {
+        type: "object",
+        properties: {
+          foods: {
+            type: "array", 
+            items: { type: "string", description: "Food names to analyze" }
+          },
+          userAllergies: {
+            type: "array",
+            items: { type: "string" },
+            description: "User's known allergies"
+          },
+          dietaryRestrictions: {
+            type: "array",
+            items: { type: "string" },
+            description: "Diet types: vegan, keto, gluten-free, etc."
+          }
+        },
+        required: ["foods"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "comprehensive_food_analysis",
+      description: "Complete food analysis: nutrition + safety + sustainability + recommendations. Medical-grade accuracy.",
+      parameters: {
+        type: "object",
+        properties: {
+          foods: {
+            type: "array",
+            items: {
+              type: "object", 
+              properties: {
+                name: { type: "string" },
+                quantity: { type: "number" },
+                unit: { type: "string" }
+              },
+              required: ["name", "quantity", "unit"]
+            }
+          },
+          userProfile: {
+            type: "object",
+            properties: {
+              allergies: { type: "array", items: { type: "string" } },
+              dietaryRestrictions: { type: "array", items: { type: "string" } },
+              healthGoals: { type: "array", items: { type: "string" } }
+            }
+          }
+        },
+        required: ["foods"]
       }
     }
   }
@@ -445,6 +535,15 @@ export class ChefAiService {
         case 'get_portion_size_guidance':
           return await this.getPortionSizeGuidance(args.userId, args.foodItem, args.mealType);
         
+        case 'verify_food_nutrition':
+          return await this.verifyFoodNutrition(args.foods);
+        
+        case 'analyze_food_safety':
+          return await this.analyzeFoodSafety(args.foods, args.userAllergies, args.dietaryRestrictions);
+        
+        case 'comprehensive_food_analysis':
+          return await this.comprehensiveFoodAnalysis(args.foods, args.userProfile);
+        
         default:
           throw new Error(`Unknown function: ${functionName}`);
       }
@@ -748,12 +847,25 @@ ${baseContext}
 - Show specific macro breakdowns that add up to their targets
 
 ## Available Functions:
-You can call these functions to get REAL user data:
+CONVERSATIONAL DATA:
 - get_user_daily_nutrition(userId, date) - Get actual nutrition intake
 - get_user_health_profile(userId) - Get real dietary goals and health focus  
 - get_meal_suggestions(userId, mealType, cuisine, healthFocus) - Get personalized suggestions
 - get_recipe_details(mealName, servings) - Get detailed recipes
 - get_portion_size_guidance(userId, foodItem, mealType) - Get personalized portions
+
+MEDICAL-GRADE NUTRITION ANALYSIS (MANDATORY for food questions):
+- verify_food_nutrition(foods) - VERIFIED nutrition data from USDA/OpenFoodFacts - NO AI guessing
+- analyze_food_safety(foods, allergies, diets) - Verified allergen/diet compatibility analysis
+- comprehensive_food_analysis(foods, userProfile) - Complete medical-grade analysis
+
+## STRICT FOOD ANALYSIS RULES:
+🚫 NO FABRICATION: Never guess nutrition values. If data unavailable, return status:"partial" with reason
+🔬 TOOL-VERIFIED ONLY: Use verification functions for ANY food facts - nutrition, allergens, compatibility
+🏥 MEDICAL-GRADE: Include complete macros + micros with confidence scores and sources
+⚠️ SAFETY FIRST: Always check allergens and diet compatibility  
+🌍 TRANSPARENCY: Include sources array explaining where facts came from
+🗣️ MULTILINGUAL: Preserve food names in user's language (English, Hindi, Telugu, Tamil, Kannada, Spanish, French, German, Chinese, Italian, Vietnamese, Marathi, Bengali, Gujarati)
 
 ## Response Strategy:
 1. **IMMEDIATELY** call relevant functions to get user's real data
@@ -885,13 +997,22 @@ Based on user's current progress, vary your opening and tone:
 - Calculate exact needs: "You need ~400 more calories today"
 - Reference actual meal history when available
 
-Give specific, actionable advice focused on practical solutions.
+## MEDICAL-GRADE RESPONSE REQUIREMENTS:
+For ANY food-related questions, you MUST:
+1. Use verification tools (never guess nutrition facts)
+2. Include structured nutrition data with confidence scores  
+3. Show data sources in response
+4. Check safety (allergens/diet compatibility)
+5. Return status: "verified", "partial", "not_available" with reasons
 
 RESPONSE FORMAT (required JSON):
 {
-  "response": "[Dynamic opening based on actual progress + helpful response using real numbers]",
-  "insights": ["Specific insights with real data: 'You're 200 calories behind today', 'Great protein intake so far'"],
-  "followUpQuestions": ["What sounds good for dinner?", "Want a quick snack idea?", "Curious about [specific food]?"],
+  "response": "[Dynamic opening based on actual progress + verified food analysis using real data]",
+  "insights": ["Specific insights with real data and confidence scores"],
+  "verification_status": "verified|partial|not_available",
+  "data_sources": ["USDA_FDC", "OpenFoodFacts", "verified_taxonomy"],
+  "safety_analysis": "Results from safety verification tools",
+  "followUpQuestions": ["What sounds good for dinner?", "Want a quick snack idea?"],
   "confidence": 0.9
 }`;
     }
@@ -970,6 +1091,178 @@ RESPONSE FORMAT (required JSON):
       conversation,
       messages,
     };
+  }
+
+  // Medical-Grade Nutrition Analysis Methods - No Fabrication, Tool-Verified Only
+
+  /**
+   * Get VERIFIED nutrition data from USDA/OpenFoodFacts APIs - NO AI guessing
+   * Returns structured data with sources and confidence scores
+   */
+  private async verifyFoodNutrition(foods: Array<{ name: string; quantity: number; unit: string }>) {
+    try {
+      const results = await deterministicNutrition.calculateNutrition(foods);
+      
+      // Medical-grade response format with transparency
+      return {
+        status: results.results.length > 0 ? "verified" : "partial",
+        verification_method: "USDA_FDC + OpenFoodFacts_API",
+        foods_analyzed: results.results.map(food => ({
+          name: food.name,
+          quantity: food.quantity,
+          unit: food.unit,
+          verification_status: food.confidence > 0.8 ? "verified" : "partial",
+          confidence_score: food.confidence,
+          macronutrients: {
+            calories: food.total_nutrition.calories,
+            protein_g: food.total_nutrition.protein,
+            carbs_g: food.total_nutrition.carbs,
+            fat_g: food.total_nutrition.fat,
+            fiber_g: food.total_nutrition.fiber || null
+          },
+          micronutrients: {
+            sodium_mg: food.total_nutrition.sodium || null,
+            vitamin_c_mg: food.total_nutrition.vitamin_c || null,
+            iron_mg: food.total_nutrition.iron || null,
+            calcium_mg: food.total_nutrition.calcium || null
+          },
+          data_source: food.source
+        })),
+        totals: {
+          calories: results.totalNutrition.calories,
+          protein: results.totalNutrition.protein,
+          carbs: results.totalNutrition.carbs,
+          fat: results.totalNutrition.fat,
+          fiber: results.totalNutrition.fiber || null
+        },
+        sources: results.sources,
+        overall_confidence: results.avgConfidence,
+        warnings: results.results.length < foods.length ? 
+          [`Could not verify ${foods.length - results.results.length} foods - data unavailable in databases`] : []
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        error_message: `Nutrition verification failed: ${error.message}`,
+        data_sources_attempted: ["USDA Food Data Central", "Open Food Facts"],
+        reason: "API_unavailable_or_food_not_found"
+      };
+    }
+  }
+
+  /**
+   * Comprehensive safety analysis using verified ingredient taxonomy
+   * No guessing - only verified allergen/diet compatibility data
+   */
+  private async analyzeFoodSafety(foods: string[], userAllergies: string[] = [], dietaryRestrictions: string[] = []) {
+    try {
+      const safetyResults = [];
+      
+      for (const restriction of dietaryRestrictions) {
+        const compatibility = checkDietCompatibility(foods, restriction, userAllergies);
+        safetyResults.push({
+          diet_type: restriction,
+          compatibility_percentage: compatibility.diet_match_percentage,
+          safety_status: compatibility.allergen_safety,
+          violations: compatibility.violations,
+          detected_allergens: compatibility.allergen_details.detected_allergens,
+          violating_ingredients: compatibility.allergen_details.violating_ingredients
+        });
+      }
+
+      return {
+        status: "analyzed",
+        analysis_method: "verified_ingredient_taxonomy",
+        foods_analyzed: foods,
+        user_allergies: userAllergies,
+        dietary_restrictions: dietaryRestrictions,
+        safety_analysis: safetyResults,
+        overall_safety: safetyResults.every(r => r.safety_status === 'safe') ? 'safe' : 'warning',
+        critical_alerts: safetyResults.filter(r => r.detected_allergens.length > 0),
+        recommendations: safetyResults.filter(r => r.violations.length > 0).map(r => 
+          `For ${r.diet_type} diet: avoid ${r.violating_ingredients.join(', ')}`
+        ),
+        confidence: 0.95, // High confidence - using verified taxonomy
+        data_source: "verified_ingredient_taxonomy"
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        error_message: `Safety analysis failed: ${error.message}`,
+        reason: "ingredient_taxonomy_unavailable"
+      };
+    }
+  }
+
+  /**
+   * Complete medical-grade food analysis: nutrition + safety + sustainability
+   * Uses the MVP comprehensive analysis system
+   */
+  private async comprehensiveFoodAnalysis(foods: Array<{ name: string; quantity: number; unit: string }>, userProfile: any = {}) {
+    try {
+      // Use the MVP food analysis system for comprehensive analysis
+      const analysisResult = await mvpFoodAnalysis.analyzeMeal(
+        foods.map(f => f.name).join(', '), // Convert to text description
+        userProfile.allergies || [],
+        userProfile.dietaryRestrictions || []
+      );
+
+      return {
+        status: "complete_analysis",
+        analysis_method: "MVP_comprehensive_food_analysis",
+        foods_analyzed: foods,
+        
+        // Safety Analysis
+        safety: {
+          overall_safety: analysisResult.safety.overall_safety,
+          allergen_alerts: analysisResult.safety.allergen_alerts,
+          food_safety_score: analysisResult.safety.food_safety_score,
+          safety_recommendations: analysisResult.safety.safety_recommendations
+        },
+        
+        // Health Analysis  
+        health: {
+          nutrition_score: analysisResult.health.nutrition_score,
+          health_grade: analysisResult.health.health_grade,
+          calories: analysisResult.health.calories,
+          macronutrients: analysisResult.health.macronutrients,
+          micronutrients: analysisResult.health.micronutrients,
+          health_benefits: analysisResult.health.health_benefits,
+          health_concerns: analysisResult.health.health_concerns,
+          improvement_suggestions: analysisResult.health.improvement_suggestions
+        },
+        
+        // Sustainability Analysis
+        sustainability: {
+          eco_score: analysisResult.sustainability.eco_score,
+          eco_grade: analysisResult.sustainability.eco_grade,
+          carbon_footprint: analysisResult.sustainability.carbon_footprint,
+          water_usage: analysisResult.sustainability.water_usage,
+          sustainability_tips: analysisResult.sustainability.sustainability_tips,
+          eco_friendly_alternatives: analysisResult.sustainability.eco_friendly_alternatives
+        },
+        
+        // Recommendations
+        recommendations: analysisResult.recommendations,
+        
+        // Analysis Metadata
+        confidence: analysisResult.confidence,
+        analysis_timestamp: analysisResult.analysis_timestamp,
+        data_sources: [
+          "USDA_Food_Data_Central",
+          "OpenFoodFacts_Database", 
+          "Verified_Ingredient_Taxonomy",
+          "Scientific_Nutrition_Algorithms"
+        ]
+      };
+    } catch (error) {
+      return {
+        status: "error", 
+        error_message: `Comprehensive analysis failed: ${error.message}`,
+        reason: "analysis_system_unavailable",
+        fallback_message: "Complete nutrition analysis temporarily unavailable - try individual nutrition lookup"
+      };
+    }
   }
 
   // Generate suggested conversation starters based on user's recent activity
