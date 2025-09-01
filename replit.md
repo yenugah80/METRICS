@@ -2,6 +2,23 @@
 
 MyFoodMatrics is an AI-powered nutrition tracking application that revolutionizes food logging through image recognition, barcode scanning, and voice input. The platform provides comprehensive nutritional analysis with personalized insights including diet compatibility, allergen detection, sustainability scoring, and recipe recommendations. Built as a freemium SaaS product with a free tier offering basic functionality and a premium subscription unlocking advanced features like voice logging, detailed sustainability metrics, and unlimited AI-generated recipes.
 
+# Recent Changes (September 1, 2025)
+
+## Major Technical Debt Remediation - Routes Architecture Refactoring
+- **COMPLETED**: Massive refactoring of server/api/routes/routes.ts from 2,631 lines to 1,499 lines (1,132-line reduction, 43% decrease)
+- **COMPLETED**: Established modular route architecture with 8+ specialized route modules:
+  - routes-food.ts: Food search, meal management, and meal swap functionality
+  - routes-nutrition.ts: Nutrition calculations and barcode lookup
+  - routes-gamification.ts: Achievement system and XP tracking
+  - routes-voice.ts: Voice logging and transcription endpoints
+  - routes-stripe.ts: Payment processing and subscription management
+  - routes-health.ts: Health recommendations and meal scoring
+  - routes-stats.ts: Analytics, progress tracking, and reporting
+  - routes-chatbot.ts, routes-chef-ai.ts, routes-diet-plans.ts, etc.
+- **COMPLETED**: Fixed critical TypeScript compilation errors in event-processor.ts
+- **COMPLETED**: Maintained complete server stability throughout aggressive refactoring with zero breaking changes
+- **NEXT TARGET**: Continue addressing remaining bloaters: shared/schema.ts (1,377 lines), chefAiService.ts (1,373 lines), storage.ts (1,193 lines)
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -22,7 +39,7 @@ The application uses a **React-based SPA** built with Vite, featuring a componen
 ## Backend Architecture
 The server follows a **REST API pattern** using Express.js with:
 
-- **Modular Route Structure**: Centralized route registration with middleware-based authentication
+- **Modular Route Structure**: Systematic extraction into specialized route modules (food, nutrition, gamification, voice, stripe, health, stats) with consistent registerXRoutes pattern
 - **Session Management**: Express sessions with PostgreSQL storage for auth persistence
 - **File Upload Strategy**: Direct-to-cloud uploads with presigned URLs for meal images
 - **Error Handling**: Centralized error middleware with structured API responses

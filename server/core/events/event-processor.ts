@@ -365,4 +365,3 @@ export class EventProcessor {
   }
 }
 
-export { EventProcessor };

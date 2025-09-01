@@ -1,0 +1,22 @@
+Define clear import paths
+When creating the new route files, such as routes-voice.ts or routes-stripe.ts, it's a good practice to standardize your import paths.
+Bad: import { someFunction } from '../../utils'
+Good: import { someFunction } from '@server/utils'
+Using an alias (@server/utils) makes imports cleaner and less prone to errors when files are moved.
+Consider helper and dependency layers
+As you move the routes, pay attention to the dependencies. Do the voice assistant routes rely heavily on the AI service? Does the Stripe logic require a database connection?
+Move business logic: The logic inside the routes might be complex. If so, move it to a dedicated service layer. For example, server/core/services/paymentService.ts would handle all the business logic for Stripe payments, leaving the routes-stripe.ts file only for routing.
+Move data access: The calculateWellnessScore function is a great example of a utility function that likely has no side effects and is a candidate for its own file (server/utils/math.ts or server/utils/calculations.ts). 
+Structure the front-end refactoring
+When you tackle chef-ai.tsx, you can apply a similar principle of single responsibility. 
+Extract components: Look for self-contained UI sections.
+Stateful logic: Extract logic for API calls, state management, and user interactions into custom hooks (e.g., useChefAi.ts).
+Presentational components: Extract purely presentational JSX into smaller, "dumb" components that receive data via props (e.g., AiResponse.tsx, AiInputForm.tsx).
+Organize files: Place these new components and hooks into a logical directory structure to maintain clarity and make them discoverable for other developers. 
+A final step: Clean up the old file
+After all the routes and logic have been moved, your old routes.ts file will be much smaller.
+Delete dead code: Remove any remaining code that is no longer used, including unused imports and comments.
+Create an entry point: Create a new server/api/routes/index.ts to act as the main entry point, importing and assembling all the new route files. This replaces the old routes.ts in your main server.ts or app.ts file. 
+This refined plan adds more rigor and best practices to your excellent initial outline, ensuring a smoother refactoring process and a higher-quality result. 
+AI responses may include mistakes. Learn more
+

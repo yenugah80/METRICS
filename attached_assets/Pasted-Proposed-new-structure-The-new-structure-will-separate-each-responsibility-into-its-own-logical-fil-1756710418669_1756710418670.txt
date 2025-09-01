@@ -1,0 +1,104 @@
+Proposed new structure
+The new structure will separate each responsibility into its own logical file, leveraging Express's modular Router instances. 
+server/
+└── api/
+    └── routes/
+        ├── index.ts               // Main router to assemble all feature routers
+        ├── middleware.ts          // Global middleware for the entire API
+        ├── healthRoutes.ts        // Health checks and simple, app-level endpoints
+        ├── voiceRoutes.ts         // Voice assistant-specific endpoints
+        ├── stripeRoutes.ts        // Stripe payment processing
+        ├── foodSearchRoutes.ts    // Food search logic and endpoints
+        └── statsRoutes.ts         // Stats calculation and reporting
+Refactoring steps
+Step 1: Create the directory structure
+Create the new files and folders outlined in the proposed structure above. This sets up the empty containers for the code you will extract.
+Step 2: Separate core middleware
+Create middleware.ts: Move all global middleware (like logging, body parsing, or security headers) from the top of routes.ts into this new file.
+Export the middleware: Ensure the middleware is exported so it can be used by the main application. 
+Before:
+typescript
+// server/api/routes/routes.ts
+app.use(express.json());
+app.use(helmet());
+// ...and 2,600 more lines of code
+Use code with caution.
+
+After:
+typescript
+// server/api/routes/middleware.ts
+import express from 'express';
+import helmet from 'helmet';
+
+const middleware = express.Router();
+middleware.use(express.json());
+middleware.use(helmet());
+
+export default middleware;
+Use code with caution.
+
+Step 3: Extract feature-specific routers
+Extract the routes for each of the identified domains into their own files.
+Extract healthRoutes.ts: Move the /health endpoint and any other simple, top-level API routes here.
+Extract voiceRoutes.ts: Create a new router for all voice-assistant-related logic.
+Old code: Find all app.get or app.post calls related to the voice assistant and move them.
+New file (voiceRoutes.ts):
+typescript
+import { Router } from 'express';
+const router = Router();
+
+router.post('/voice/assist', (req, res) => {
+  // Move voice assistant logic here
+});
+
+export default router;
+Use code with caution.
+
+Extract stripeRoutes.ts: Move all Stripe payment logic, including webhooks and payment confirmation routes, into this file.
+Extract foodSearchRoutes.ts: Move all the food search logic into its own router.
+Extract statsRoutes.ts: Move all statistic-related endpoints into this module.
+Step 4: Assemble the new index.ts
+The final step is to create a new index.ts file that acts as the single point of entry for your API routes. This file will replace the old routes.ts in your main server.ts or app.ts file.
+index.ts file:
+typescript
+import { Router } from 'express';
+import healthRoutes from './healthRoutes';
+import voiceRoutes from './voiceRoutes';
+import stripeRoutes from './stripeRoutes';
+import foodSearchRoutes from './foodSearchRoutes';
+import statsRoutes from './statsRoutes';
+
+const router = Router();
+
+// Mount all feature routers under their appropriate paths
+router.use('/health', healthRoutes);
+router.use('/voice', voiceRoutes);
+router.use('/payments', stripeRoutes);
+router.use('/food', foodSearchRoutes);
+router.use('/stats', statsRoutes);
+
+export default router;
+Use code with caution.
+
+Step 5: Update the main server file
+Update your main server file (e.g., server/app.ts) to use the new middleware and consolidated router.
+app.ts file:
+typescript
+import express from 'express';
+import middleware from './api/routes/middleware';
+import apiRouter from './api/routes'; // This is the new index.ts file
+
+const app = express();
+
+app.use(middleware);
+app.use('/api/v1', apiRouter); // Mount the new API router
+
+// ... start server
+Use code with caution.
+
+Benefits of this approach
+Improved readability: Each file becomes smaller and deals with a single responsibility, making it easier for developers to understand specific parts of the codebase.
+Reduced complexity: The main index.ts file clearly shows the API's structure, while the app.ts is no longer cluttered with endless route definitions.
+Easier maintenance: You can modify payment logic in stripeRoutes.ts without fear of accidentally breaking the voice assistant or stats calculations.
+Better testing: Individual routers can be tested more effectively and in isolation.
+Clear ownership: As your team grows, specific developers or teams can be assigned ownership of particular route files. 
