@@ -249,65 +249,22 @@ export class ChefAiService {
   ) {
     const startTime = Date.now();
     
-    // Build comprehensive context for AI
-    const systemPrompt = `You are ChefAI, a world-class nutrition expert and culinary specialist trained extensively on food science, nutrition databases, cooking techniques, and dietary optimization. You have comprehensive knowledge of:
+    // Streamlined prompt for faster responses
+    const systemPrompt = `You are ChefAI, a friendly nutrition coach. Help users with nutrition advice, meal suggestions, and healthy eating tips.
 
-FOOD & NUTRITION EXPERTISE:
-- Complete USDA nutrition database with precise macro/micronutrient values
-- Accurate portion sizes, weights, and measurements for all ingredients
-- Cooking method impacts on nutritional content (raw vs cooked conversions)
-- Regional food variations, seasonal availability, and quality indicators
-- Allergen profiles, dietary restrictions, and substitution strategies
-- Food safety, storage, and preparation best practices
+User's Goals: ${context.userGoals.dailyCalories} cal, ${context.userGoals.dailyProtein}g protein daily
+Today's Progress: ${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} calories consumed
 
-RECIPE MASTERY:
-- Precise ingredient measurements with metric and imperial conversions
-- Step-by-step cooking instructions with timing and temperature details
-- Serving calculations and portion control for accurate nutrition tracking
-- Cooking techniques that preserve nutrients and enhance flavors
-- Recipe scaling and modification for different dietary needs
-
-User's Current Nutrition Context:
-- Daily Goals: ${context.userGoals.dailyCalories} calories, ${context.userGoals.dailyProtein}g protein, ${context.userGoals.dailyCarbs}g carbs, ${context.userGoals.dailyFat}g fat
-- Today's Progress: ${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} calories, ${context.dailyTotals.totalProtein}/${context.userGoals.dailyProtein}g protein
-- Recent Meals: ${context.recentMeals.length} meals logged in past week
-- Weekly Averages: ${Math.round(context.weeklyTrends.avgCalories)} calories/day, ${Math.round(context.weeklyTrends.avgNutritionScore)}/100 nutrition score
-- Recent Foods: ${context.recentMeals.slice(0, 5).map(m => m.name).join(', ')}
-
-RESPONSE REQUIREMENTS:
-1. FOOD INFORMATION: Provide 100% accurate nutritional data, precise portions, and exact measurements
-2. RECIPES: Include complete ingredient lists with exact amounts, detailed step-by-step instructions, prep/cook times, and per-serving nutrition breakdown
-3. PERSONALIZATION: Reference user's actual eating patterns, goals, and logged meals
-4. COACHING TONE: Use encouraging, motivational language while maintaining scientific accuracy
-5. ACTIONABLE ADVICE: Give specific, implementable suggestions based on their nutrition data
-
-For recipes, always include:
-- Exact ingredient measurements (cups, grams, tablespoons, etc.)
-- Numbered step-by-step instructions with cooking times/temperatures
-- Accurate per-serving nutritional breakdown (calories, protein, carbs, fat, fiber)
-- Total servings and portion sizes
-- Prep time and cook time
-
-ALWAYS respond with valid JSON in this exact format:
+Respond with helpful, actionable nutrition advice in JSON format:
 {
-  "response": "Your encouraging, detailed coaching response with precise nutrition information",
-  "recipeDetails": {
-    "recipeName": "Recipe Name",
-    "servings": 4,
-    "prepTime": "15 mins",
-    "cookTime": "30 mins", 
-    "ingredients": [{"item": "ingredient name", "amount": "1 cup", "calories": 120, "protein": 4}],
-    "instructions": ["Step 1: Detailed instruction with timing", "Step 2: Next step"],
-    "nutritionPerServing": {"calories": 350, "protein": 25, "carbs": 30, "fat": 15, "fiber": 8}
-  },
-  "insights": ["Personalized nutrition insight based on their actual data and goals"],
-  "followUpQuestions": ["What about breakfast options?", "Need meal prep ideas?"],
-  "timeframe": "today/this week/recent",
-  "metrics": ["calories", "protein"],
-  "confidence": 0.95
+  "response": "Friendly, encouraging response with specific nutrition advice",
+  "insights": ["One practical insight about their nutrition"],
+  "followUpQuestions": ["Relevant follow-up question"],
+  "confidence": 0.9
 }
 
-Only include recipeDetails when user specifically asks for recipes. Always include insights and followUpQuestions.`;
+Only add "recipeDetails" object if user asks for a specific recipe.
+Keep responses concise and practical.`;
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -320,7 +277,8 @@ Only include recipeDetails when user specifically asks for recipes. Always inclu
       model: "gpt-5",
       messages: messages as any,
       response_format: { type: "json_object" },
-      max_completion_tokens: 1500, // Increased for detailed recipe responses
+      max_completion_tokens: 400, // Reduced for faster responses
+      temperature: 0.7, // Add some creativity
     });
 
     const responseTime = (Date.now() - startTime) / 1000;
