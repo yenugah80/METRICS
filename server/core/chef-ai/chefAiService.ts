@@ -320,7 +320,7 @@ Only include recipeDetails when user specifically asks for recipes. Always inclu
       model: "gpt-5",
       messages: messages as any,
       response_format: { type: "json_object" },
-      max_tokens: 1500, // Increased for detailed recipe responses
+      max_completion_tokens: 1500, // Increased for detailed recipe responses
     });
 
     const responseTime = (Date.now() - startTime) / 1000;

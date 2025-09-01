@@ -166,7 +166,7 @@ async function processImageWithOCR(imageData: string): Promise<string[]> {
           ]
         }
       ],
-      max_tokens: 500
+      max_completion_tokens: 500
     });
 
     const extractedText = response.choices[0].message.content || '';
@@ -233,7 +233,7 @@ Return this exact JSON structure:
           ]
         }
       ],
-      max_tokens: 1000,
+      max_completion_tokens: 1000,
       temperature: 0 // Ensure deterministic results
     });
 

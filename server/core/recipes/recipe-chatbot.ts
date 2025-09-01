@@ -377,7 +377,7 @@ Return JSON with:
         ],
         response_format: { type: "json_object" },
         temperature: 0.7,
-        max_tokens: 3000
+        max_completion_tokens: 3000
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -450,7 +450,7 @@ Focus on authentic techniques and real culinary science.`
         }
       ],
       temperature: 0.5,
-      max_tokens: 800
+      max_completion_tokens: 800
     });
 
     return response.choices[0].message.content || "I'd be happy to help with your cooking question! Could you provide more specific details about what you'd like to learn?";
@@ -479,7 +479,7 @@ Include selection tips, storage methods, preparation techniques, and flavor prof
         }
       ],
       temperature: 0.4,
-      max_tokens: 800
+      max_completion_tokens: 800
     });
 
     return response.choices[0].message.content || "I'd be happy to help you with ingredient selection and preparation techniques!";
@@ -502,7 +502,7 @@ Respond professionally but warmly, and guide toward helpful culinary topics.`
         }
       ],
       temperature: 0.7,
-      max_tokens: 500
+      max_completion_tokens: 500
     });
 
     return response.choices[0].message.content || "I'm here to help with all your cooking questions and recipe needs! What would you like to explore today?";

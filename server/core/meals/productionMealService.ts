@@ -197,7 +197,7 @@ Base estimates on USDA nutrition data. Be conservative with quantities.`
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 1500,
+      max_completion_tokens: 1500,
     });
     
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -248,7 +248,7 @@ Be intelligent about portion interpretation. Use USDA data for nutrition.`
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 1200,
+      max_completion_tokens: 1200,
     });
     
     const result = JSON.parse(response.choices[0].message.content || '{}');

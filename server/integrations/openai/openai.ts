@@ -125,7 +125,7 @@ export async function analyzeFoodImage(base64Image: string): Promise<FoodAnalysi
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 1000,
+      max_completion_tokens: 1000,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -174,7 +174,7 @@ export async function generateRecipes(cuisine: string, dietType: string, prefere
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 2000,
+      max_completion_tokens: 2000,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{"recipes":[]}');
@@ -218,7 +218,7 @@ export async function estimateNutritionFromName(foodName: string): Promise<any> 
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 500,
+      max_completion_tokens: 500,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -257,7 +257,7 @@ export async function parseVoiceFood(audioText: string): Promise<FoodAnalysisRes
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 800,
+      max_completion_tokens: 800,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -295,7 +295,7 @@ export async function estimateNutrition(foods: FoodAnalysisResult['foods']): Pro
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 500,
+      max_completion_tokens: 500,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -339,7 +339,7 @@ export async function calculateNutritionScore(
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 400,
+      max_completion_tokens: 400,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -379,7 +379,7 @@ export async function checkDietCompatibility(
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 300,
+      max_completion_tokens: 300,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -465,7 +465,7 @@ export async function analyzeAllergens(
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 1000,
+      max_completion_tokens: 1000,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -546,7 +546,7 @@ export async function calculateSustainabilityScore(
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 800,
+      max_completion_tokens: 800,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -614,7 +614,7 @@ export async function generateMealInsights(
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 600,
+      max_completion_tokens: 600,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');

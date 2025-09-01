@@ -263,7 +263,7 @@ Return JSON matching the contract exactly:
         }
       ],
       temperature: 0.8, // Higher creativity
-      max_tokens: 1500,
+      max_completion_tokens: 1500,
       response_format: { type: "json_object" }
     });
 

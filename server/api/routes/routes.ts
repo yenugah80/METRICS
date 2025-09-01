@@ -210,9 +210,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const openai = await OpenAIManager.getInstance();
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini', // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        model: 'gpt-5', // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
         messages,
-        max_tokens: 200,
+        max_completion_tokens: 200,
         temperature: 0.7
       });
 

@@ -138,7 +138,7 @@ Examples:
           }
         ],
         response_format: { type: "json_object" },
-        max_tokens: maxTokens,
+        max_completion_tokens: maxTokens,
         temperature: 0.1 // Low temperature for consistent parsing
       });
 

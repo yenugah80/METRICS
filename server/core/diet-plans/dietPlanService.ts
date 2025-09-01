@@ -166,7 +166,7 @@ Daily Targets: ${targets.calories} calories, ${targets.protein}g protein
 Respond with JSON: { "planName": "motivating plan name", "overview": "2-sentence description" }`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
     });
@@ -204,7 +204,7 @@ Respond with JSON: {
 }`;
 
           const mealResponse = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: "gpt-5",
             messages: [{ role: "user", content: mealPrompt }],
             response_format: { type: "json_object" },
           });
@@ -252,7 +252,7 @@ Generate 3-5 supplement recommendations with timing and dosage.
 Respond with JSON array: [{ "name": "supplement name", "dosage": "amount", "timing": "when to take", "purpose": "why needed", "priority": "essential/recommended/optional", "safetyNotes": "precautions" }]`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5",
       messages: [{ role: "user", content: supplementPrompt }],
       response_format: { type: "json_object" },
     });
@@ -287,7 +287,7 @@ Generate 4-6 lifestyle recommendations covering sleep, exercise, hydration, stre
 Respond with JSON array: [{ "category": "sleep/exercise/hydration/stress/meal_timing", "title": "recommendation title", "description": "detailed guidance", "actionItems": ["specific actions"], "frequency": "daily/weekly", "difficulty": "easy/medium/hard" }]`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5",
       messages: [{ role: "user", content: lifestylePrompt }],
       response_format: { type: "json_object" },
     });
