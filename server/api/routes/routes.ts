@@ -1602,7 +1602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`User diet preferences: ${dietPreferences.length > 0 ? dietPreferences.join(', ') : 'none set'}`);
       
       // Import and use the combined analysis function with user preferences
-      const { analyzeFoodImageWithNutrition } = await import("./imageAnalysis");
+      const { analyzeFoodImageWithNutrition } = await import("../../integrations/openai/imageAnalysis");
       
       const nutritionAnalysis = await analyzeFoodImageWithNutrition(imageBase64, dietPreferences);
       

@@ -125,6 +125,10 @@ export interface IStorage {
   // Save AI-generated meal data
   saveMealFromAI(userId: string, aiAnalysis: any): Promise<Meal>;
   
+  // User profile management
+  getUserProfile(userId: string): Promise<any | undefined>;
+  upsertUserProfile(profileData: any): Promise<any>;
+  
   // User activity and engagement methods
   getActiveUserCount(): Promise<number>;
   getUserActivityStreak(userId: string): Promise<number>;
@@ -1053,6 +1057,57 @@ export class DatabaseStorage implements IStorage {
         .where(eq(users.id, userId));
     } catch (error) {
       console.error('Error updating user profile:', error);
+      throw error;
+    }
+  }
+  
+  // Get user profile method
+  async getUserProfile(userId: string): Promise<any | undefined> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) return undefined;
+      
+      // Return profile data extracted from user record
+      return {
+        userId: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+        isPremium: user.isPremium,
+        dietPreferences: user.dietPreferences || [],
+        allergens: user.allergens || [],
+        dailyCalorieTarget: user.dailyCalorieGoal || 2000,
+        dailyProteinTarget: user.dailyProteinGoal || 150,
+        dailyCarbTarget: user.dailyCarbGoal || 250,
+        dailyFatTarget: user.dailyFatGoal || 65,
+        activityLevel: user.activityLevel || 'moderate',
+      };
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return undefined;
+    }
+  }
+  
+  // Upsert user profile method
+  async upsertUserProfile(profileData: any): Promise<any> {
+    try {
+      const user = await this.updateUser(profileData.userId, {
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        email: profileData.email,
+        dietPreferences: profileData.dietPreferences,
+        allergens: profileData.allergens,
+        dailyCalorieGoal: profileData.dailyCalorieTarget,
+        dailyProteinGoal: profileData.dailyProteinTarget,
+        dailyCarbGoal: profileData.dailyCarbTarget,
+        dailyFatGoal: profileData.dailyFatTarget,
+        activityLevel: profileData.activityLevel,
+      });
+      
+      return this.getUserProfile(user.id);
+    } catch (error) {
+      console.error('Error upserting user profile:', error);
       throw error;
     }
   }

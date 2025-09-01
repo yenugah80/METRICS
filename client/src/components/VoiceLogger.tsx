@@ -13,6 +13,8 @@ import { useAuth } from '@/hooks/useLocalAuth';
 interface VoiceLoggerProps {
   onFoodLogged?: (mealData: any) => void;
   onClose?: () => void;
+  onVoiceResult?: (transcript: string) => Promise<void>;
+  disabled?: boolean;
 }
 
 interface ParsedFood {
@@ -22,7 +24,7 @@ interface ParsedFood {
   confidence: number;
 }
 
-export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps) {
+export default function VoiceLogger({ onFoodLogged, onClose, onVoiceResult, disabled }: VoiceLoggerProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -161,9 +163,19 @@ export default function VoiceLogger({ onFoodLogged, onClose }: VoiceLoggerProps)
     setIsRecording(false);
   };
 
-  const confirmTranscript = () => {
+  const confirmTranscript = async () => {
     setIsTranscriptConfirmed(true);
-    processVoiceInput();
+    
+    // If onVoiceResult is provided, use it instead of full processing
+    if (onVoiceResult) {
+      try {
+        await onVoiceResult(transcript.trim());
+      } catch (error) {
+        console.error('Voice result error:', error);
+      }
+    } else {
+      processVoiceInput();
+    }
   };
 
   const editTranscript = () => {
@@ -327,6 +339,7 @@ Nutrition Grade: ${nutritionScore?.grade || 'N/A'} (${nutritionScore?.score || 0
                 onClick={startRecording}
                 className="flex items-center gap-2"
                 size="lg"
+                disabled={disabled || isProcessing}
                 data-testid="button-start-recording"
               >
                 <Mic className="w-5 h-5" />
@@ -338,6 +351,7 @@ Nutrition Grade: ${nutritionScore?.grade || 'N/A'} (${nutritionScore?.score || 0
                 variant="destructive"
                 className="flex items-center gap-2"
                 size="lg"
+                disabled={disabled}
                 data-testid="button-stop-recording"
               >
                 <MicOff className="w-5 h-5" />
