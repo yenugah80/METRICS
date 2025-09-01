@@ -221,74 +221,212 @@ export default function FitnessDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50" data-testid="fitness-dashboard">
       <div className="container mx-auto p-6 max-w-7xl">
         
-        {/* Vibrant Header with Gamification */}
+        {/* Hero Section - Progress Rings Front and Center */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Your Nutrition Journey
-              </h1>
-              <p className="text-gray-600 mt-2 text-lg">Track, optimize, and thrive with AI-powered insights</p>
-            </div>
-            <div className="flex gap-3">
-              <TestXPButton />
-              <SyncProgressButton />
-            </div>
+          <div className="text-center mb-8">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              💪 Your Journey
+            </h1>
+            <p className="text-gray-600 text-lg">Track, optimize, and thrive with AI-powered insights</p>
           </div>
 
-          {/* Vibrant Level and XP Bar */}
-          <Card className="bg-gradient-to-r from-green-400/20 via-blue-400/20 to-purple-400/20 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                    {data.gamification.level}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-xl text-gray-800">Level {data.gamification.level} Health Champion</h3>
-                    <p className="text-gray-600">{data.gamification.currentXP.toLocaleString()} XP • {data.gamification.xpForNextLevel.toLocaleString()} to next level</p>
+          {/* Main Progress Rings - Front and Center */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            {/* Calories Ring */}
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardContent className="p-6 text-center">
+                <div className="relative w-20 h-20 mx-auto mb-4">
+                  <svg className="w-20 h-20 transform -rotate-90">
+                    <circle cx="40" cy="40" r="36" stroke="#e5e7eb" strokeWidth="6" fill="none" />
+                    <circle 
+                      cx="40" cy="40" r="36" 
+                      stroke="#10b981" 
+                      strokeWidth="6" 
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 36}`}
+                      strokeDashoffset={`${2 * Math.PI * 36 * (1 - Math.min(data.todayStats.calories / data.todayStats.caloriesGoal, 1))}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-green-700">{Math.round(data.todayStats.calories)}</div>
+                      <div className="text-xs text-gray-600">cal</div>
+                    </div>
                   </div>
                 </div>
+                <div className="text-sm font-medium text-gray-700">🍎 Calories</div>
+                <div className="text-xs text-gray-500">{Math.round((data.todayStats.calories / data.todayStats.caloriesGoal) * 100)}% of goal</div>
+              </CardContent>
+            </Card>
+
+            {/* Protein Ring */}
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardContent className="p-6 text-center">
+                <div className="relative w-20 h-20 mx-auto mb-4">
+                  <svg className="w-20 h-20 transform -rotate-90">
+                    <circle cx="40" cy="40" r="36" stroke="#e5e7eb" strokeWidth="6" fill="none" />
+                    <circle 
+                      cx="40" cy="40" r="36" 
+                      stroke="#3b82f6" 
+                      strokeWidth="6" 
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 36}`}
+                      strokeDashoffset={`${2 * Math.PI * 36 * (1 - Math.min(data.todayStats.protein / data.todayStats.proteinGoal, 1))}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-blue-700">{Math.round(data.todayStats.protein)}g</div>
+                      <div className="text-xs text-gray-600">protein</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-sm font-medium text-gray-700">💪 Protein</div>
+                <div className="text-xs text-gray-500">{Math.round((data.todayStats.protein / data.todayStats.proteinGoal) * 100)}% of goal</div>
+              </CardContent>
+            </Card>
+
+            {/* Carbs Ring */}
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardContent className="p-6 text-center">
+                <div className="relative w-20 h-20 mx-auto mb-4">
+                  <svg className="w-20 h-20 transform -rotate-90">
+                    <circle cx="40" cy="40" r="36" stroke="#e5e7eb" strokeWidth="6" fill="none" />
+                    <circle 
+                      cx="40" cy="40" r="36" 
+                      stroke="#8b5cf6" 
+                      strokeWidth="6" 
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 36}`}
+                      strokeDashoffset={`${2 * Math.PI * 36 * (1 - Math.min(data.todayStats.carbs / data.todayStats.carbsGoal, 1))}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-purple-700">{Math.round(data.todayStats.carbs)}g</div>
+                      <div className="text-xs text-gray-600">carbs</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-sm font-medium text-gray-700">🍞 Carbs</div>
+                <div className="text-xs text-gray-500">{Math.round((data.todayStats.carbs / data.todayStats.carbsGoal) * 100)}% of goal</div>
+              </CardContent>
+            </Card>
+
+            {/* Fat Ring */}
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardContent className="p-6 text-center">
+                <div className="relative w-20 h-20 mx-auto mb-4">
+                  <svg className="w-20 h-20 transform -rotate-90">
+                    <circle cx="40" cy="40" r="36" stroke="#e5e7eb" strokeWidth="6" fill="none" />
+                    <circle 
+                      cx="40" cy="40" r="36" 
+                      stroke="#f97316" 
+                      strokeWidth="6" 
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 36}`}
+                      strokeDashoffset={`${2 * Math.PI * 36 * (1 - Math.min(data.todayStats.fat / data.todayStats.fatGoal, 1))}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-orange-700">{Math.round(data.todayStats.fat)}g</div>
+                      <div className="text-xs text-gray-600">fat</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-sm font-medium text-gray-700">🥑 Healthy Fats</div>
+                <div className="text-xs text-gray-500">{Math.round((data.todayStats.fat / data.todayStats.fatGoal) * 100)}% of goal</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Enhanced Gamification Section */}
+          <Card className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-0 shadow-2xl mb-8">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-3 bg-orange-100 px-4 py-2 rounded-full">
-                    <Flame className="w-6 h-6 text-orange-500" />
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-orange-700">{data.gamification.currentStreak}</div>
-                      <div className="text-xs text-orange-600">Day Streak</div>
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-2xl shadow-2xl">
+                      {data.gamification.level}
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                      <Star className="w-3 h-3 text-white" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 bg-yellow-100 px-4 py-2 rounded-full">
-                    <Trophy className="w-6 h-6 text-yellow-600" />
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-yellow-700">{data.gamification.longestStreak}</div>
-                      <div className="text-xs text-yellow-600">Best Streak</div>
-                    </div>
+                  <div>
+                    <h3 className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      🏆 Level {data.gamification.level} Health Champion
+                    </h3>
+                    <p className="text-gray-600 text-lg">
+                      ✨ {data.gamification.currentXP.toLocaleString()} XP • {data.gamification.xpForNextLevel.toLocaleString()} to next level
+                    </p>
                   </div>
+                </div>
+                <div className="flex gap-4">
+                  <TestXPButton />
+                  <SyncProgressButton />
+                </div>
+              </div>
+
+              {/* Streak Counters */}
+              <div className="flex items-center justify-center gap-8 mb-8">
+                <div className="text-center bg-gradient-to-br from-orange-400 to-red-500 px-6 py-4 rounded-2xl text-white shadow-lg">
+                  <Flame className="w-8 h-8 mx-auto mb-2" />
+                  <div className="text-3xl font-bold">{data.gamification.currentStreak}</div>
+                  <div className="text-sm opacity-90">🔥 Day Streak</div>
+                </div>
+                <div className="text-center bg-gradient-to-br from-yellow-400 to-orange-500 px-6 py-4 rounded-2xl text-white shadow-lg">
+                  <Trophy className="w-8 h-8 mx-auto mb-2" />
+                  <div className="text-3xl font-bold">{data.gamification.longestStreak}</div>
+                  <div className="text-sm opacity-90">🏆 Best Streak</div>
                 </div>
               </div>
               
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="font-medium text-gray-700">Progress to Level {data.gamification.level + 1}</span>
-                  <span className="font-bold text-green-600">{Math.round((data.gamification.currentXP / data.gamification.totalXPNeeded) * 100)}%</span>
+              {/* XP Progress Bar */}
+              <div className="mb-6">
+                <div className="flex justify-between text-sm mb-3">
+                  <span className="font-bold text-gray-800">🚀 Progress to Level {data.gamification.level + 1}</span>
+                  <span className="font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                    {Math.round((data.gamification.currentXP / data.gamification.totalXPNeeded) * 100)}%
+                  </span>
                 </div>
-                <Progress 
-                  value={(data.gamification.currentXP / data.gamification.totalXPNeeded) * 100} 
-                  className="h-3 bg-gray-200"
-                />
+                <div className="relative">
+                  <Progress 
+                    value={(data.gamification.currentXP / data.gamification.totalXPNeeded) * 100} 
+                    className="h-4 bg-gray-200"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-blue-500 rounded-full opacity-80" 
+                       style={{ width: `${(data.gamification.currentXP / data.gamification.totalXPNeeded) * 100}%` }} />
+                </div>
               </div>
 
-              {/* Vibrant Badges */}
-              <div className="flex gap-2 flex-wrap">
-                {data.gamification.badges.map((badge, index) => (
-                  <Badge key={index} className={`${getBadgeColor(badge)} shadow-md`}>
-                    <Award className="w-3 h-3 mr-1" />
-                    {badge.replace('_', ' ')}
+              {/* Achievement Badges */}
+              <div>
+                <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  🏅 Your Achievements
+                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                    {data.gamification.badges.length}
                   </Badge>
-                ))}
-                {data.gamification.badges.length === 0 && (
-                  <span className="text-gray-500 text-sm">Complete your first goal to earn badges!</span>
-                )}
+                </h4>
+                <div className="flex gap-3 flex-wrap">
+                  {data.gamification.badges.map((badge, index) => (
+                    <Badge key={index} className={`${getBadgeColor(badge)} shadow-lg text-sm py-2 px-3 hover:scale-105 transition-transform`}>
+                      <Award className="w-4 h-4 mr-2" />
+                      {badge.replace('_', ' ')}
+                    </Badge>
+                  ))}
+                  {data.gamification.badges.length === 0 && (
+                    <div className="text-center w-full py-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg">
+                      <Trophy className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <span className="text-gray-600">🎆 Complete your first goal to earn badges!</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -483,10 +621,20 @@ export default function FitnessDashboard() {
                         </div>
                       );
                     }) : (
-                      <div className="text-center py-8">
-                        <ChefHat className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                        <p className="text-gray-500">No meals logged yet today</p>
-                        <p className="text-sm text-gray-400">Start tracking to see your progress!</p>
+                      <div className="text-center py-12">
+                        <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                          <ChefHat className="w-12 h-12 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">🍽️ Ready to start your journey?</h3>
+                        <p className="text-gray-600 mb-6">Log your first meal and watch your nutrition come to life!</p>
+                        <div className="flex justify-center gap-3">
+                          <Button className="bg-gradient-to-r from-green-500 to-blue-500 text-white hover:shadow-lg">
+                            📷 Scan Meal
+                          </Button>
+                          <Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg">
+                            🎙️ Voice Log
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -519,10 +667,15 @@ export default function FitnessDashboard() {
                         <Zap className="w-5 h-5 text-yellow-500" />
                       </div>
                     )) : (
-                      <div className="text-center py-8">
-                        <Zap className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                        <p className="text-gray-500">No recent achievements</p>
-                        <p className="text-sm text-gray-400">Complete goals to earn XP!</p>
+                      <div className="text-center py-12">
+                        <div className="w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                          <Zap className="w-10 h-10 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">⚡ Ready to level up?</h3>
+                        <p className="text-gray-600 mb-6">Complete nutrition goals to earn your first achievements!</p>
+                        <div className="bg-gradient-to-r from-yellow-100 to-orange-100 p-4 rounded-lg border border-yellow-200">
+                          <p className="text-sm text-gray-700">💡 <strong>Pro tip:</strong> Log a balanced meal to earn +50 XP!</p>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -76,10 +76,13 @@ export default function ChefAI() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
-      return await apiRequest('POST', '/api/chef-ai/chat', {
+      const payload: any = {
         message: messageText,
-        conversationId: activeConversationId,
-      });
+      };
+      if (activeConversationId) {
+        payload.conversationId = activeConversationId;
+      }
+      return await apiRequest('POST', '/api/chef-ai/chat', payload);
     },
     onSuccess: (data: any) => {
       setActiveConversationId(data.conversationId);
@@ -379,64 +382,85 @@ export default function ChefAI() {
               </div>
             </>
           ) : (
-            /* Welcome Screen */
+            /* Welcome Screen - More Visual & Engaging */
             <div className="flex-1 flex items-center justify-center p-8">
-              <div className="max-w-2xl text-center space-y-6">
-                <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center mx-auto">
-                  <Bot className="w-12 h-12 text-white" />
+              <div className="max-w-2xl text-center space-y-8">
+                {/* Animated ChefAI Avatar */}
+                <div className="relative">
+                  <div className="w-32 h-32 bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 rounded-full flex items-center justify-center mx-auto shadow-2xl animate-pulse">
+                    <Bot className="w-16 h-16 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
                 </div>
                 
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Meet ChefAI</h2>
-                  <p className="text-gray-600 text-lg">
-                    Your personal nutrition coach who understands your eating patterns and helps you achieve your health goals
+                  <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-teal-600 to-green-600 bg-clip-text text-transparent mb-3">Meet ChefAI</h2>
+                  <p className="text-gray-600 text-lg mb-6">
+                    🍽️ Your AI nutrition coach is ready to help you eat better!
                   </p>
                 </div>
 
-                {/* Suggested Questions */}
-                {suggestions.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-800">Get started with these questions:</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {suggestions.map((suggestion: string, index: number) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          className="p-4 h-auto text-left justify-start bg-white/80 backdrop-blur-sm border-blue-200 hover:bg-blue-50"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          data-testid={`button-suggestion-${index}`}
-                        >
-                          <MessageCircle className="w-4 h-4 mr-3 text-blue-600 flex-shrink-0" />
-                          <span className="text-sm">{suggestion}</span>
-                        </Button>
-                      ))}
-                    </div>
+                {/* Quick Action Chips */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800">🚀 Quick Actions</h3>
+                  <div className="grid gap-3 max-w-lg mx-auto">
+                    {[
+                      { text: "What's a healthy lunch today?", emoji: "🥗", color: "from-green-400 to-green-600" },
+                      { text: "Suggest 400-calorie dinners", emoji: "🍽️", color: "from-blue-400 to-blue-600" },
+                      { text: "How can I increase my protein?", emoji: "💪", color: "from-purple-400 to-purple-600" },
+                      { text: "Make me a meal plan", emoji: "📋", color: "from-orange-400 to-orange-600" }
+                    ].map((suggestion, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className={`justify-start p-4 h-auto text-left hover:shadow-lg border-0 bg-gradient-to-r ${suggestion.color} text-white hover:scale-105 transition-all duration-200`}
+                        onClick={() => handleSuggestionClick(suggestion.text)}
+                        data-testid={`button-suggestion-${index}`}
+                      >
+                        <span className="text-xl mr-3">{suggestion.emoji}</span>
+                        <span className="text-sm font-medium">{suggestion.text}</span>
+                      </Button>
+                    ))}
                   </div>
-                )}
+                </div>
 
-                {/* Features */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                  <Card className="bg-white/80 backdrop-blur-sm border-blue-200">
-                    <CardContent className="p-4 text-center">
-                      <Utensils className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                      <h4 className="font-semibold text-sm">Meal Analysis</h4>
-                      <p className="text-xs text-gray-600">Get insights about your recent meals and eating patterns</p>
+                {/* Visual Feature Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card className="border-0 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <Utensils className="w-8 h-8 text-white" />
+                      </div>
+                      <h4 className="font-bold text-gray-800 mb-2">🔍 Meal Analysis</h4>
+                      <p className="text-sm text-gray-600">
+                        Get instant insights about calories, macros, and nutrition quality
+                      </p>
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-white/80 backdrop-blur-sm border-teal-200">
-                    <CardContent className="p-4 text-center">
-                      <TrendingUp className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-                      <h4 className="font-semibold text-sm">Progress Tracking</h4>
-                      <p className="text-xs text-gray-600">Understand your nutrition trends and improvements</p>
+                  <Card className="border-0 bg-gradient-to-br from-green-50 to-green-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <TrendingUp className="w-8 h-8 text-white" />
+                      </div>
+                      <h4 className="font-bold text-gray-800 mb-2">📊 Progress Tracking</h4>
+                      <p className="text-sm text-gray-600">
+                        See your nutrition trends and celebrate improvements
+                      </p>
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-white/80 backdrop-blur-sm border-green-200">
-                    <CardContent className="p-4 text-center">
-                      <Sparkles className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                      <h4 className="font-semibold text-sm">Smart Coaching</h4>
-                      <p className="text-xs text-gray-600">Personalized advice based on your data and goals</p>
+                  <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <Sparkles className="w-8 h-8 text-white" />
+                      </div>
+                      <h4 className="font-bold text-gray-800 mb-2">✨ Smart Coaching</h4>
+                      <p className="text-sm text-gray-600">
+                        Get personalized advice based on your goals and data
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
