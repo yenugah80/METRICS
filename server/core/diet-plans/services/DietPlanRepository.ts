@@ -107,7 +107,21 @@ export class DietPlanRepository {
 
   // Get user profile for plan generation
   async getUserProfile(userId: string) {
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db.select({
+      id: users.id,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      height: users.height,
+      weight: users.weight,
+      age: users.age,
+      gender: users.gender,
+      activityLevel: users.activityLevel,
+      dietPreferences: users.dietPreferences,
+      allergens: users.allergens,
+      cuisinePreferences: users.cuisinePreferences,
+    }).from(users).where(eq(users.id, userId)).limit(1);
+    
     if (!user) {
       throw new Error('User not found');
     }
