@@ -17,7 +17,10 @@ import {
   ExternalLink,
   Target,
   Check,
-  RefreshCw
+  RefreshCw,
+  Heart,
+  Plus,
+  AlertCircle
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -29,6 +32,7 @@ import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 interface InteractiveMealCardProps {
   mealId: string;

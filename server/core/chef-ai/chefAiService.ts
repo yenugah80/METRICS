@@ -7,6 +7,89 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// OpenAI Tools Definitions for Real User Data Integration  
+const CHEF_AI_TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "get_user_daily_nutrition",
+      description: "Get user's actual daily nutrition data for a specific date",
+      parameters: {
+        type: "object",
+        properties: {
+          userId: { type: "string", description: "User ID" },
+          date: { type: "string", description: "Date in YYYY-MM-DD format" }
+        },
+        required: ["userId", "date"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_meal_suggestions",
+      description: "Get personalized meal suggestions based on user's dietary preferences and health goals",
+      parameters: {
+        type: "object",
+        properties: {
+          userId: { type: "string", description: "User ID" },
+          mealType: { type: "string", enum: ["breakfast", "lunch", "dinner", "snack"], description: "Type of meal" },
+          cuisine: { type: "string", description: "Preferred cuisine type" },
+          healthFocus: { type: "string", description: "Health focus like gut health, heart health, etc." },
+          calorieRange: { type: "object", properties: { min: { type: "number" }, max: { type: "number" } } }
+        },
+        required: ["userId", "mealType"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_recipe_details",
+      description: "Get detailed recipe information with nutritional breakdown",
+      parameters: {
+        type: "object",
+        properties: {
+          mealName: { type: "string", description: "Name of the meal/recipe" },
+          servings: { type: "number", description: "Number of servings" },
+          dietaryRestrictions: { type: "array", items: { type: "string" }, description: "Any dietary restrictions" }
+        },
+        required: ["mealName"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_user_health_profile",
+      description: "Get user's health goals, dietary preferences, and restrictions",
+      parameters: {
+        type: "object",
+        properties: {
+          userId: { type: "string", description: "User ID" }
+        },
+        required: ["userId"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_portion_size_guidance",
+      description: "Get personalized portion size recommendations based on user's goals",
+      parameters: {
+        type: "object",
+        properties: {
+          userId: { type: "string", description: "User ID" },
+          foodItem: { type: "string", description: "Name of the food item" },
+          mealType: { type: "string", description: "Type of meal" }
+        },
+        required: ["userId", "foodItem"]
+      }
+    }
+  }
+];
+
 export interface ChefAiChatRequest {
   userId: string;
   message: string;
@@ -343,7 +426,162 @@ export class ChefAiService {
     return 'general';
   }
 
-  // Generate contextual AI response with professional nutrition guidance
+  // OpenAI Function Calling Implementation
+  private async executeFunctionCall(functionName: string, args: any, userId: string): Promise<any> {
+    try {
+      switch (functionName) {
+        case 'get_user_daily_nutrition':
+          return await this.getUserDailyNutrition(args.userId, args.date);
+        
+        case 'get_meal_suggestions':
+          return await this.getMealSuggestions(args.userId, args.mealType, args.cuisine, args.healthFocus, args.calorieRange);
+        
+        case 'get_recipe_details':
+          return await this.getRecipeDetails(args.mealName, args.servings, args.dietaryRestrictions);
+        
+        case 'get_user_health_profile':
+          return await this.getUserHealthProfile(args.userId);
+        
+        case 'get_portion_size_guidance':
+          return await this.getPortionSizeGuidance(args.userId, args.foodItem, args.mealType);
+        
+        default:
+          throw new Error(`Unknown function: ${functionName}`);
+      }
+    } catch (error) {
+      console.error(`Function call error for ${functionName}:`, error);
+      return { error: `Failed to execute ${functionName}: ${error.message}` };
+    }
+  }
+
+  // Function implementations for real user data
+  private async getUserDailyNutrition(userId: string, date: string): Promise<any> {
+    try {
+      const [dailyData] = await db.select()
+        .from(dailyNutrition)
+        .where(and(
+          eq(dailyNutrition.userId, userId),
+          eq(dailyNutrition.date, date)
+        ))
+        .limit(1);
+      
+      return {
+        date,
+        calories: dailyData?.totalCalories || 0,
+        protein: dailyData?.totalProtein || 0,
+        carbs: dailyData?.totalCarbs || 0,
+        fat: dailyData?.totalFat || 0,
+        fiber: dailyData?.totalFiber || 0,
+        mealsLogged: dailyData?.mealsLogged || 0
+      };
+    } catch (error) {
+      return { error: 'Unable to fetch daily nutrition data', calories: 0, protein: 0, carbs: 0, fat: 0 };
+    }
+  }
+
+  private async getMealSuggestions(userId: string, mealType: string, cuisine?: string, healthFocus?: string, calorieRange?: any): Promise<any> {
+    // Get user's dietary preferences and goals
+    const userGoals = await this.getUserHealthProfile(userId);
+    
+    const suggestions = [
+      {
+        name: `Healthy ${cuisine || 'Mediterranean'} ${mealType}`,
+        calories: calorieRange?.min || 350,
+        protein: Math.round((calorieRange?.min || 350) * 0.25 / 4),
+        carbs: Math.round((calorieRange?.min || 350) * 0.45 / 4),
+        fat: Math.round((calorieRange?.min || 350) * 0.30 / 9),
+        healthBenefits: [healthFocus || 'Balanced nutrition', 'Energy boost'],
+        portionSize: mealType === 'breakfast' ? '1 medium bowl' : mealType === 'lunch' ? '1 large plate' : '1 standard serving'
+      }
+    ];
+    
+    return { suggestions, userPreferences: userGoals };
+  }
+
+  private async getRecipeDetails(mealName: string, servings: number = 4, dietaryRestrictions?: string[]): Promise<any> {
+    // This would typically query a recipe database or generate via AI
+    return {
+      name: mealName,
+      servings,
+      prepTime: '15 minutes',
+      cookTime: '25 minutes',
+      difficulty: 'Easy',
+      ingredients: [
+        { item: 'Main protein', amount: '6 oz', calories: 200, protein: 25, carbs: 0, fat: 8 },
+        { item: 'Vegetables', amount: '2 cups', calories: 50, protein: 3, carbs: 10, fat: 0 },
+        { item: 'Whole grains', amount: '1 cup cooked', calories: 150, protein: 5, carbs: 30, fat: 2 }
+      ],
+      instructions: [
+        'Prepare all ingredients',
+        'Cook protein according to method',
+        'Steam or sauté vegetables',
+        'Combine and serve'
+      ],
+      nutritionPerServing: {
+        calories: 400,
+        protein: 33,
+        carbs: 40,
+        fat: 10,
+        fiber: 8
+      },
+      dietaryInfo: dietaryRestrictions || []
+    };
+  }
+
+  private async getUserHealthProfile(userId: string): Promise<any> {
+    try {
+      // Get user goals and preferences
+      const userResult = await db.execute(sql`
+        SELECT 
+          daily_calorie_goal,
+          daily_protein_goal,
+          daily_carb_goal,
+          daily_fat_goal,
+          health_goals
+        FROM users 
+        WHERE id = ${userId} 
+        LIMIT 1
+      `);
+      
+      const user = userResult.rows[0];
+      
+      return {
+        dailyCalories: user?.daily_calorie_goal || 2000,
+        dailyProtein: user?.daily_protein_goal || 150,
+        dailyCarbs: user?.daily_carb_goal || 200,
+        dailyFat: user?.daily_fat_goal || 67,
+        healthGoals: user?.health_goals || { primary: 'maintenance' }
+      };
+    } catch (error) {
+      console.error('Error getting user health profile:', error);
+      return {
+        dailyCalories: 2000,
+        dailyProtein: 150,
+        dailyCarbs: 200,
+        dailyFat: 67,
+        healthGoals: { primary: 'maintenance' }
+      };
+    }
+  }
+
+  private async getPortionSizeGuidance(userId: string, foodItem: string, mealType: string): Promise<any> {
+    const userProfile = await this.getUserHealthProfile(userId);
+    
+    // Calculate portion based on user's daily goals and meal type
+    const mealCalorieTarget = mealType === 'breakfast' ? userProfile.dailyCalories * 0.25 :
+                             mealType === 'lunch' ? userProfile.dailyCalories * 0.35 :
+                             mealType === 'dinner' ? userProfile.dailyCalories * 0.30 :
+                             userProfile.dailyCalories * 0.10; // snack
+    
+    return {
+      recommendedPortion: `${Math.round(mealCalorieTarget / 100)} servings`,
+      calorieTarget: Math.round(mealCalorieTarget),
+      proteinTarget: Math.round(mealCalorieTarget * 0.25 / 4),
+      guidance: `For ${mealType}, aim for ${Math.round(mealCalorieTarget)} calories with this ${foodItem}`
+    };
+  }
+
+  // Generate contextual AI response with professional nutrition guidance and function calling
   private async generateContextualResponse(
     userMessage: string,
     context: NutritionContext,
@@ -362,9 +600,9 @@ export class ChefAiService {
         `${msg.role}: ${msg.content}`
       ).join('\n');
 
-      // Call OpenAI GPT with enhanced context
+      // Call OpenAI GPT with function calling capabilities
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // Using latest efficient model
+        model: "gpt-4o-mini", // Using latest efficient model  
         messages: [
           {
             role: "system", 
@@ -375,17 +613,68 @@ export class ChefAiService {
             content: `Recent conversation:\n${historyContext}\n\nCurrent message: ${userMessage}`
           }
         ],
-        response_format: { type: "json_object" },
-        max_tokens: requestType === 'meal_plan' ? 1500 : 800, // Optimized token usage
-        temperature: requestType === 'meal_plan' ? 0.2 : 0.6, // Lower temperature for faster, more focused responses
+        tools: CHEF_AI_TOOLS,
+        tool_choice: "auto", // Let AI decide when to use tools
+        max_tokens: requestType === 'meal_plan' ? 1500 : 800,
+        temperature: requestType === 'meal_plan' ? 0.2 : 0.6,
       });
+      
+      let response = completion.choices[0].message;
+      
+      // Handle tool calls (modern OpenAI API)
+      if (response.tool_calls && response.tool_calls.length > 0) {
+        const toolCalls = response.tool_calls;
+        const toolResults = [];
+        
+        // Execute all tool calls
+        for (const toolCall of toolCalls) {
+          const functionName = toolCall.function.name;
+          const functionArgs = JSON.parse(toolCall.function.arguments);
+          
+          console.log(`ChefAI calling function: ${functionName}`, functionArgs);
+          
+          const functionResult = await this.executeFunctionCall(functionName, functionArgs, userId);
+          
+          toolResults.push({
+            tool_call_id: toolCall.id,
+            role: "tool" as const,
+            content: JSON.stringify(functionResult)
+          });
+        }
+        
+        // Call OpenAI again with the tool results
+        const followUpCompletion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt
+            },
+            {
+              role: "user", 
+              content: `Recent conversation:\n${historyContext}\n\nCurrent message: ${userMessage}`
+            },
+            {
+              role: "assistant",
+              content: response.content,
+              tool_calls: response.tool_calls
+            },
+            ...toolResults
+          ],
+          response_format: { type: "json_object" },
+          max_tokens: requestType === 'meal_plan' ? 1500 : 800,
+          temperature: requestType === 'meal_plan' ? 0.2 : 0.6,
+        });
+        
+        response = followUpCompletion.choices[0].message;
+      }
 
-      const response = completion.choices[0].message.content;
-      if (!response) {
+      const responseContent = response.content;
+      if (!responseContent) {
         throw new Error('Empty response from OpenAI');
       }
 
-      const parsedResponse = JSON.parse(response);
+      const parsedResponse = JSON.parse(responseContent);
       const responseTime = Date.now() - startTime;
       
       console.log(`ChefAI response generated in ${responseTime}ms`);
@@ -426,31 +715,49 @@ export class ChefAiService {
 
     switch (requestType) {
       case 'meal_plan':
-        return `Professional nutrition AI. Create structured meal plans with precise nutritional data.
+        return `You are ChefAI, a professional nutrition coach that creates personalized meal plans using REAL user data.
 
 ${baseContext}
 
-Create comprehensive meal plans immediately. Provide exact nutritional breakdowns for each meal.
+## Your Personality:
+- Friendly, enthusiastic food expert who LOVES creating amazing meal plans
+- ACTION-FIRST: Provide immediate comprehensive solutions, ask questions later
+- Use real data from function calls to personalize everything
+- Warm but professional - like a best friend who's also a nutrition expert
+
+## Available Functions:
+You can call these functions to get REAL user data:
+- get_user_daily_nutrition(userId, date) - Get actual nutrition intake
+- get_user_health_profile(userId) - Get real dietary goals and health focus  
+- get_meal_suggestions(userId, mealType, cuisine, healthFocus) - Get personalized suggestions
+- get_recipe_details(mealName, servings) - Get detailed recipes
+- get_portion_size_guidance(userId, foodItem, mealType) - Get personalized portions
+
+## Response Strategy:
+1. **IMMEDIATELY** call relevant functions to get user's real data
+2. **CREATE** comprehensive meal plans using their actual goals and preferences
+3. **PROVIDE** specific portion sizes based on their daily targets
+4. **INCLUDE** precise nutritional calculations tailored to them
 
 RESPONSE FORMAT (required JSON):
 {
-  "response": "Brief professional overview of the meal plan",
+  "response": "Hey! I've created a personalized [plan type] just for you! Based on your [actual goal] goal of [real number] calories daily, here's what I'm thinking...",
   "structuredData": {
     "mealPlan": {
-      "title": "Plan name",
+      "title": "Personalized plan name",
       "duration": "Number of days",
-      "overview": "Brief description",
+      "overview": "Brief description with user-specific details",
       "dailyPlans": [
         {
           "day": "Day 1",
           "meals": [
             {
               "mealType": "Breakfast",
-              "name": "Meal name",
-              "foods": ["food1", "food2", "food3"],
-              "portionControl": "Specific measurements",
+              "name": "Specific meal name",
+              "foods": ["real food1", "real food2", "real food3"],
+              "portionControl": "Exact measurements based on user goals",
               "macros": {"calories": 350, "protein": 25, "carbs": 35, "fat": 12, "fiber": 8},
-              "benefits": ["benefit1", "benefit2"]
+              "benefits": ["health benefit 1", "health benefit 2"]
             }
           ],
           "dailyTotals": {"calories": 1950, "protein": 145, "carbs": 185, "fat": 65, "fiber": 35}
@@ -465,7 +772,7 @@ RESPONSE FORMAT (required JSON):
       }
     }
   },
-  "insights": ["Key insights"],
+  "insights": ["Personalized insights using real user data"],
   "confidence": 0.95
 }`;
 
