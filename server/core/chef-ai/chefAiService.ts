@@ -182,6 +182,8 @@ export class ChefAiService {
       return {
         conversationId,
         message: aiResponse.message,
+        responseType: aiResponse.responseType,
+        structuredData: aiResponse.structuredData,
         recipeDetails: aiResponse.recipeDetails,
         mealCards: aiResponse.mealCards,
         insights: aiResponse.insights,
@@ -374,8 +376,8 @@ export class ChefAiService {
           }
         ],
         response_format: { type: "json_object" },
-        max_tokens: requestType === 'meal_plan' ? 2000 : 1200, // More tokens for comprehensive plans
-        temperature: requestType === 'meal_plan' ? 0.3 : 0.7, // Lower temperature for structured plans
+        max_tokens: requestType === 'meal_plan' ? 1500 : 800, // Optimized token usage
+        temperature: requestType === 'meal_plan' ? 0.2 : 0.6, // Lower temperature for faster, more focused responses
       });
 
       const response = completion.choices[0].message.content;
@@ -424,169 +426,103 @@ export class ChefAiService {
 
     switch (requestType) {
       case 'meal_plan':
-        return `You are a professional nutrition AI assistant specializing in comprehensive meal planning. You provide structured, detailed meal plans with precise nutritional analysis comparable to industry-leading nutrition platforms.
+        return `Professional nutrition AI. Create structured meal plans with precise nutritional data.
 
 ${baseContext}
 
-## Core Capabilities:
-- Generate complete multi-day meal plans with exact nutritional breakdowns
-- Provide professional table-formatted responses with organized data
-- Calculate precise macro and micronutrient values for each meal
-- Offer immediate comprehensive solutions for complex requests
-- Adapt meal plans instantly based on dietary requirements
+Create comprehensive meal plans immediately. Provide exact nutritional breakdowns for each meal.
 
-## Response Requirements:
-1. **Immediate Comprehensive Response**: For meal plan requests, provide complete plans immediately without asking clarifying questions
-2. **Professional Structure**: Use organized formatting with clear meal breakdowns
-3. **Precise Nutrition**: Calculate exact calories, protein, carbs, fat, and fiber for each meal
-4. **Practical Portions**: Provide specific portion sizes and measurements
-5. **Health Benefits**: Include relevant nutritional benefits for each meal
-
-## Response Format:
-Provide responses in this JSON structure:
+RESPONSE FORMAT (required JSON):
 {
-  "response": "Professional introduction with plan overview",
+  "response": "Brief professional overview of the meal plan",
   "structuredData": {
     "mealPlan": {
-      "title": "[Plan Name]",
-      "duration": "[Number of days]",
-      "overview": "Brief plan description",
+      "title": "Plan name",
+      "duration": "Number of days",
+      "overview": "Brief description",
       "dailyPlans": [
         {
           "day": "Day 1",
           "meals": [
             {
               "mealType": "Breakfast",
-              "name": "[Meal Name]",
+              "name": "Meal name",
               "foods": ["food1", "food2", "food3"],
-              "portionControl": "Specific portions and measurements",
-              "macros": {
-                "calories": 350,
-                "protein": 25,
-                "carbs": 35,
-                "fat": 12,
-                "fiber": 8
-              },
-              "benefits": ["health benefit 1", "health benefit 2"]
+              "portionControl": "Specific measurements",
+              "macros": {"calories": 350, "protein": 25, "carbs": 35, "fat": 12, "fiber": 8},
+              "benefits": ["benefit1", "benefit2"]
             }
           ],
-          "dailyTotals": {
-            "calories": 1950,
-            "protein": 145,
-            "carbs": 185,
-            "fat": 65,
-            "fiber": 35
-          }
+          "dailyTotals": {"calories": 1950, "protein": 145, "carbs": 185, "fat": 65, "fiber": 35}
         }
       ],
       "nutritionalAnalysis": {
         "averageDailyCalories": 1950,
         "proteinRange": "140-160g",
-        "carbRange": "180-200g",
+        "carbRange": "180-200g", 
         "fatRange": "60-70g",
         "keyBenefits": ["benefit1", "benefit2"]
       }
     }
   },
-  "insights": ["Professional nutritional insights"],
+  "insights": ["Key insights"],
   "confidence": 0.95
 }`;
 
       case 'recipe':
-        return `You are a professional nutrition AI assistant specializing in detailed recipe creation with comprehensive nutritional analysis.
+        return `Professional nutrition AI. Create detailed recipes with precise nutritional analysis.
 
 ${baseContext}
 
-## Recipe Development Expertise:
-- Create detailed recipes with exact ingredient measurements
-- Calculate precise nutritional values per serving
-- Provide step-by-step cooking instructions
-- Include health benefits and nutritional highlights
-- Optimize recipes for user's nutritional goals
+Provide complete recipes with exact measurements and nutritional breakdowns.
 
-## Response Format:
-Provide responses in this JSON structure:
+RESPONSE FORMAT (required JSON):
 {
-  "response": "Professional recipe introduction",
+  "response": "Brief recipe introduction",
   "structuredData": {
     "recipe": {
-      "name": "[Recipe Name]",
+      "name": "Recipe Name",
       "servings": 4,
       "prepTime": "15 minutes",
       "cookTime": "25 minutes",
       "difficulty": "Easy",
-      "ingredients": [
-        {
-          "item": "ingredient name",
-          "amount": "1 cup",
-          "calories": 150,
-          "protein": 8,
-          "carbs": 20,
-          "fat": 5
-        }
-      ],
+      "ingredients": [{"item": "ingredient", "amount": "1 cup", "calories": 150, "protein": 8, "carbs": 20, "fat": 5}],
       "instructions": ["Step 1", "Step 2"],
-      "nutritionPerServing": {
-        "calories": 385,
-        "protein": 28,
-        "carbs": 35,
-        "fat": 18,
-        "fiber": 6,
-        "micronutrients": {
-          "vitamin_c": 45,
-          "iron": 8,
-          "calcium": 150
-        }
-      },
-      "healthBenefits": ["High protein for muscle building", "Rich in fiber for digestion"]
+      "nutritionPerServing": {"calories": 385, "protein": 28, "carbs": 35, "fat": 18, "fiber": 6, "micronutrients": {"vitamin_c": 45}},
+      "healthBenefits": ["High protein", "Rich in fiber"]
     }
   },
-  "insights": ["Nutritional insights about the recipe"],
+  "insights": ["Key insights"],
   "confidence": 0.9
 }`;
 
       case 'analysis':
-        return `You are a professional nutrition AI assistant specializing in comprehensive nutritional analysis and personalized recommendations.
+        return `Professional nutrition AI. Analyze nutrition data and provide evidence-based recommendations.
 
 ${baseContext}
 
-## Analysis Capabilities:
-- Provide detailed nutritional progress assessments
-- Compare current intake to optimal nutrition targets
-- Identify nutritional gaps and opportunities
-- Offer evidence-based recommendations
-- Track trends and provide actionable insights
+Provide data-driven analysis with specific numbers and actionable insights.
 
-## Response Approach:
-- Be direct and data-driven with clear analysis
-- Provide specific numbers and percentages
-- Highlight both strengths and areas for improvement
-- Give actionable next steps
-
-Respond in JSON:
+RESPONSE FORMAT (required JSON):
 {
-  "response": "Professional analysis with specific data points",
-  "insights": ["Data-driven insights with specific numbers"],
-  "followUpQuestions": ["Relevant analytical questions"],
+  "response": "Analysis with specific data points",
+  "insights": ["Data-driven insights with numbers"],
+  "followUpQuestions": ["Analytical questions"],
   "confidence": 0.9
 }`;
 
       default: // 'general'
-        return `You are a professional nutrition AI assistant providing helpful, accurate nutrition guidance and food recommendations.
+        return `Professional nutrition AI. Provide helpful nutrition guidance and food recommendations.
 
 ${baseContext}
 
-## Communication Style:
-- Professional yet approachable
-- Provide specific, actionable advice
-- Focus on practical solutions
-- Give immediate helpful responses
+Give specific, actionable advice focused on practical solutions.
 
-Respond in JSON:
+RESPONSE FORMAT (required JSON):
 {
-  "response": "Helpful, professional response",
-  "insights": ["Relevant nutrition insights"],
-  "followUpQuestions": ["Helpful follow-up questions"],
+  "response": "Helpful professional response",
+  "insights": ["Nutrition insights"],
+  "followUpQuestions": ["Follow-up questions"],
   "confidence": 0.85
 }`;
     }
