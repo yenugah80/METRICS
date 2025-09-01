@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { DynamicProgressRings } from "@/components/dashboard/DynamicProgressRings";
 import { 
   Apple, 
   User, 
@@ -25,7 +26,10 @@ import {
   Settings,
   Zap,
   Trophy,
-  Flame
+  Flame,
+  TrendingUp,
+  Calendar,
+  Activity
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -133,13 +137,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 2. HERO: Apple Fitness-Style Progress Rings */}
-        <Card className="border-0 shadow-xl bg-white">
-          <CardContent className="p-6">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Daily Progress</h2>
-              <p className="text-gray-600">Track your nutrition goals with precision</p>
-            </div>
+        {/* 2. PRODUCTION-GRADE DYNAMIC PROGRESS TRACKING */}
+        <DynamicProgressRings userId={user?.id} />
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {/* Calories Ring */}

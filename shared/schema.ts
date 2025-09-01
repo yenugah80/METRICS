@@ -56,9 +56,11 @@ export const users = pgTable("users", {
   macroStrategy: varchar("macro_strategy", { length: 20 }).default('percent'), // 'percent' | 'per_kg' | 'absolute'
   macroTargets: jsonb("macro_targets").$type<{protein: number, carb: number, fat: number}>().default({protein: 30, carb: 40, fat: 30}), // percentages
   
-  // Dietary preferences
-  dietaryRestrictions: jsonb("dietary_restrictions").$type<string[]>().default([]),
-  allergens: jsonb("allergens").$type<string[]>().default([]),
+  // Dietary preferences - structured for production ETL matching
+  dietPreferences: jsonb("diet_preferences").$type<string[]>().default([]), // ["vegetarian","keto","gluten_free"]
+  allergens: jsonb("allergens").$type<string[]>().default([]), // ["peanuts","dairy","shellfish"]
+  healthGoals: jsonb("health_goals").$type<{primary: string, secondary?: string[]}>().default({primary: "maintenance"}),
+  fastingWindow: jsonb("fasting_window").$type<{start: string, end: string}>(), // {start:"20:00",end:"12:00"}
   cuisinePreferences: jsonb("cuisine_preferences").$type<string[]>().default([]),
   
   // Profile data
@@ -92,6 +94,12 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
   lastLoginAt: timestamp("last_login_at"),
   lastActiveDate: date("last_active_date"),
+  
+  // AI Learning & Meal Preferences
+  mealSwaps: jsonb("meal_swaps").$type<Array<{from: string, to: string, count: number}>>().default([]),
+  favoriteFoods: jsonb("favorite_foods").$type<string[]>().default([]),
+  preferredProteins: jsonb("preferred_proteins").$type<string[]>().default([]),
+  dislikedFoods: jsonb("disliked_foods").$type<string[]>().default([]),
 });
 
 // Food database with comprehensive nutrition data

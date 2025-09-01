@@ -8,6 +8,8 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { InteractiveMealCard } from '@/components/meal/InteractiveMealCard';
+import { useAuth } from '@/hooks/useLocalAuth';
 import { 
   Calendar, 
   Target, 
@@ -54,6 +56,7 @@ export default function DietPlan() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showTargetCalculation, setShowTargetCalculation] = useState(false);
+  const { user } = useAuth();
 
   // Fetch active diet plan
   const { data: planData, isLoading: planLoading } = useQuery({
@@ -298,48 +301,50 @@ export default function DietPlan() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {['breakfast', 'lunch', 'dinner', 'snack'].map((mealType) => (
-                  <Card key={mealType} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg capitalize">{mealType}</CardTitle>
-                      {meals[mealType as keyof DayMeals]?.option1 && (
-                        <Badge variant="secondary" className="w-fit">
-                          {meals[mealType as keyof DayMeals]?.option1?.calories || 0} calories
-                        </Badge>
-                      )}
-                    </CardHeader>
-                    <CardContent>
-                      {meals[mealType as keyof DayMeals]?.option1 ? (
-                        <div className="space-y-3">
-                          <div>
-                            <h4 className="font-semibold">{meals[mealType as keyof DayMeals]?.option1?.mealName}</h4>
-                            <p className="text-sm text-gray-600">{meals[mealType as keyof DayMeals]?.option1?.description}</p>
-                          </div>
-                          
-                          <div className="text-xs text-gray-500 space-y-1">
-                            <p><strong>Portion:</strong> {meals[mealType as keyof DayMeals]?.option1?.portionSize}</p>
-                            <p><strong>Benefits:</strong> {meals[mealType as keyof DayMeals]?.option1?.healthBenefits}</p>
-                          </div>
-
-                          {meals[mealType as keyof DayMeals]?.option2 && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full"
-                              data-testid={`button-view-options-${mealType}`}
-                            >
-                              View Alternative Option
-                            </Button>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-center py-4 text-gray-500">
-                          <p>No meal planned</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+                {['breakfast', 'lunch', 'dinner', 'snack'].map((mealType) => {
+                  const mealData = meals[mealType as keyof DayMeals]?.option1;
+                  
+                  return (
+                    <InteractiveMealCard
+                      key={mealType}
+                      mealId={mealData?.id || `${mealType}-day-${currentDay}`}
+                      mealType={mealType}
+                      dayNumber={currentDay}
+                      title={mealData?.mealName || `${mealType.charAt(0).toUpperCase() + mealType.slice(1)} Option`}
+                      description={mealData?.description || "Nutritious meal from your personalized diet plan"}
+                      calories={mealData?.calories || 0}
+                      protein={mealData?.protein || 0}
+                      prepTime={mealData?.prepTime || "15 min"}
+                      difficulty={mealData?.difficulty || "Easy"}
+                      tags={mealData?.tags || ["Healthy", "Balanced"]}
+                      userId={user?.id}
+                      source="diet_plan"
+                      allergens={mealData?.allergens || []}
+                      onComplete={(mealId, mealType, dayNumber) => {
+                        toast({
+                          title: "Meal Completed! 🎉",
+                          description: `${mealType} for Day ${dayNumber} marked as complete.`,
+                        });
+                        // Refresh today's progress
+                        queryClient.invalidateQueries({ queryKey: ['/api/nutrition/today-progress'] });
+                      }}
+                      onSwap={(originalId, newMealId, mealType, reason) => {
+                        toast({
+                          title: "Meal Swapped! 🔄",
+                          description: `Your ${mealType} has been updated with a better match.`,
+                        });
+                        // Refresh meal data
+                        queryClient.invalidateQueries({ queryKey: ['/api/diet-plans'] });
+                      }}
+                      onSaveFavorite={(mealId) => {
+                        toast({
+                          title: "Saved to Favorites! ⭐",
+                          description: "This meal has been added to your favorites.",
+                        });
+                      }}
+                    />
+                  );
+                })}
               </div>
             )}
           </TabsContent>

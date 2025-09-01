@@ -1,0 +1,103 @@
+What “production” means here
+
+💬 Conversational: persistent threads, fast streaming replies, follow-ups.
+
+🎯 Personalized: honors diet prefs, allergens, macro targets, health goals.
+
+📦 Structured output: JSON that your React cards can render directly.
+
+🔎 Grounded: pulls from your recipe DB/USDA (RAG + functions), not model memory.
+
+🧪 Tested: schema validation + deterministic macro math.
+
+📈 Observable: logs, metrics, error handling.
+
+Assistant configuration (OpenAI Assistants)
+
+Model: gpt-4o (or gpt-4o-mini for cost); temperature 0.3.
+
+System instructions (paste):
+
+You are ChefAI for MyFoodMetrics. Always personalize using user_profile and plan targets.
+If a tool can answer, CALL IT before guessing. Return only JSON when recipe/plan is requested.
+
+Policy:
+- Respect diet_tags and exclude allergens.
+- Units: grams/ml with household equivalents.
+- Keep nutrition math consistent; if unsure, ask one clarifying question.Assistant configuration (OpenAI Assistants)
+
+Model: gpt-4o (or gpt-4o-mini for cost); temperature 0.3.
+
+System instructions (paste):
+
+You are ChefAI for MyFoodMetrics. Always personalize using user_profile and plan targets.
+If a tool can answer, CALL IT before guessing. Return only JSON when recipe/plan is requested.
+
+Policy:
+- Respect diet_tags and exclude allergens.
+- Units: grams/ml with household equivalents.
+- Keep nutrition math consistent; if unsure, ask one clarifying question.
+
+Diet plan engine (macro-aware, allergen-safe)
+
+Front-end wiring (React + TanStack Query)
+4.1 Stream chat responses (SSE)
+
+Replace your POST call with an EventSource to /api/chef-ai/chat so UI updates live.
+
+
+Quality, tests, and acceptance criteria
+
+Unit: validate all model JSON with Zod; reject and retry once with “Please re-emit valid JSON using schema X”.
+
+Macro error: for each day, abs(total - target)/target <= 10%.
+
+Allergen zero tolerance: none of allergen_flags intersect user allergens. Personalization pipeline
+
+On every chat, tool-call get_user_profile(userId).
+
+Use profile to filter search_recipes (diet tags, exclude allergens).
+
+When user asks for plan/recipe, return JSON only (schema).
+
+For health conditions (PCOS/diabetes), add rule modules (e.g., limit added sugar, prefer low-GI tags).
+
+Latency: first token < 1.5s; full plan < 8s (28-day can be generated async and emailed/in-app saved).
+
+Replayable seeds: set temperature=0.3 and use fixed solver order for determinism.
+
+Observability & safety
+
+Log: request_id, user_id, tool calls, duration, token usage.
+
+Capture and surface tool errors to UI (“ChefAI couldn’t reach the recipe DB; retry”).
+
+Rate limiting per user; redact PII from logs.
+
+8) Rollout checklist
+
+Ship /api/chef-ai/chat (SSE) + tool handlers.
+
+Populate recipes table (your corpus + USDA favorites).
+
+Wire search_recipes to Postgres query (with tags + allergens) or to a vector store for semantic search.
+
+Enable JSON schemas in Assistant and update UI to parse/validate.
+
+Add Generate Plan button on your Diet Plan page that calls generate_diet_plan (3–7 or 28 days).
+
+Write E2E tests: vegetarian/no-nuts user produces allergen-free plan within 10% macro error.
+
+TL;DR for  developer
+
+Stop returning free-form text. Enforce schema-based JSON and tool calls.
+
+Implement /api/chef-ai/chat with SSE + tool loop.
+
+Implement a real dietPlanEngine that chooses recipes to hit macros while respecting tags/allergens.
+
+Validate every payload with Zod before rendering.
+
+Add logs/metrics and show clear errors in UI.
+
+If you want, I can tailor the system prompt/tools exactly to your current endpoints and paste a version that you can drop into your repo.
