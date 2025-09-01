@@ -133,4 +133,29 @@ router.get('/api/chef-ai/health', (_req, res) => {
   });
 });
 
+// Delete conversation
+router.delete('/api/chef-ai/conversations/:conversationId', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { conversationId } = req.params;
+    
+    await chefAiService.deleteConversation(conversationId, userId);
+    
+    res.json({
+      success: true,
+      message: 'Conversation deleted successfully'
+    });
+  } catch (error: any) {
+    console.error('Error deleting conversation:', error);
+    res.status(500).json({
+      error: 'Failed to delete conversation',
+      message: 'Unable to delete conversation. Please try again.'
+    });
+  }
+});
+
 export default router;

@@ -24,7 +24,8 @@ import {
   Target,
   Leaf,
   Apple,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 
 interface Message {
@@ -149,7 +150,10 @@ export default function ChefAI() {
       return await apiRequest('POST', '/api/chef-ai/chat', payload);
     },
     onSuccess: (data: any) => {
-      setActiveConversationId(data.conversationId);
+      // Only update activeConversationId if it's different (new conversation)
+      if (!activeConversationId) {
+        setActiveConversationId(data.conversationId);
+      }
       setMessage('');
       
       // Invalidate and refetch conversations and messages
@@ -164,6 +168,35 @@ export default function ChefAI() {
       });
     },
   });
+
+  // Delete conversation mutation
+  const deleteConversationMutation = useMutation({
+    mutationFn: async (conversationId: string) => {
+      return await apiRequest('DELETE', `/api/chef-ai/conversations/${conversationId}`);
+    },
+    onSuccess: () => {
+      // Clear active conversation if it was deleted
+      setActiveConversationId(null);
+      // Refresh conversations list
+      queryClient.invalidateQueries({ queryKey: ['/api/chef-ai/conversations'] });
+      toast({
+        title: "Conversation Deleted",
+        description: "Your conversation has been removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Unable to delete conversation. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteConversation = async (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent conversation selection
+    deleteConversationMutation.mutate(conversationId);
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -225,21 +258,35 @@ export default function ChefAI() {
               {conversations.map((conversation: Conversation) => (
                 <Card
                   key={conversation.id}
-                  className={`cursor-pointer transition-colors border ${
+                  className={`cursor-pointer transition-colors border group ${
                     activeConversationId === conversation.id ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'
                   }`}
                   onClick={() => setActiveConversationId(conversation.id)}
                   data-testid={`card-conversation-${conversation.id}`}
                 >
                   <CardContent className="p-3">
-                    <h4 className="text-sm font-medium text-gray-900 truncate">{conversation.title}</h4>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-gray-500">
-                        {conversation.messageCount} messages
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(conversation.lastInteractionAt).toLocaleDateString()}
-                      </span>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 truncate">{conversation.title}</h4>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-gray-500">
+                            {conversation.messageCount} messages
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(conversation.lastInteractionAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 h-auto hover:bg-red-100 hover:text-red-600"
+                        onClick={(e) => handleDeleteConversation(conversation.id, e)}
+                        disabled={deleteConversationMutation.isPending}
+                        data-testid={`button-delete-${conversation.id}`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

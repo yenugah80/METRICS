@@ -266,28 +266,29 @@ export class ChefAiService {
 - Recent activity: ${context.recentMeals.length} meals this week
 
 ## Your Conversation Style:
-- Chat like a best friend who loves food - warm, excited, curious!
-- ALWAYS ask questions first - don't assume what they want
-- Give ONE simple idea, then pause and ask what they think
-- Use emojis and casual language: "Hey!", "Ooh!", "That sounds amazing!", "What do you think?"
-- NO nutrition lectures or detailed breakdowns unless they specifically ask
-- Keep responses SHORT (2-3 sentences max) and conversational
-- Make them feel like they're chatting with a friend, not getting advice
+- Chat like a best friend who loves food - warm, excited, helpful!
+- PRIORITIZE ACTION: When users ask for specific things (meal plans, recipes, suggestions), provide them immediately 
+- Ask questions ONLY when you need clarification or after giving helpful content
+- Use casual language: "Hey!", "Ooh!", "That sounds amazing!", "Here's what I'm thinking!"
+- Balance friendliness with being helpful - don't let chat get in the way of results
+- Give actionable content first, then ask if they want adjustments
 
 ## Critical Rules:
-1. NEVER give full recipes unless they ask for the complete recipe
-2. ALWAYS ask a follow-up question to keep the conversation going  
-3. Keep nutritional info to ONE casual sentence max
-4. React enthusiastically to their requests
-5. Be curious about their preferences and mood
+1. ALWAYS provide actual content first - recipes, meal ideas, or suggestions immediately
+2. If they ask for "meal plan", "recipe", "lunch ideas", "dinner suggestions" - give specific examples right away
+3. Ask ONE clarifying question ONLY after giving helpful content
+4. Never respond with just questions - always include practical suggestions
+5. Be helpful first, conversational second
 
-Example good response:
-"Hey! Looking for lunch ideas? I love that! 😊 
+Example GREAT response (actionable):
+"Hey! I've got some perfect lunch ideas! 😊
 
-Quick question - are you in the mood for something light and fresh, or more filling and hearty today? That'll help me suggest the perfect meal for you!"
+How about a Mediterranean quinoa bowl? It's around 450 calories with 18g protein - super filling and tasty! Or if you want something lighter, a chickpea salad with pita is amazing and takes 5 minutes.
 
-Example bad response (too formal):
-"Based on your nutritional requirements and current caloric intake analysis, I recommend the following Mediterranean quinoa bowl recipe with complete macronutrient breakdown and preparation instructions..."
+Which one sounds good? I can give you the quick recipe!"
+
+Example BAD response (too many questions):
+"Hey! Looking for lunch ideas? What kind of flavors are you in the mood for? Something spicy, light, filling, protein-heavy, or maybe something quick? What ingredients do you have?..."
 
 Respond in JSON:
 {
@@ -377,6 +378,34 @@ Respond in JSON:
       .where(eq(chefAiConversations.userId, userId))
       .orderBy(desc(chefAiConversations.lastInteractionAt))
       .limit(limit);
+  }
+
+  // Delete conversation and all its messages
+  async deleteConversation(conversationId: string, userId: string) {
+    // First verify the conversation belongs to the user
+    const conversation = await db.select()
+      .from(chefAiConversations)
+      .where(
+        and(
+          eq(chefAiConversations.id, conversationId),
+          eq(chefAiConversations.userId, userId)
+        )
+      )
+      .limit(1);
+
+    if (conversation.length === 0) {
+      throw new Error('Conversation not found or access denied');
+    }
+
+    // Delete all messages in the conversation
+    await db.delete(chefAiMessages)
+      .where(eq(chefAiMessages.conversationId, conversationId));
+
+    // Delete the conversation
+    await db.delete(chefAiConversations)
+      .where(eq(chefAiConversations.id, conversationId));
+
+    return { success: true, message: 'Conversation deleted successfully' };
   }
 
   // Get full conversation with messages
