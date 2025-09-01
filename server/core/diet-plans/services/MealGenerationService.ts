@@ -66,8 +66,8 @@ export class MealGenerationService {
     .limit(20);
 
     return {
-      preferredFoods: loggedFoods.map(f => f.foodName).filter(Boolean),
-      preferredCategories: Array.from(new Set(loggedFoods.map(f => f.category).filter(Boolean))),
+      preferredFoods: loggedFoods.map(f => f.foodName).filter((name): name is string => Boolean(name)),
+      preferredCategories: Array.from(new Set(loggedFoods.map(f => f.category).filter((cat): cat is string => Boolean(cat)))),
       hasLoggingHistory: loggedFoods.length > 0
     };
   }
@@ -122,7 +122,10 @@ export class MealGenerationService {
           micronutrients: meal.micronutrients,
         }));
 
-        await db.insert(dietPlanMeals).values(mealInserts);
+        await db.insert(dietPlanMeals).values(mealInserts.map(meal => {
+          const { allergens, ...mealData } = meal;
+          return mealData;
+        }));
         console.log(`Successfully inserted ${mealInserts.length} detailed meals with portion control`);
       } else {
         console.log('AI generated 0 meals, using enhanced fallback');
@@ -239,8 +242,7 @@ RESPOND WITH COMPLETE 28-MEAL JSON ONLY.`;
         { role: "user", content: comprehensivePrompt }
       ],
       response_format: { type: "json_object" },
-      max_completion_tokens: 4000,
-      temperature: 0.7, // Balanced creativity while maintaining nutritional accuracy
+      max_completion_tokens: 3000
     });
 
     const mealData = JSON.parse(response.choices[0].message.content || '{"meals": []}');
@@ -344,7 +346,6 @@ RESPOND WITH COMPLETE 28-MEAL JSON ONLY.`;
           ...mealTemplate,
           healthBenefits: this.generateHealthBenefits(mealTemplate as DetailedMeal, questionnaire.healthGoals),
           thingsToAvoid: this.generateThingsToAvoid(questionnaire.restrictions),
-          allergens: [],
         });
       }
     }

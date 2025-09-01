@@ -176,9 +176,10 @@ Daily Targets: ${targets.calories} calories, ${targets.protein}g protein
 Respond with JSON: { "planName": "motivating plan name", "overview": "2-sentence description" }`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-4o-mini", // Fast model for diet plan names
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
+      max_tokens: 200
     });
 
     return JSON.parse(response.choices[0].message.content || '{}');

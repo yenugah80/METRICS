@@ -758,8 +758,7 @@ Respond in JSON format:
         model: "gpt-4o-mini", // Fast, efficient model for meal suggestions
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
-        max_tokens: 800,
-        timeout: 10000
+        max_tokens: 800
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -936,8 +935,7 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
         tools: CHEF_AI_TOOLS,
         tool_choice: "auto", // Let AI decide when to use tools
         response_format: { type: "json_object" }, // Force JSON format
-        max_tokens: 300, // Optimized for faster responses
-        timeout: 15000, // 15 second timeout
+        max_tokens: 300 // Optimized for faster responses
       });
       
       let response = completion.choices[0].message;
@@ -984,7 +982,6 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
           ],
           response_format: { type: "json_object" },
           max_tokens: requestType === 'meal_plan' ? 1200 : 600, // Optimized
-          temperature: requestType === 'meal_plan' ? 0.3 : 0.7,
         });
         
         response = followUpCompletion.choices[0].message;

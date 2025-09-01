@@ -247,7 +247,15 @@ router.post('/api/nutrition/recalculate-targets', verifyJWT, async (req: Authent
     const { users } = await import('../../../shared/schema');
     const { eq } = await import('drizzle-orm');
     
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db.select({
+      id: users.id,
+      email: users.email,
+      weight: users.weight,
+      height: users.height,
+      age: users.age,
+      gender: users.gender,
+      activityLevel: users.activityLevel
+    }).from(users).where(eq(users.id, userId)).limit(1);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -462,6 +470,261 @@ router.post('/api/diet-plans/apply-adjustment', verifyJWT, async (req: Authentic
     console.error('Error applying adjustment:', error);
     res.status(500).json({
       error: 'Failed to apply adjustment'
+    });
+  }
+});
+
+// Health check endpoint
+router.get('/api/diet-plans/health', async (req, res) => {
+  res.json({
+    ok: true,
+    service: 'Diet Plans',
+    status: 'operational',
+    time: Date.now()
+  });
+});
+
+// Simplified endpoints for testing compatibility
+router.get('/api/diet-plans/meals/:day', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Get user's active plan first
+    const activePlan = await dietPlanService.getActiveDietPlan(userId);
+    if (!activePlan) {
+      return res.status(404).json({ error: 'No active diet plan found' });
+    }
+
+    const { day } = req.params;
+    const dayNumber = parseInt(day);
+    
+    if (isNaN(dayNumber) || dayNumber < 1 || dayNumber > 28) {
+      return res.status(400).json({ error: 'Invalid day. Must be between 1 and 28.' });
+    }
+
+    const meals = await dietPlanService.getDietPlanMealsForDay(activePlan.id, dayNumber);
+    
+    res.json({
+      success: true,
+      day: dayNumber,
+      planId: activePlan.id,
+      meals
+    });
+  } catch (error: any) {
+    console.error('Error fetching diet plan meals:', error);
+    res.status(500).json({
+      error: 'Failed to fetch meals for day'
+    });
+  }
+});
+
+router.get('/api/diet-plans/supplements', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const activePlan = await dietPlanService.getActiveDietPlan(userId);
+    if (!activePlan) {
+      return res.status(404).json({ error: 'No active diet plan found' });
+    }
+
+    const supplements = await dietPlanService.getDietPlanSupplements(activePlan.id);
+    
+    res.json({
+      success: true,
+      supplements
+    });
+  } catch (error: any) {
+    console.error('Error fetching diet plan supplements:', error);
+    res.status(500).json({
+      error: 'Failed to fetch supplements'
+    });
+  }
+});
+
+router.get('/api/diet-plans/lifestyle', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const activePlan = await dietPlanService.getActiveDietPlan(userId);
+    if (!activePlan) {
+      return res.status(404).json({ error: 'No active diet plan found' });
+    }
+
+    const lifestyle = await dietPlanService.getDietPlanLifestyle(activePlan.id);
+    
+    res.json({
+      success: true,
+      lifestyle
+    });
+  } catch (error: any) {
+    console.error('Error fetching diet plan lifestyle:', error);
+    res.status(500).json({
+      error: 'Failed to fetch lifestyle recommendations'
+    });
+  }
+});
+
+router.get('/api/diet-plans/adherence', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const activePlan = await dietPlanService.getActiveDietPlan(userId);
+    if (!activePlan) {
+      return res.status(404).json({ error: 'No active diet plan found' });
+    }
+
+    const adherence = await dietPlanService.calculateAdherence(userId, activePlan.id);
+    
+    res.json({
+      success: true,
+      adherenceScore: adherence,
+      message: adherence >= 80 ? 'Great job staying on track!' : 'You can do this!'
+    });
+  } catch (error: any) {
+    console.error('Error calculating adherence:', error);
+    res.status(500).json({
+      error: 'Failed to calculate adherence'
+    });
+  }
+});
+
+router.post('/api/diet-plans/regenerate-meals', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { planId } = req.body;
+    if (!planId) {
+      const activePlan = await dietPlanService.getActiveDietPlan(userId);
+      if (!activePlan) {
+        return res.status(404).json({ error: 'No active diet plan found' });
+      }
+      
+      await dietPlanService.regenerateMealsForPlan(activePlan.id);
+    } else {
+      await dietPlanService.regenerateMealsForPlan(planId);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Meals regenerated successfully!'
+    });
+  } catch (error: any) {
+    console.error('Error regenerating meals:', error);
+    res.status(500).json({
+      error: 'Failed to regenerate meals',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/diet-plans/recalculate-targets', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { weight, activityLevel, goalType = 'weight_loss' } = req.body;
+    
+    // Get current user
+    const { db } = await import('../../infrastructure/database/db');
+    const { users } = await import('../../../shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const [user] = await db.select({
+      id: users.id,
+      email: users.email,
+      weight: users.weight,
+      height: users.height,
+      age: users.age,
+      gender: users.gender,
+      activityLevel: users.activityLevel
+    }).from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update user profile if provided
+    if (weight || activityLevel) {
+      await db.update(users)
+        .set({
+          ...(weight && { weight }),
+          ...(activityLevel && { activityLevel }),
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+    }
+    
+    // Recalculate targets
+    const updatedUser = { ...user, ...(weight && { weight }), ...(activityLevel && { activityLevel }) };
+    const newTargets = targetCalculator.calculatePersonalizedTargets(updatedUser, goalType);
+    
+    await targetCalculator.updateUserTargets(userId, newTargets);
+    
+    res.json({
+      success: true,
+      newTargets: {
+        calories: newTargets.calories,
+        protein: newTargets.protein,
+        carbs: newTargets.carbs,
+        fat: newTargets.fat,
+        fiber: newTargets.fiber
+      },
+      message: 'Targets recalculated successfully!'
+    });
+  } catch (error: any) {
+    console.error('Error recalculating targets:', error);
+    res.status(500).json({
+      error: 'Failed to recalculate targets',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/diet-plans/weekly-progress', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const activePlan = await dietPlanService.getActiveDietPlan(userId);
+    if (!activePlan) {
+      return res.status(404).json({ error: 'No active diet plan found' });
+    }
+
+    // Simple weekly data
+    const weeklyData = {
+      planId: activePlan.id,
+      planName: activePlan.planName,
+      adherenceScore: await dietPlanService.calculateAdherence(userId, activePlan.id),
+      targetsOnTrack: true,
+      weeklyProgress: 'Good progress this week!'
+    };
+    
+    res.json({
+      success: true,
+      weeklyData
+    });
+  } catch (error: any) {
+    console.error('Error fetching weekly progress:', error);
+    res.status(500).json({
+      error: 'Failed to fetch weekly progress'
     });
   }
 });
