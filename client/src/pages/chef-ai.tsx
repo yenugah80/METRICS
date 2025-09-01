@@ -388,28 +388,36 @@ export default function ChefAI() {
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4">
-                <div className="space-y-4 max-w-4xl mx-auto">
+              <ScrollArea className="flex-1 p-6 bg-gradient-to-b from-blue-50/30 to-green-50/30">
+                <div className="space-y-6 max-w-4xl mx-auto">
                   {messagesLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <div className="relative">
+                        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+                        <div className="absolute inset-0 animate-pulse w-8 h-8 bg-gradient-to-r from-blue-200 to-teal-200 rounded-full opacity-75" />
+                      </div>
+                      <p className="text-gray-600 mt-3 text-sm">ChefAI is thinking...</p>
                     </div>
                   ) : (
                     messages.map((msg, index) => (
-                      <div key={index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div key={index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-500`} style={{animationDelay: `${index * 100}ms`}}>
                         {/* Avatar */}
                         {msg.role === 'assistant' && (
-                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <Bot className="w-5 h-5 text-white" />
+                          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 via-purple-500 to-teal-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-xl border-2 border-white">
+                            <Bot className="w-6 h-6 text-white" />
                           </div>
                         )}
                         
                         {/* Message Content */}
-                        <div className={`flex-1 max-w-3xl space-y-3 ${msg.role === 'user' ? 'flex flex-col items-end' : ''}`}>
+                        <div className={`flex-1 max-w-3xl space-y-4 ${msg.role === 'user' ? 'flex flex-col items-end' : ''}`}>
                           {/* User Message */}
                           {msg.role === 'user' && (
-                            <div className="bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg max-w-lg">
-                              <p className="text-sm">{msg.content}</p>
+                            <div className="group">
+                              <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 text-white rounded-3xl rounded-tr-lg px-6 py-4 shadow-xl max-w-lg transform hover:scale-[1.02] transition-all duration-200 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                <p className="text-sm leading-relaxed relative z-10">{msg.content}</p>
+                                <div className="absolute -top-2 -right-2 w-4 h-4 bg-white/20 rounded-full" />
+                              </div>
                             </div>
                           )}
                           
@@ -417,16 +425,55 @@ export default function ChefAI() {
                           {msg.role === 'assistant' && (
                             <div className="space-y-4">
                               {/* Main Response */}
-                              <div className="bg-white rounded-2xl rounded-tl-md border border-gray-100 p-4 shadow-lg">
-                                <div className="flex items-start gap-3 mb-3">
-                                  <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <Apple className="w-3 h-3 text-white" />
+                              <div className="group bg-white/80 backdrop-blur-sm rounded-3xl rounded-tl-lg border border-gray-200/50 p-6 shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-green-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                <div className="flex items-start gap-4 mb-4 relative z-10">
+                                  <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                                    <Sparkles className="w-4 h-4 text-white" />
                                   </div>
                                   <div className="flex-1">
-                                    <h4 className="font-semibold text-gray-900 text-sm mb-1">ChefAI</h4>
-                                    <p className="text-sm text-gray-700 leading-relaxed">{msg.content}</p>
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <h4 className="font-bold text-gray-900 text-base bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">ChefAI</h4>
+                                      <div className="flex gap-1">
+                                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-100" />
+                                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse delay-200" />
+                                      </div>
+                                    </div>
+                                    <div className="prose prose-sm text-gray-700 leading-relaxed max-w-none">
+                                      {msg.content.split('\n').map((paragraph, i) => {
+                                        if (paragraph.startsWith('#')) {
+                                          return <h3 key={i} className="font-bold text-gray-900 mt-4 mb-2 text-lg">{paragraph.replace(/^#+\s*/, '')}</h3>
+                                        }
+                                        if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+                                          return <h4 key={i} className="font-semibold text-gray-800 mt-3 mb-2">{paragraph.replace(/\*\*/g, '')}</h4>
+                                        }
+                                        if (paragraph.trim()) {
+                                          return <p key={i} className="mb-3">{paragraph}</p>
+                                        }
+                                        return null;
+                                      })}
+                                    </div>
                                   </div>
                                 </div>
+                                
+                                {/* Insights Section */}
+                                {msg.structuredData?.insights && msg.structuredData.insights.length > 0 && (
+                                  <div className="relative z-10 bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-2xl border border-blue-100 mb-4">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <TrendingUp className="w-5 h-5 text-blue-600" />
+                                      <h5 className="font-semibold text-gray-900">Key Insights</h5>
+                                    </div>
+                                    <div className="space-y-2">
+                                      {msg.structuredData.insights.map((insight: string, i: number) => (
+                                        <div key={i} className="flex items-start gap-2">
+                                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                                          <p className="text-sm text-gray-700">{insight}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
 
                               {/* Structured Meal Plan */}
@@ -456,45 +503,54 @@ export default function ChefAI() {
 
                               {/* Enhanced Recipe Card for Structured Data */}
                               {msg.structuredData?.recipe && (
-                                <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-lg space-y-4">
-                                  <div className="flex justify-between items-start">
-                                    <div>
-                                      <h4 className="text-xl font-semibold text-gray-900 mb-2">{msg.structuredData.recipe.name}</h4>
-                                      <div className="flex gap-4 text-sm text-gray-600">
-                                        <span>🍽️ {msg.structuredData.recipe.servings} servings</span>
-                                        <span>⏱️ Prep: {msg.structuredData.recipe.prepTime}</span>
-                                        <span>🔥 Cook: {msg.structuredData.recipe.cookTime}</span>
-                                        <span>📊 {msg.structuredData.recipe.difficulty}</span>
+                                <div className="bg-gradient-to-br from-white via-blue-50/30 to-green-50/30 rounded-3xl border-2 border-blue-200 p-8 shadow-2xl space-y-6 transform hover:scale-[1.01] transition-all duration-300 relative overflow-hidden">
+                                  <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-green-100/20 rounded-3xl" />
+                                  <div className="relative z-10">
+                                    <div className="flex justify-between items-start mb-4">
+                                      <div>
+                                        <h4 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-teal-600 bg-clip-text text-transparent mb-3">{msg.structuredData.recipe.name}</h4>
+                                        <div className="flex flex-wrap gap-3 text-sm">
+                                          <span className="bg-white/80 px-3 py-1 rounded-full border border-blue-200 text-blue-700 font-medium">🍽️ {msg.structuredData.recipe.servings} servings</span>
+                                          <span className="bg-white/80 px-3 py-1 rounded-full border border-green-200 text-green-700 font-medium">⏱️ {msg.structuredData.recipe.prepTime}</span>
+                                          <span className="bg-white/80 px-3 py-1 rounded-full border border-orange-200 text-orange-700 font-medium">🔥 {msg.structuredData.recipe.cookTime}</span>
+                                          <span className="bg-white/80 px-3 py-1 rounded-full border border-purple-200 text-purple-700 font-medium">📊 {msg.structuredData.recipe.difficulty}</span>
+                                        </div>
+                                      </div>
+                                      <Button variant="outline" size="sm" className="rounded-full bg-white/80 border-2 border-blue-200 hover:bg-blue-50">
+                                        <Bookmark className="w-4 h-4 mr-1" />
+                                        Save
+                                      </Button>
+                                    </div>
+                                    
+                                    {/* Enhanced Nutrition Display */}
+                                    <div className="bg-gradient-to-r from-blue-100/80 via-purple-100/60 to-green-100/80 p-6 rounded-2xl border border-blue-200/50 backdrop-blur-sm">
+                                      <h5 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                        <BarChart3 className="w-5 h-5 text-blue-600" />
+                                        Nutrition (per serving)
+                                      </h5>
+                                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                        <div className="text-center bg-white/70 p-3 rounded-xl border border-blue-200/50">
+                                          <div className="text-2xl font-bold text-blue-600 mb-1">{msg.structuredData.recipe.nutritionPerServing.calories}</div>
+                                          <div className="text-xs text-gray-600 font-medium">CALORIES</div>
+                                        </div>
+                                        <div className="text-center bg-white/70 p-3 rounded-xl border border-green-200/50">
+                                          <div className="text-2xl font-bold text-green-600 mb-1">{msg.structuredData.recipe.nutritionPerServing.protein}g</div>
+                                          <div className="text-xs text-gray-600 font-medium">PROTEIN</div>
+                                        </div>
+                                        <div className="text-center bg-white/70 p-3 rounded-xl border border-orange-200/50">
+                                          <div className="text-2xl font-bold text-orange-600 mb-1">{msg.structuredData.recipe.nutritionPerServing.carbs}g</div>
+                                          <div className="text-xs text-gray-600 font-medium">CARBS</div>
+                                        </div>
+                                        <div className="text-center bg-white/70 p-3 rounded-xl border border-purple-200/50">
+                                          <div className="text-2xl font-bold text-purple-600 mb-1">{msg.structuredData.recipe.nutritionPerServing.fat}g</div>
+                                          <div className="text-xs text-gray-600 font-medium">FAT</div>
+                                        </div>
+                                        <div className="text-center bg-white/70 p-3 rounded-xl border border-teal-200/50">
+                                          <div className="text-2xl font-bold text-teal-600 mb-1">{msg.structuredData.recipe.nutritionPerServing.fiber}g</div>
+                                          <div className="text-xs text-gray-600 font-medium">FIBER</div>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                  
-                                  {/* Enhanced Nutrition Display */}
-                                  <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg">
-                                    <h5 className="font-medium text-gray-900 mb-3">Nutrition (per serving)</h5>
-                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-3 text-sm">
-                                      <div className="text-center">
-                                        <div className="font-semibold text-blue-600">{msg.structuredData.recipe.nutritionPerServing.calories}</div>
-                                        <div className="text-gray-600">calories</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="font-semibold text-green-600">{msg.structuredData.recipe.nutritionPerServing.protein}g</div>
-                                        <div className="text-gray-600">protein</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="font-semibold text-orange-600">{msg.structuredData.recipe.nutritionPerServing.carbs}g</div>
-                                        <div className="text-gray-600">carbs</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="font-semibold text-purple-600">{msg.structuredData.recipe.nutritionPerServing.fat}g</div>
-                                        <div className="text-gray-600">fat</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="font-semibold text-teal-600">{msg.structuredData.recipe.nutritionPerServing.fiber}g</div>
-                                        <div className="text-gray-600">fiber</div>
-                                      </div>
-                                    </div>
-                                  </div>
 
                                   {/* Ingredients Section */}
                                   {msg.structuredData.recipe.ingredients && msg.structuredData.recipe.ingredients.length > 0 && (
@@ -679,13 +735,6 @@ export default function ChefAI() {
                             </div>
                           )}
                         </div>
-
-                        {/* User Avatar */}
-                        {msg.role === 'user' && (
-                          <div className="w-10 h-10 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <User className="w-5 h-5 text-white" />
-                          </div>
-                        )}
                       </div>
                     ))
                   )}
