@@ -212,11 +212,19 @@ export class ChefAiService {
       ))
       .limit(1);
 
-    // Get user goals and profile
-    const [user] = await db.select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+    // Get user goals and profile - using raw SQL to avoid schema mismatch
+    const userResult = await db.execute(sql`
+      SELECT 
+        id,
+        daily_calorie_goal,
+        daily_protein_goal,
+        daily_carb_goal,
+        daily_fat_goal
+      FROM users 
+      WHERE id = ${userId} 
+      LIMIT 1
+    `);
+    const user = userResult.rows[0] || null;
 
     return {
       recentMeals,
@@ -232,10 +240,10 @@ export class ChefAiService {
         avgNutritionScore: recentMeals.reduce((sum, meal) => sum + (meal.nutritionScore || 0), 0) / Math.max(recentMeals.length, 1),
       },
       userGoals: {
-        dailyCalories: user?.dailyCalorieGoal || 2000,
-        dailyProtein: user?.dailyProteinGoal || 150,
-        dailyCarbs: user?.dailyCarbGoal || 200,
-        dailyFat: user?.dailyFatGoal || 67,
+        dailyCalories: user?.daily_calorie_goal || 2000,
+        dailyProtein: user?.daily_protein_goal || 150,
+        dailyCarbs: user?.daily_carb_goal || 200,
+        dailyFat: user?.daily_fat_goal || 67,
       },
     };
   }

@@ -15,7 +15,9 @@ import {
   Trash2,
   Copy,
   ExternalLink,
-  Target
+  Target,
+  Check,
+  RefreshCw
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -25,6 +27,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 
 interface InteractiveMealCardProps {
   mealId: string;
