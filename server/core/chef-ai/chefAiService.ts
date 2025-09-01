@@ -357,6 +357,13 @@ export interface NutritionContext {
   dailyTotals: any;
   weeklyTrends: any;
   userGoals: any;
+  userProfile?: {
+    dietPreferences: string[];
+    allergens: string[];
+    cuisinePreferences: string[];
+    activityLevel: string;
+    healthGoals: string[];
+  };
   dietPlan?: any;
 }
 
@@ -399,10 +406,8 @@ export class ChefAiService {
         role: 'assistant',
         content: aiResponse.message,
         messageType: 'text',
-        relatedMealIds: aiResponse.mealCards?.map((card: any) => card.mealId) || [],
+        relatedMealIds: [],
         nutritionContext: {
-          timeframe: aiResponse.timeframe,
-          metrics: aiResponse.metrics,
           insights: aiResponse.insights,
         },
         tokensUsed: aiResponse.tokensUsed,
@@ -423,9 +428,7 @@ export class ChefAiService {
         conversationId,
         message: aiResponse.message,
         responseType: aiResponse.responseType,
-        structuredData: aiResponse.structuredData,
-        recipeDetails: aiResponse.recipeDetails,
-        mealCards: aiResponse.mealCards,
+        responseCard: aiResponse.responseCard,
         insights: aiResponse.insights,
         followUpQuestions: aiResponse.followUpQuestions,
       };
@@ -484,74 +487,122 @@ export class ChefAiService {
 
   // Gather comprehensive nutrition context for AI
   private async gatherNutritionContext(userId: string): Promise<NutritionContext> {
-    // Get recent meals (last 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const recentMeals = await db.select({
-      id: meals.id,
-      name: meals.name,
-      mealType: meals.mealType,
-      totalCalories: meals.totalCalories,
-      totalProtein: meals.totalProtein,
-      totalCarbs: meals.totalCarbs,
-      totalFat: meals.totalFat,
-      nutritionScore: meals.nutritionScore,
-      sustainabilityScore: meals.sustainabilityScore,
-      loggedAt: meals.loggedAt,
-    })
-    .from(meals)
-    .where(and(
-      eq(meals.userId, userId),
-      gte(meals.loggedAt, sevenDaysAgo)
-    ))
-    .orderBy(desc(meals.loggedAt))
-    .limit(20);
-
-    // Get today's nutrition totals
-    const today = new Date().toISOString().split('T')[0];
-    const [dailyTotals] = await db.select()
-      .from(dailyNutrition)
+    try {
+      // Get recent meals (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const recentMeals = await db.select({
+        id: meals.id,
+        name: meals.name,
+        mealType: meals.mealType,
+        totalCalories: meals.totalCalories,
+        totalProtein: meals.totalProtein,
+        totalCarbs: meals.totalCarbs,
+        totalFat: meals.totalFat,
+        nutritionScore: meals.nutritionScore,
+        sustainabilityScore: meals.sustainabilityScore,
+        loggedAt: meals.loggedAt,
+      })
+      .from(meals)
       .where(and(
-        eq(dailyNutrition.userId, userId),
-        eq(dailyNutrition.date, today)
+        eq(meals.userId, userId),
+        gte(meals.loggedAt, sevenDaysAgo)
       ))
-      .limit(1);
+      .orderBy(desc(meals.loggedAt))
+      .limit(20);
 
-    // Get user goals and profile - using raw SQL to avoid schema mismatch
-    const userResult = await db.execute(sql`
-      SELECT 
-        id,
-        daily_calorie_goal,
-        daily_protein_goal,
-        daily_carb_goal,
-        daily_fat_goal
-      FROM users 
-      WHERE id = ${userId} 
-      LIMIT 1
-    `);
-    const user = userResult.rows[0] || null;
+      // Get today's nutrition totals
+      const today = new Date().toISOString().split('T')[0];
+      const [dailyTotals] = await db.select()
+        .from(dailyNutrition)
+        .where(and(
+          eq(dailyNutrition.userId, userId),
+          eq(dailyNutrition.date, today)
+        ))
+        .limit(1);
 
-    return {
-      recentMeals,
-      dailyTotals: dailyTotals || {
-        totalCalories: 0,
-        totalProtein: 0,
-        totalCarbs: 0,
-        totalFat: 0,
-        totalFiber: 0,
-      },
-      weeklyTrends: {
-        avgCalories: recentMeals.reduce((sum, meal) => sum + (meal.totalCalories || 0), 0) / Math.max(recentMeals.length, 1),
-        avgNutritionScore: recentMeals.reduce((sum, meal) => sum + (meal.nutritionScore || 0), 0) / Math.max(recentMeals.length, 1),
-      },
-      userGoals: {
-        dailyCalories: user?.daily_calorie_goal || 2000,
-        dailyProtein: user?.daily_protein_goal || 150,
-        dailyCarbs: user?.daily_carb_goal || 200,
-        dailyFat: user?.daily_fat_goal || 67,
-      },
-    };
+      // Get user goals and profile - enhanced with diet preferences
+      const userResult = await db.execute(sql`
+        SELECT 
+          id,
+          daily_calorie_goal,
+          daily_protein_goal,
+          daily_carb_goal,
+          daily_fat_goal,
+          diet_preferences,
+          allergens,
+          cuisine_preferences,
+          activity_level,
+          health_goals
+        FROM users 
+        WHERE id = ${userId} 
+        LIMIT 1
+      `);
+      const user = userResult.rows[0] || null;
+
+      // Get active diet plan for enhanced personalization
+      let activePlan = null;
+      try {
+        const planResult = await db.execute(sql`
+          SELECT questionnaire_data, daily_targets 
+          FROM diet_plans 
+          WHERE user_id = ${userId} AND is_active = true 
+          LIMIT 1
+        `);
+        activePlan = planResult.rows[0] || null;
+      } catch (error) {
+        console.log('No active diet plan found, using basic user profile');
+      }
+
+      return {
+        recentMeals,
+        dailyTotals: dailyTotals || {
+          totalCalories: 0,
+          totalProtein: 0,
+          totalCarbs: 0,
+          totalFat: 0,
+          totalFiber: 0,
+        },
+        weeklyTrends: {
+          avgCalories: recentMeals.reduce((sum, meal) => sum + (meal.totalCalories || 0), 0) / Math.max(recentMeals.length, 1),
+          avgNutritionScore: recentMeals.reduce((sum, meal) => sum + (meal.nutritionScore || 0), 0) / Math.max(recentMeals.length, 1),
+        },
+        userGoals: {
+          dailyCalories: user?.daily_calorie_goal || 2000,
+          dailyProtein: user?.daily_protein_goal || 150,
+          dailyCarbs: user?.daily_carb_goal || 200,
+          dailyFat: user?.daily_fat_goal || 67,
+        },
+        userProfile: {
+          dietPreferences: user?.diet_preferences || [],
+          allergens: user?.allergens || [],
+          cuisinePreferences: user?.cuisine_preferences || [],
+          activityLevel: user?.activity_level || 'moderate',
+          healthGoals: user?.health_goals?.primary ? [user.health_goals.primary] : ['maintenance'],
+        },
+        dietPlan: activePlan ? {
+          questionnaire: activePlan.questionnaire_data,
+          targets: activePlan.daily_targets,
+        } : null,
+      };
+    } catch (error) {
+      console.error('Could not fetch user profile, proceeding with generic analysis');
+      // Fallback to basic context if profile fetch fails
+      return {
+        recentMeals: [],
+        dailyTotals: { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0, totalFiber: 0 },
+        weeklyTrends: { avgCalories: 0, avgNutritionScore: 0 },
+        userGoals: { dailyCalories: 2000, dailyProtein: 150, dailyCarbs: 200, dailyFat: 67 },
+        userProfile: {
+          dietPreferences: [],
+          allergens: [],
+          cuisinePreferences: [],
+          activityLevel: 'moderate',
+          healthGoals: ['maintenance'],
+        },
+      };
+    }
   }
 
   // Detect the type of request and determine response approach
@@ -919,11 +970,9 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
       return {
         message: parsedResponse.response || "I'm here to help with your nutrition goals!",
         responseType: requestType,
-        structuredData: parsedResponse.structuredData || null,
         responseCard: parsedResponse.response_card || null,
         insights: parsedResponse.insights || [],
         followUpQuestions: parsedResponse.followUpQuestions || [],
-        recipeDetails: parsedResponse.recipeDetails || null,
         confidence: parsedResponse.confidence || 0.8,
         tokensUsed: completion.usage?.total_tokens ?? null,
         responseTime
@@ -944,100 +993,113 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
     }
   }
 
-  // Build simplified, focused system prompts
+  // Build enhanced, personalized system prompts
   private buildSystemPrompt(requestType: 'meal_plan' | 'recipe' | 'analysis' | 'general', context: NutritionContext): string {
     const userStats = `User: ${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} cals, ${context.dailyTotals.totalProtein}/${context.userGoals.dailyProtein}g protein today`;
+    
+    // Build personalization context
+    const personalProfile = context.userProfile ? `
+PERSONAL PROFILE:
+- Diet: ${context.userProfile.dietPreferences.join(', ') || 'Mixed'}
+- Health Goals: ${context.userProfile.healthGoals.join(', ')}
+- Activity: ${context.userProfile.activityLevel}
+- Allergens: ${context.userProfile.allergens.length > 0 ? context.userProfile.allergens.join(', ') : 'None'}
+- Preferred Cuisines: ${context.userProfile.cuisinePreferences.join(', ') || 'All cuisines'}
+- Recent Food History: ${context.recentMeals.slice(0, 3).map(m => m.name).join(', ') || 'New user'}` : '';
+
+    const dietPlanContext = context.dietPlan ? `
+ACTIVE DIET PLAN:
+- Plan Type: ${context.dietPlan.questionnaire?.healthGoals?.[0] || 'General health'}
+- Food Preference: ${context.dietPlan.questionnaire?.foodPreferences?.[0] || 'Mixed'}
+- Restrictions: ${context.dietPlan.questionnaire?.restrictions?.join(', ') || 'None'}
+- Daily Targets: ${context.dietPlan.targets?.calories || context.userGoals.dailyCalories} cal, ${context.dietPlan.targets?.protein || context.userGoals.dailyProtein}g protein` : '';
 
     switch (requestType) {
       case 'meal_plan':
-        return `You are a nutrition AI. Analyze food and create meal plans. ${userStats}
+        return `You are ChefAI, a certified nutritionist and personal meal coach. ${userStats}${personalProfile}${dietPlanContext}
 
-Rules:
-1. Return only valid JSON
-2. Use tools for nutrition data
-3. Include allergen warnings
+EXPERT GUIDELINES:
+1. ALWAYS prioritize user's dietary restrictions and allergens
+2. Tailor recommendations to their health goals and activity level  
+3. Consider their cuisine preferences and food history
+4. Provide precise nutrition data using your knowledge base
+5. Include practical cooking tips and meal prep advice
 
 JSON format:
 {
-  "response": "Chat text",
+  "response": "Personalized meal plan explanation with cooking tips",
   "response_card": {
-    "title": "Food Name",
-    "summary": "Brief description",
+    "title": "Meal/Recipe Name",
+    "summary": "Why this fits their goals and preferences",
     "macros": {"calories_kcal": 350, "protein_g": 25, "carbs_g": 30, "fat_g": 12},
-    "allergens": ["dairy", "nuts"],
-    "diet_flags": {"keto": false, "vegan": true, "vegetarian": true, "gluten_free": false, "pcos_friendly": true},
-    "health_benefits": ["High protein"],
-    "warnings": []
+    "micros": {"fiber_g": 8, "iron_mg": 3, "calcium_mg": 150, "vitamin_c_mg": 45},
+    "portion_size": "1 serving (approximately 300g)",
+    "allergens": ["list any allergens"],
+    "diet_flags": {"keto": false, "vegan": false, "vegetarian": true, "gluten_free": false, "pcos_friendly": true},
+    "ingredients": ["Specific quantities: 150g chicken breast", "100g brown rice"],
+    "preparation_steps": ["Detailed cooking steps"],
+    "health_benefits": ["Specific benefits for their health goals"],
+    "warnings": ["Any dietary concerns"]
   },
-  "insights": ["Progress insight"],
-  "followUpQuestions": ["Next question?"],
+  "insights": ["Progress insight based on their actual data"],
+  "followUpQuestions": ["Next meal?", "Want cooking tips?"],
   "confidence": 0.9
 }`;
 
       case 'recipe':
-        return `You are a recipe AI. Create detailed recipes. ${userStats}
+        return `You are ChefAI, a culinary nutrition expert and recipe developer. ${userStats}${personalProfile}${dietPlanContext}
 
-Rules:
-1. Return only valid JSON
-2. Include prep steps and nutrition
-3. Check allergens
+EXPERT GUIDELINES:
+1. STRICTLY avoid their allergens: ${context.userProfile?.allergens.join(', ') || 'None listed'}
+2. Follow their diet: ${context.userProfile?.dietPreferences.join(', ') || 'Mixed'}
+3. Match their cuisine preferences: ${context.userProfile?.cuisinePreferences.join(', ') || 'All cuisines'}
+4. Align with health goals: ${context.userProfile?.healthGoals.join(', ') || 'General health'}
+5. Provide precise portions and complete nutrition data
+6. Include prep tips and substitution options
 
 JSON format:
 {
-  "response": "Recipe description text",
+  "response": "Personalized recipe with why it fits their goals and dietary needs",
   "response_card": {
-    "title": "Recipe Name",
-    "summary": "Quick description",
+    "title": "Recipe Name (Diet-Compliant)",
+    "summary": "Why this recipe is perfect for their goals and preferences",
     "macros": {"calories_kcal": 385, "protein_g": 28, "carbs_g": 35, "fat_g": 18},
-    "ingredients": ["1 cup flour", "2 eggs"],
-    "preparation_steps": ["Step 1", "Step 2"],
-    "allergens": ["gluten", "eggs"],
-    "diet_flags": {"keto": false, "vegan": false, "vegetarian": true, "gluten_free": false, "pcos_friendly": true},
-    "health_benefits": ["High protein"],
-    "warnings": []
+    "micros": {"fiber_g": 12, "iron_mg": 4, "calcium_mg": 200, "vitamin_c_mg": 60},
+    "portion_size": "1 serving (approximately 250g)",
+    "ingredients": ["150g ingredient with precise weight", "100ml liquid measure"],
+    "preparation_steps": ["Detailed step with cooking tips", "Temperature and timing guidance"],
+    "allergens": ["Check against their allergen list"],
+    "diet_flags": {"keto": false, "vegan": false, "vegetarian": true, "gluten_free": true, "pcos_friendly": true},
+    "health_benefits": ["Specific benefits for their health goals"],
+    "warnings": ["Any dietary considerations"]
   },
-  "insights": ["Nutrition insight"],
-  "followUpQuestions": ["Want variations?"],
+  "insights": ["How this recipe fits their nutrition plan and progress"],
+  "followUpQuestions": ["Want modifications?", "Need cooking tips?"],
   "confidence": 0.9
 }`;
 
       case 'analysis':
-        return `You are a nutrition analysis AI. ${userStats}
+        return `You are ChefAI, a nutrition data scientist and progress coach. ${userStats}${personalProfile}${dietPlanContext}
 
-Rules:
-1. Return only valid JSON
-2. Use real user data
-3. Provide actionable insights
+EXPERT GUIDELINES:
+1. Analyze their actual meal data and progress toward goals
+2. Consider their health goals: ${context.userProfile?.healthGoals.join(', ') || 'General health'}
+3. Factor in their activity level: ${context.userProfile?.activityLevel || 'moderate'}
+4. Reference their recent eating patterns and provide actionable insights
+5. Give specific, data-driven recommendations for improvement
+6. Highlight wins and areas for optimization
 
-JSON format:
-{
-  "response": "Analysis summary text",
-  "response_card": {
-    "title": "Nutrition Analysis",
-    "summary": "Progress summary",
-    "macros": {"calories_kcal": null, "protein_g": null, "carbs_g": null, "fat_g": null},
-    "health_benefits": ["Progress benefit"],
-    "warnings": []
-  },
-  "insights": ["Data-driven insight"],
-  "followUpQuestions": ["Next step?"],
-  "confidence": 0.9
-}`;
-
-      default: // 'general'
-        return `You are ChefAI, a helpful nutrition coach. ${userStats}
-
-Rules:
-1. Return only valid JSON
-2. Be enthusiastic and helpful
-3. Use user's real nutrition data
+WEEKLY TRENDS:
+- Average daily calories: ${Math.round(context.weeklyTrends.avgCalories)}
+- Average nutrition score: ${Math.round(context.weeklyTrends.avgNutritionScore * 100)}%
+- Recent meal quality trend: ${context.recentMeals.length > 5 ? 'Good logging consistency' : 'Could use more consistent tracking'}
 
 JSON format:
 {
-  "response": "Friendly helpful text about food/nutrition",
+  "response": "Data-driven analysis with specific insights about their progress and recommendations",
   "response_card": {
-    "title": "Topic Title",
-    "summary": "Quick summary",
+    "title": "Your Nutrition Analysis",
+    "summary": "Progress summary with specific metrics and next steps",
     "macros": {"calories_kcal": null, "protein_g": null, "carbs_g": null, "fat_g": null},
     "micros": {"fiber_g": null, "iron_mg": null, "calcium_mg": null, "vitamin_c_mg": null},
     "portion_size": null,
@@ -1045,11 +1107,49 @@ JSON format:
     "diet_flags": {"keto": false, "vegan": false, "vegetarian": false, "gluten_free": false, "pcos_friendly": false},
     "ingredients": [],
     "preparation_steps": [],
-    "health_benefits": [],
+    "health_benefits": ["Specific benefits they're achieving"],
+    "warnings": ["Areas that need attention"]
+  },
+  "insights": ["Specific insight based on their actual nutrition data and trends"],
+  "followUpQuestions": ["Want meal suggestions?", "Need help with a specific goal?"],
+  "confidence": 0.9
+}`;
+
+      default: // 'general'
+        return `You are ChefAI, a friendly and knowledgeable nutrition coach who knows your personal goals. ${userStats}${personalProfile}${dietPlanContext}
+
+YOUR COACHING STYLE:
+1. Be warm, encouraging, and enthusiastic about their progress
+2. Reference their actual nutrition data and recent meals when relevant
+3. Always consider their dietary restrictions: ${context.userProfile?.allergens.join(', ') || 'None'}
+4. Support their health goals: ${context.userProfile?.healthGoals.join(', ') || 'General wellness'}
+5. Suggest foods that match their cuisine preferences
+6. Provide practical, actionable advice they can implement today
+7. Celebrate their wins and gently guide improvements
+
+CONTEXT AWARENESS:
+- Progress toward goals: ${Math.round((context.dailyTotals.totalCalories / context.userGoals.dailyCalories) * 100)}% calories, ${Math.round((context.dailyTotals.totalProtein / context.userGoals.dailyProtein) * 100)}% protein
+- Recent meals logged: ${context.recentMeals.length} in past week
+- Consistency: ${context.recentMeals.length > 5 ? 'Excellent tracking!' : 'Could track more meals'}
+
+JSON format:
+{
+  "response": "Warm, personalized response that references their progress and goals",
+  "response_card": {
+    "title": "Personalized Topic",
+    "summary": "How this relates to their specific goals and progress",
+    "macros": {"calories_kcal": null, "protein_g": null, "carbs_g": null, "fat_g": null},
+    "micros": {"fiber_g": null, "iron_mg": null, "calcium_mg": null, "vitamin_c_mg": null},
+    "portion_size": null,
+    "allergens": [],
+    "diet_flags": {"keto": false, "vegan": false, "vegetarian": false, "gluten_free": false, "pcos_friendly": false},
+    "ingredients": [],
+    "preparation_steps": [],
+    "health_benefits": ["Benefits specific to their health goals"],
     "warnings": []
   },
-  "insights": ["Personalized insight using real data"],
-  "followUpQuestions": ["What else can I help with?"],
+  "insights": ["Personalized insight using their actual data and progress"],
+  "followUpQuestions": ["Want meal ideas?", "Need help with goals?"],
   "confidence": 0.9
 }`;
     }

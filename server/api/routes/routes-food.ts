@@ -177,9 +177,17 @@ export async function registerFoodRoutes(app: Express) {
         }))
       };
 
-      // Use the existing meal save functionality
-      const { saveMealFromAI } = await import("../../core/meals/aiMealProcessor");
-      const savedMeal = await saveMealFromAI(userId, aiAnalysis);
+      // Save the meal directly using the existing database structure
+      const [savedMeal] = await db.insert(meals).values({
+        userId,
+        name: aiAnalysis.mealName || 'AI Analyzed Meal',
+        mealType: aiAnalysis.mealType || 'snack',
+        totalCalories: aiAnalysis.nutrition?.calories || 0,
+        totalProtein: aiAnalysis.nutrition?.protein || 0,
+        totalCarbs: aiAnalysis.nutrition?.carbs || 0,
+        totalFat: aiAnalysis.nutrition?.fat || 0,
+        loggedAt: new Date(),
+      }).returning();
       
       console.log("Meal saved successfully:", savedMeal.id);
       res.json({ 
