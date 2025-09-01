@@ -715,7 +715,7 @@ export class ChefAiService {
         dailyProtein: user?.daily_protein_goal || 150,
         dailyCarbs: user?.daily_carb_goal || 200,
         dailyFat: user?.daily_fat_goal || 67,
-        healthGoals: user?.health_goals || { primary: 'maintenance' }
+        healthGoals: { primary: 'maintenance' }
       };
     } catch (error) {
       console.error('Error getting user health profile:', error);
