@@ -1,0 +1,90 @@
+How to Actually Train & Deploy ChefAI
+1. Build a Nutrition-Oriented System Prompt (Backend Layer)
+
+In your backend (e.g., server/core/ai/chefAIService.ts), inject a strict system prompt before user input:
+
+const systemPrompt = `
+You are ChefAI, a nutrition and recipe expert inside the MyFoodMetrics app.
+Rules:
+- Always provide exact measurements (grams, cups, tbsp).
+- Always provide step-by-step instructions with cooking times.
+- Always calculate nutrition per serving (calories, protein, carbs, fat, fiber).
+- Use USDA FDC + Open Food Facts database values for accuracy.
+- If data is missing, respond with "not_available".
+- Always format in JSON for frontend to render recipe cards:
+{
+  "title": "...",
+  "servings": ...,
+  "ingredients": [...],
+  "instructions": [...],
+  "nutrition": {...}
+}
+`;
+
+
+Then append user query:
+
+const messages = [
+  { role: "system", content: systemPrompt },
+  { role: "user", content: userQuery }
+];
+
+2. Wire GPT → Your Nutrition Database
+
+Connect to USDA FoodData Central API or your Supabase food DB.
+
+After GPT generates recipe, validate ingredients against database for nutrition accuracy.
+
+Example: if GPT says “chicken breast 200g”, fetch actual macros from DB and overwrite.
+
+3. Create a Recipe API Endpoint
+
+POST /api/chefai/recipe
+
+Input:
+
+{ "query": "show me a healthy chicken curry", "userId": "123" }
+
+
+Output (validated JSON):
+
+{
+  "title": "Healthy Chicken Curry",
+  "servings": 4,
+  "ingredients": [
+    "500g chicken breast",
+    "2 tbsp olive oil",
+    "1 onion, diced",
+    "200g tomatoes"
+  ],
+  "instructions": [
+    "Heat oil in pan...",
+    "Add onions and cook for 5 mins...",
+    "Add chicken and simmer for 20 mins..."
+  ],
+  "nutrition": {
+    "calories": 320,
+    "protein": 28,
+    "carbs": 12,
+    "fat": 14,
+    "fiber": 3
+  }
+}
+
+4. Render on Frontend
+
+Replace current static recipe card with dynamic card that maps JSON → UI.
+
+Use color-coded nutrition bars (lucide-react + shadcn/ui progress bars).
+
+Add “Save Recipe” → ties into user profile & XP system.
+
+5. Add Fine-Tuning / Embedding Layer (Optional but Powerful)
+
+If you want ChefAI to be unique vs. just GPT-4, you can:
+
+Embed your recipe database (Supabase + pgvector).
+
+When user asks: chicken curry, retrieve top recipes from DB, send to GPT in context.
+
+This ensures consistency + production-grade accuracy, not random hallucinations.

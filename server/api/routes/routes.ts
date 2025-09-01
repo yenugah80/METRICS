@@ -28,7 +28,7 @@ import { db } from "../../infrastructure/database/db";
 import { users } from "../../../shared/schema";
 import { eq } from "drizzle-orm";
 // import { recommendationRoutes } from "./routes/recommendations";
-import { registerRecipeRoutes } from "./routes-recipes";
+// Recipe routes integrated directly in ChefAI and main routes
 import dietPlanRoutes from './routes-diet-plans';
 import chefAiRoutes from './routes-chef-ai';
 
@@ -147,15 +147,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced authentication routes with multi-provider support
   app.use('/api/auth', authRoutes);
   
-  // Legacy logout route for backward compatibility (GET request)
+  // Simple logout route for development mode
   app.get('/api/logout', (req, res) => {
-    req.logout((err: any) => {
-      if (err) {
-        console.error('Logout error:', err);
-        return res.status(500).json({ message: 'Logout failed' });
-      }
-      res.redirect('/');
-    });
+    // In development mode, logout just clears session
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Session destroy error:', err);
+          return res.status(500).json({ error: 'Failed to logout' });
+        }
+        res.json({ message: 'Logged out successfully' });
+      });
+    } else {
+      res.json({ message: 'Logged out successfully' });
+    }
   });
 
   // Stripe subscription routes
@@ -351,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Comprehensive recipe system routes
-  registerRecipeRoutes(app);
+  // Recipe functionality integrated in ChefAI and other services
 
   // AI-powered meal recommendation routes
   app.use(mealRecommendationRoutes);

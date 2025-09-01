@@ -10,7 +10,7 @@ const chatMessageSchema = z.object({
   message: z.string().min(1).max(500),
   messageType: z.enum(['text', 'voice']).optional(),
   voiceTranscript: z.string().optional(),
-  conversationId: z.string().optional(),
+  conversationId: z.string().nullable().optional(),
 });
 
 // Send message to ChefAI
