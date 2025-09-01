@@ -700,19 +700,75 @@ export class ChefAiService {
     // Get user's dietary preferences and goals
     const userGoals = await this.getUserHealthProfile(userId);
     
-    const suggestions = [
-      {
-        name: `Healthy ${cuisine || 'Mediterranean'} ${mealType}`,
-        calories: calorieRange?.min || 350,
-        protein: Math.round((calorieRange?.min || 350) * 0.25 / 4),
-        carbs: Math.round((calorieRange?.min || 350) * 0.45 / 4),
-        fat: Math.round((calorieRange?.min || 350) * 0.30 / 9),
-        healthBenefits: [healthFocus || 'Balanced nutrition', 'Energy boost'],
-        portionSize: mealType === 'breakfast' ? '1 medium bowl' : mealType === 'lunch' ? '1 large plate' : '1 standard serving'
-      }
-    ];
-    
-    return { suggestions, userPreferences: userGoals };
+    try {
+      const targetCalories = calorieRange?.min || (mealType === 'breakfast' ? 400 : mealType === 'lunch' ? 600 : mealType === 'dinner' ? 700 : 250);
+      
+      const dietaryInfo = userGoals.dietaryPreferences?.join(', ') || 'No specific restrictions';
+      const allergenInfo = userGoals.allergens?.length > 0 ? `Allergic to: ${userGoals.allergens.join(', ')}` : 'No known allergies';
+      
+      const prompt = `You are a professional nutritionist and chef. Generate 3 specific, actionable meal suggestions for ${mealType} that:
+
+TARGET: ~${targetCalories} calories per serving
+CUISINE: ${cuisine || 'Any healthy cuisine'}
+HEALTH FOCUS: ${healthFocus || 'Balanced nutrition'}
+DIETARY REQUIREMENTS: ${dietaryInfo}
+ALLERGIES: ${allergenInfo}
+
+For each meal suggestion, provide:
+1. Specific dish name (e.g., "Grilled Salmon with Quinoa Pilaf and Roasted Vegetables")
+2. Exact ingredients with quantities (e.g., "4 oz salmon fillet, 1/2 cup quinoa, 1 cup mixed vegetables")
+3. Simple 3-4 step cooking instructions
+4. Precise nutrition breakdown (calories, protein, carbs, fat, fiber)
+5. Why this meal fits their goals
+
+Focus on real, practical foods that are easy to find and prepare. Be specific about portions and cooking methods.
+
+Respond in JSON format:
+{
+  "suggestions": [
+    {
+      "name": "Specific dish name",
+      "ingredients": ["ingredient 1 with amount", "ingredient 2 with amount"],
+      "instructions": ["step 1", "step 2", "step 3"],
+      "nutrition": {
+        "calories": number,
+        "protein": number,
+        "carbs": number,
+        "fat": number,
+        "fiber": number
+      },
+      "portionSize": "specific portion description",
+      "prepTime": "X minutes",
+      "whyRecommended": "reason this fits their goals"
+    }
+  ]
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+      });
+
+      const result = JSON.parse(response.choices[0].message.content || '{}');
+      return { suggestions: result.suggestions || [], userPreferences: userGoals };
+    } catch (error) {
+      console.error('Error generating AI meal suggestions:', error);
+      // Fallback to basic suggestion
+      const fallbackCalories = calorieRange?.min || (mealType === 'breakfast' ? 400 : mealType === 'lunch' ? 600 : mealType === 'dinner' ? 700 : 250);
+      return {
+        suggestions: [{
+          name: `Healthy ${cuisine || 'Mediterranean'} ${mealType}`,
+          ingredients: ["Main protein (4-6 oz)", "Vegetables (1-2 cups)", "Healthy grains (1/2 cup)"],
+          nutrition: { calories: fallbackCalories, protein: 25, carbs: 45, fat: 15, fiber: 8 },
+          portionSize: "1 balanced plate",
+          prepTime: "20 minutes",
+          whyRecommended: "Balanced macros for your goals"
+        }],
+        userPreferences: userGoals
+      };
+    }
   }
 
   private async getRecipeDetails(mealName: string, servings: number = 4, dietaryRestrictions?: string[]): Promise<any> {
