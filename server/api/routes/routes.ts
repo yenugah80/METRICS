@@ -32,6 +32,7 @@ import { eq } from "drizzle-orm";
 import dietPlanRoutes from './routes-diet-plans';
 import chefAiRoutes from './routes-chef-ai';
 import { initializeMealLoggingRoutes } from './routes-meal-logging';
+import { smartGptRoutes } from './routes-smart-gpt';
 
 // Security and Performance Imports
 // Security imports temporarily disabled
@@ -367,6 +368,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ChefAI conversational coaching routes
   app.use(chefAiRoutes);
+
+  // SmartGPT advanced AI analysis routes
+  app.use(smartGptRoutes);
+
+  // AI Systems Health Check
+  app.get('/api/ai/health', async (req, res) => {
+    try {
+      const { healthCheckAI } = await import('../test/ai-systems-test');
+      const healthStatus = await healthCheckAI();
+      res.json(healthStatus);
+    } catch (error) {
+      res.status(500).json({ error: 'Health check failed', details: error.message });
+    }
+  });
 
   // Meal logging and scanner integration routes
   initializeMealLoggingRoutes(app);

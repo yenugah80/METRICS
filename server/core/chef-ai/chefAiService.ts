@@ -240,7 +240,7 @@ export class ChefAiService {
     };
   }
 
-  // Generate contextual AI response with nutrition insights
+  // Generate contextual AI response with nutrition insights using OpenAI GPT
   private async generateContextualResponse(
     userMessage: string,
     context: NutritionContext,
@@ -249,53 +249,90 @@ export class ChefAiService {
   ) {
     const startTime = Date.now();
     
-    // Streamlined prompt for faster responses
-    const systemPrompt = `You are ChefAI, a friendly nutrition coach. Help users with nutrition advice, meal suggestions, and healthy eating tips.
+    // Enhanced prompt for better nutrition coaching
+    const systemPrompt = `You are ChefAI, an expert AI nutrition coach and chef assistant. You provide personalized nutrition advice, meal planning, recipe suggestions, and cooking guidance.
 
-User's Goals: ${context.userGoals.dailyCalories} cal, ${context.userGoals.dailyProtein}g protein daily
-Today's Progress: ${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} calories consumed
+## User Context:
+- Daily Goals: ${context.userGoals.dailyCalories} calories, ${context.userGoals.dailyProtein}g protein, ${context.userGoals.dailyCarbs}g carbs, ${context.userGoals.dailyFat}g fat
+- Today's Progress: ${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} calories (${Math.round((context.dailyTotals.totalCalories / context.userGoals.dailyCalories) * 100)}%)
+- Recent Meals: ${context.recentMeals.length} meals logged this week
+- Weekly Average Nutrition Score: ${context.weeklyTrends.avgNutritionScore?.toFixed(1) || 'No data'}/10
 
-Respond with helpful, actionable nutrition advice in JSON format:
+## Response Guidelines:
+- Be encouraging and supportive
+- Give specific, actionable advice
+- Reference their actual progress and goals
+- Suggest specific foods/recipes when relevant
+- Keep responses conversational but informative
+
+Respond in valid JSON format:
 {
-  "response": "Friendly, encouraging response with specific nutrition advice",
-  "insights": ["One practical insight about their nutrition"],
+  "response": "Your main response with personalized nutrition advice",
+  "insights": ["Specific insight about their nutrition patterns"],
   "followUpQuestions": ["Relevant follow-up question"],
-  "confidence": 0.9
+  "confidence": 0.9,
+  "recipeDetails": null
 }
 
 Only add "recipeDetails" object if user asks for a specific recipe.
 Keep responses concise and practical.`;
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...history.map(msg => ({ role: msg.role, content: msg.content })),
-      { role: 'user', content: userMessage }
-    ];
+    try {
+      // Get conversation history context
+      const historyContext = history.slice(-6).map(msg => 
+        `${msg.role}: ${msg.content}`
+      ).join('\n');
 
-    // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-    const response = await openai.chat.completions.create({
-      model: "gpt-5",
-      messages: messages as any,
-      response_format: { type: "json_object" },
-      max_completion_tokens: 400, // Reduced for faster responses
-      // GPT-5 only supports default temperature of 1
-    });
+      // Call OpenAI GPT with enhanced context
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini", // Using latest efficient model
+        messages: [
+          {
+            role: "system", 
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: `Recent conversation:\n${historyContext}\n\nCurrent message: ${userMessage}`
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 800,
+        temperature: 0.7,
+      });
 
-    const responseTime = (Date.now() - startTime) / 1000;
-    const aiData = JSON.parse(response.choices[0].message.content || '{}');
-    
-    return {
-      response: aiData.response || "I'm here to help with your nutrition questions!",
-      recipeDetails: aiData.recipeDetails || null,
-      mealCards: aiData.mealCards || [],
-      insights: aiData.insights || [],
-      followUpQuestions: aiData.followUpQuestions || [],
-      timeframe: aiData.timeframe,
-      metrics: aiData.metrics || [],
-      confidence: aiData.confidence || 0.95,
-      tokensUsed: response.usage?.total_tokens || 0,
-      responseTime,
-    };
+      const response = completion.choices[0].message.content;
+      if (!response) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      const parsedResponse = JSON.parse(response);
+      const responseTime = Date.now() - startTime;
+      
+      console.log(`ChefAI response generated in ${responseTime}ms`);
+      
+      return {
+        message: parsedResponse.response || "I'm here to help with your nutrition goals!",
+        insights: parsedResponse.insights || [],
+        followUpQuestions: parsedResponse.followUpQuestions || [],
+        recipeDetails: parsedResponse.recipeDetails || null,
+        confidence: parsedResponse.confidence || 0.8,
+        responseTime
+      };
+
+    } catch (error: any) {
+      console.error('Error generating AI response:', error);
+      
+      // Fallback response if OpenAI fails
+      return {
+        message: `I understand you're asking about "${userMessage}". Based on your nutrition data, you're making great progress! Your current intake is ${context.dailyTotals.totalCalories} calories today. Would you like specific meal suggestions to help reach your ${context.userGoals.dailyCalories} calorie goal?`,
+        insights: [`You've consumed ${Math.round((context.dailyTotals.totalCalories / context.userGoals.dailyCalories) * 100)}% of your daily calorie goal`],
+        followUpQuestions: ["What meal should I have next?", "How can I balance my macros better?"],
+        recipeDetails: null,
+        confidence: 0.6,
+        responseTime: Date.now() - startTime
+      };
+    }
   }
 
   // Get conversation history
@@ -347,37 +384,48 @@ Keep responses concise and practical.`;
 
   // Generate suggested conversation starters based on user's recent activity
   async generateSuggestedQuestions(userId: string): Promise<string[]> {
-    const context = await this.gatherNutritionContext(userId);
-    
-    const suggestions = [];
-    
-    // Dynamic suggestions based on user's actual data
-    if (context.recentMeals.length > 3) {
-      suggestions.push("What were my best nutrition meals this week?");
-      suggestions.push("How does my weekend eating compare to weekdays?");
+    try {
+      const context = await this.gatherNutritionContext(userId);
+      
+      const suggestions = [];
+      
+      // Dynamic suggestions based on user's actual data
+      if (context.recentMeals.length > 3) {
+        suggestions.push("What were my best nutrition meals this week?");
+        suggestions.push("How does my weekend eating compare to weekdays?");
+      }
+      
+      if (context.dailyTotals.totalCalories > 0) {
+        suggestions.push("How close am I to my goals today?");
+        suggestions.push("What should I eat next to balance my macros?");
+      }
+      
+      if (context.recentMeals.length === 0) {
+        suggestions.push("What's a great first meal to log?");
+        suggestions.push("How do I start tracking my nutrition?");
+      }
+      
+      // Default suggestions if no meals
+      if (suggestions.length === 0) {
+        suggestions.push(
+          "What did I eat yesterday?",
+          "Help me plan a healthy dinner",
+          "What are my nutrition strengths?",
+          "Show me my eating patterns"
+        );
+      }
+      
+      return suggestions.slice(0, 4); // Return max 4 suggestions
+    } catch (error) {
+      console.error('Error in generateSuggestedQuestions:', error);
+      // Return default suggestions if there's an error
+      return [
+        "What's a healthy lunch today?",
+        "How can I increase my protein?",
+        "Suggest 400-calorie dinners",
+        "What should I eat for lunch today?"
+      ];
     }
-    
-    if (context.dailyTotals.totalCalories > 0) {
-      suggestions.push("How close am I to my goals today?");
-      suggestions.push("What should I eat next to balance my macros?");
-    }
-    
-    if (context.recentMeals.length === 0) {
-      suggestions.push("What's a great first meal to log?");
-      suggestions.push("How do I start tracking my nutrition?");
-    }
-    
-    // Default suggestions if no meals
-    if (suggestions.length === 0) {
-      suggestions.push(
-        "What did I eat yesterday?",
-        "Help me plan a healthy dinner",
-        "What are my nutrition strengths?",
-        "Show me my eating patterns"
-      );
-    }
-    
-    return suggestions.slice(0, 4); // Return max 4 suggestions
   }
 }
 

@@ -226,7 +226,10 @@ export default function Dashboard() {
 
         {/* 2. PRODUCTION-GRADE DYNAMIC PROGRESS TRACKING */}
         <DynamicProgressRings userId={user?.id} />
-            
+
+        {/* 2.5. MACRO RINGS DISPLAY */}
+        <Card className="border-0 shadow-lg bg-white">
+          <CardContent className="p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {/* Calories Ring - Natural Coral */}
               <div className="text-center">
