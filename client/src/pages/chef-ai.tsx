@@ -228,6 +228,83 @@ export default function ChefAI() {
                             }`}>
                               <p className="text-sm">{msg.content}</p>
                               
+                              {/* Recipe Details Display */}
+                              {msg.role === 'assistant' && (msg as any).recipeDetails && (
+                                <div className="mt-4 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                  <div className="bg-gradient-to-r from-green-50 to-blue-50 px-4 py-3 border-b">
+                                    <h4 className="font-bold text-lg text-gray-800">{(msg as any).recipeDetails.recipeName}</h4>
+                                    <div className="flex gap-4 text-sm text-gray-600 mt-1">
+                                      <span>Servings: <strong>{(msg as any).recipeDetails.servings}</strong></span>
+                                      <span>Prep: <strong>{(msg as any).recipeDetails.prepTime}</strong></span>
+                                      <span>Cook: <strong>{(msg as any).recipeDetails.cookTime}</strong></span>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="grid md:grid-cols-2 gap-6 p-4">
+                                    {/* Ingredients */}
+                                    <div>
+                                      <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                        Ingredients
+                                      </h5>
+                                      <ul className="space-y-2">
+                                        {(msg as any).recipeDetails.ingredients.map((ingredient: any, idx: number) => (
+                                          <li key={idx} className="text-sm text-gray-700 flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 bg-green-400 rounded-full flex-shrink-0"></span>
+                                            <span><strong>{ingredient.amount}</strong> {ingredient.item}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                    
+                                    {/* Instructions */}
+                                    <div>
+                                      <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                        Instructions
+                                      </h5>
+                                      <ol className="space-y-3">
+                                        {(msg as any).recipeDetails.instructions.map((instruction: string, idx: number) => (
+                                          <li key={idx} className="text-sm text-gray-700 flex gap-3">
+                                            <span className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                                              {idx + 1}
+                                            </span>
+                                            <span>{instruction}</span>
+                                          </li>
+                                        ))}
+                                      </ol>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Nutrition Breakdown */}
+                                  <div className="bg-gray-50 px-4 py-3 border-t">
+                                    <h5 className="font-semibold text-gray-800 mb-3">Nutrition Per Serving</h5>
+                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                      <div className="text-center">
+                                        <div className="text-lg font-bold text-green-600">{(msg as any).recipeDetails.nutritionPerServing.calories}</div>
+                                        <div className="text-xs text-gray-500">Calories</div>
+                                      </div>
+                                      <div className="text-center">
+                                        <div className="text-lg font-bold text-blue-600">{(msg as any).recipeDetails.nutritionPerServing.protein}g</div>
+                                        <div className="text-xs text-gray-500">Protein</div>
+                                      </div>
+                                      <div className="text-center">
+                                        <div className="text-lg font-bold text-purple-600">{(msg as any).recipeDetails.nutritionPerServing.carbs}g</div>
+                                        <div className="text-xs text-gray-500">Carbs</div>
+                                      </div>
+                                      <div className="text-center">
+                                        <div className="text-lg font-bold text-orange-600">{(msg as any).recipeDetails.nutritionPerServing.fat}g</div>
+                                        <div className="text-xs text-gray-500">Fat</div>
+                                      </div>
+                                      <div className="text-center">
+                                        <div className="text-lg font-bold text-teal-600">{(msg as any).recipeDetails.nutritionPerServing.fiber}g</div>
+                                        <div className="text-xs text-gray-500">Fiber</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
                               {/* Meal Cards */}
                               {msg.mealCards && msg.mealCards.length > 0 && (
                                 <div className="mt-3 space-y-2">

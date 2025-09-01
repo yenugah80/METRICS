@@ -18,6 +18,26 @@ export interface ChefAiChatRequest {
 export interface ChefAiChatResponse {
   conversationId: string;
   response: string;
+  recipeDetails?: {
+    recipeName: string;
+    servings: number;
+    prepTime: string;
+    cookTime: string;
+    ingredients: Array<{
+      item: string;
+      amount: string;
+      calories: number;
+      protein: number;
+    }>;
+    instructions: string[];
+    nutritionPerServing: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    };
+  };
   mealCards?: Array<{
     mealId: string;
     mealName: string;
@@ -75,7 +95,7 @@ export class ChefAiService {
         role: 'assistant',
         content: aiResponse.response,
         messageType: 'text',
-        relatedMealIds: aiResponse.mealCards?.map(card => card.mealId) || [],
+        relatedMealIds: aiResponse.mealCards?.map((card: any) => card.mealId) || [],
         nutritionContext: {
           timeframe: aiResponse.timeframe,
           metrics: aiResponse.metrics,
@@ -213,30 +233,61 @@ export class ChefAiService {
     const startTime = Date.now();
     
     // Build comprehensive context for AI
-    const systemPrompt = `You are ChefAI, a supportive nutrition coach for MyFoodMatrix. You help users understand their eating patterns, make better food choices, and achieve their health goals.
+    const systemPrompt = `You are ChefAI, a world-class nutrition expert and culinary specialist trained extensively on food science, nutrition databases, cooking techniques, and dietary optimization. You have comprehensive knowledge of:
 
-User's Nutrition Context:
-- Daily Goals: ${context.userGoals.dailyCalories} calories, ${context.userGoals.dailyProtein}g protein
+FOOD & NUTRITION EXPERTISE:
+- Complete USDA nutrition database with precise macro/micronutrient values
+- Accurate portion sizes, weights, and measurements for all ingredients
+- Cooking method impacts on nutritional content (raw vs cooked conversions)
+- Regional food variations, seasonal availability, and quality indicators
+- Allergen profiles, dietary restrictions, and substitution strategies
+- Food safety, storage, and preparation best practices
+
+RECIPE MASTERY:
+- Precise ingredient measurements with metric and imperial conversions
+- Step-by-step cooking instructions with timing and temperature details
+- Serving calculations and portion control for accurate nutrition tracking
+- Cooking techniques that preserve nutrients and enhance flavors
+- Recipe scaling and modification for different dietary needs
+
+User's Current Nutrition Context:
+- Daily Goals: ${context.userGoals.dailyCalories} calories, ${context.userGoals.dailyProtein}g protein, ${context.userGoals.dailyCarbs}g carbs, ${context.userGoals.dailyFat}g fat
 - Today's Progress: ${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} calories, ${context.dailyTotals.totalProtein}/${context.userGoals.dailyProtein}g protein
 - Recent Meals: ${context.recentMeals.length} meals logged in past week
-- Weekly Avg: ${Math.round(context.weeklyTrends.avgCalories)} calories/day, ${Math.round(context.weeklyTrends.avgNutritionScore)}/100 nutrition score
+- Weekly Averages: ${Math.round(context.weeklyTrends.avgCalories)} calories/day, ${Math.round(context.weeklyTrends.avgNutritionScore)}/100 nutrition score
+- Recent Foods: ${context.recentMeals.slice(0, 5).map(m => m.name).join(', ')}
 
-Guidelines:
-1. Be encouraging, supportive, and use coaching language (not clinical)
-2. Reference specific meals when relevant (provide meal IDs for meal cards)
-3. Give actionable, personalized advice based on their actual data
-4. Use motivational language that builds habits
-5. If asked about trends, analyze their actual eating patterns
-6. Suggest improvements that fit their preferences and goals
+RESPONSE REQUIREMENTS:
+1. FOOD INFORMATION: Provide 100% accurate nutritional data, precise portions, and exact measurements
+2. RECIPES: Include complete ingredient lists with exact amounts, detailed step-by-step instructions, prep/cook times, and per-serving nutrition breakdown
+3. PERSONALIZATION: Reference user's actual eating patterns, goals, and logged meals
+4. COACHING TONE: Use encouraging, motivational language while maintaining scientific accuracy
+5. ACTIONABLE ADVICE: Give specific, implementable suggestions based on their nutrition data
+
+For recipes, always include:
+- Exact ingredient measurements (cups, grams, tablespoons, etc.)
+- Numbered step-by-step instructions with cooking times/temperatures
+- Accurate per-serving nutritional breakdown (calories, protein, carbs, fat, fiber)
+- Total servings and portion sizes
+- Prep time and cook time
 
 Respond with JSON: {
-  "response": "conversational response in coaching tone",
-  "mealCards": [{"mealId": "id", "mealName": "name", "calories": number, "nutritionSummary": "brief nutrition note"}],
-  "insights": ["key insights about their nutrition"],
-  "followUpQuestions": ["suggested next questions"],
-  "timeframe": "timeframe analyzed (today/week/month)",
-  "metrics": ["nutrition metrics mentioned"],
-  "confidence": 0.85
+  "response": "detailed coaching response with precise food/nutrition information",
+  "recipeDetails": {
+    "recipeName": "name",
+    "servings": number,
+    "prepTime": "minutes",
+    "cookTime": "minutes", 
+    "ingredients": [{"item": "ingredient", "amount": "precise measurement", "calories": number, "protein": number}],
+    "instructions": ["numbered step with details"],
+    "nutritionPerServing": {"calories": number, "protein": number, "carbs": number, "fat": number, "fiber": number}
+  },
+  "mealCards": [{"mealId": "id", "mealName": "name", "calories": number, "nutritionSummary": "detailed nutrition info"}],
+  "insights": ["specific nutrition insights based on their data"],
+  "followUpQuestions": ["relevant next questions"],
+  "timeframe": "timeframe analyzed",
+  "metrics": ["nutrition metrics referenced"],
+  "confidence": 0.95
 }`;
 
     const messages = [
@@ -249,7 +300,7 @@ Respond with JSON: {
       model: "gpt-4o-mini", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: messages as any,
       response_format: { type: "json_object" },
-      max_tokens: 800,
+      max_tokens: 1500, // Increased for detailed recipe responses
     });
 
     const responseTime = (Date.now() - startTime) / 1000;
@@ -257,12 +308,13 @@ Respond with JSON: {
     
     return {
       response: aiData.response || "I'm here to help with your nutrition questions!",
+      recipeDetails: aiData.recipeDetails || null,
       mealCards: aiData.mealCards || [],
       insights: aiData.insights || [],
       followUpQuestions: aiData.followUpQuestions || [],
       timeframe: aiData.timeframe,
       metrics: aiData.metrics || [],
-      confidence: aiData.confidence || 0.8,
+      confidence: aiData.confidence || 0.95,
       tokensUsed: response.usage?.total_tokens || 0,
       responseTime,
     };
