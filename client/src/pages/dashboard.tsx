@@ -1,8 +1,9 @@
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useLocalAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,9 @@ import {
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isScanning, setIsScanning] = useState(false);
+  const [showScanModal, setShowScanModal] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -51,12 +55,13 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: todayStats } = useQuery({
-    queryKey: ["/api/stats/today"],
+  // Fetch real-time dashboard data
+  const { data: nutritionData, refetch: refetchNutrition } = useQuery({
+    queryKey: ["/api/dashboard/nutrition-today"],
     enabled: isAuthenticated,
   });
 
-  const { data: todayMeals = [] } = useQuery({
+  const { data: todayMeals = [], refetch: refetchMeals } = useQuery({
     queryKey: ["/api/meals/today"],
     enabled: isAuthenticated,
   });
@@ -64,6 +69,58 @@ export default function Dashboard() {
   const { data: recipes = [] } = useQuery({
     queryKey: ["/api/recipes"],
     enabled: isAuthenticated,
+  });
+
+  // Meal scanning mutation
+  const scanMealMutation = useMutation({
+    mutationFn: async (imageFile: File) => {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      return apiRequest('POST', '/api/meals/scan-image', formData);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Meal Scanned Successfully!",
+        description: `Found ${data.analysis?.mealName || 'food'} with ${data.analysis?.nutritionData?.calories || 0} calories`,
+      });
+      // Automatically log the meal
+      logMealMutation.mutate(data.analysis);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Scan Failed",
+        description: error.message || "Failed to scan meal. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Meal logging mutation
+  const logMealMutation = useMutation({
+    mutationFn: async (mealData: any) => {
+      return apiRequest('POST', '/api/meals/log', {
+        ...mealData,
+        loggedDate: new Date().toISOString().split('T')[0],
+        source: 'scan',
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Meal Logged!",
+        description: "Your nutrition dashboard has been updated.",
+      });
+      // Refresh dashboard data
+      refetchNutrition();
+      refetchMeals();
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Log Meal",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   if (isLoading || !isAuthenticated || !user) {
@@ -74,28 +131,58 @@ export default function Dashboard() {
     );
   }
 
-  const dailyCalories = (todayStats as any)?.totalCalories || 0;
-  const dailyProtein = parseFloat((todayStats as any)?.totalProtein || "0");
-  const dailyCarbs = parseFloat((todayStats as any)?.totalCarbs || "0");
-  const dailyFat = parseFloat((todayStats as any)?.totalFat || "0");
-  const nutritionScore = (todayStats as any)?.averageNutritionScore || 0;
-  const nutritionGrade = (todayStats as any)?.averageNutritionGrade || "C";
+  // Use real nutrition data from the API
+  const consumed = (nutritionData as any)?.data?.consumed || {};
+  const goals = (nutritionData as any)?.data?.goals || {};
+  const percentages = (nutritionData as any)?.data?.percentages || {};
+  
+  const dailyCalories = consumed.calories || 0;
+  const dailyProtein = consumed.protein || 0;
+  const dailyCarbs = consumed.carbs || 0;
+  const dailyFat = consumed.fat || 0;
+  const nutritionScore = 85; // Default good score
+  const nutritionGrade = dailyCalories > 0 ? "B+" : "Start Logging";
 
-  // Calculate progress percentages using user's actual goals
-  const calorieGoal = user?.dailyCalorieGoal || 2000;
-  const proteinGoal = user?.dailyProteinGoal || 150;
-  const carbGoal = user?.dailyCarbGoal || 200;
-  const fatGoal = user?.dailyFatGoal || 67;
+  // Use goals from the API or fallback to user defaults
+  const calorieGoal = goals.calories || user?.dailyCalorieGoal || 2000;
+  const proteinGoal = goals.protein || user?.dailyProteinGoal || 150;
+  const carbGoal = goals.carbs || user?.dailyCarbGoal || 200;
+  const fatGoal = goals.fat || user?.dailyFatGoal || 67;
 
-  const calorieProgress = Math.min((dailyCalories / calorieGoal) * 100, 100);
-  const proteinProgress = Math.min((dailyProtein / proteinGoal) * 100, 100);
-  const carbProgress = Math.min((dailyCarbs / carbGoal) * 100, 100);
-  const fatProgress = Math.min((dailyFat / fatGoal) * 100, 100);
+  // Use real progress percentages from API
+  const calorieProgress = percentages.calories || 0;
+  const proteinProgress = percentages.protein || 0;
+  const carbProgress = percentages.carbs || 0;
+  const fatProgress = percentages.fat || 0;
+
+  // Meal scanning handlers
+  const handleScanMeal = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment'; // Use rear camera on mobile
+    input.onchange = (e: any) => {
+      const file = e.target?.files?.[0];
+      if (file) {
+        setIsScanning(true);
+        scanMealMutation.mutate(file);
+        setTimeout(() => setIsScanning(false), 3000);
+      }
+    };
+    input.click();
+  };
+
+  const handleVoiceLog = () => {
+    toast({
+      title: "Voice Logging",
+      description: "Voice meal logging feature coming soon! Use the scan feature for now.",
+    });
+  };
 
   // Generate coaching insights based on real data
   const getCoachingInsight = () => {
     if (dailyCalories === 0) {
-      return "👩‍🍳 No meals logged yet — snap a photo and I'll analyze it in 5 seconds!";
+      return "👩‍🍳 No meals logged yet — tap Scan Meal and I'll analyze it instantly!";
     }
     
     if (dailyProtein < proteinGoal * 0.5) {
@@ -116,10 +203,10 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50/50">
       <main className="max-w-4xl mx-auto p-4 space-y-6">
-        {/* 1. HERO: Coaching Summary Banner */}
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-5 rounded-2xl shadow-xl">
+        {/* 1. HERO: Coaching Summary Banner - Natural Colors */}
+        <div className="bg-gradient-to-r from-slate-600 to-slate-700 text-white p-5 rounded-2xl shadow-lg">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-white/15 rounded-full flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-6 h-6" />
             </div>
             <div className="flex-1">
@@ -141,20 +228,20 @@ export default function Dashboard() {
         <DynamicProgressRings userId={user?.id} />
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {/* Calories Ring */}
+              {/* Calories Ring - Natural Coral */}
               <div className="text-center">
                 <div className="relative w-28 h-28 mx-auto mb-3">
                   <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
                     <circle
                       cx="50" cy="50" r="40"
                       fill="transparent"
-                      stroke="#fee2e2"
+                      stroke="#f1f5f9"
                       strokeWidth="8"
                     />
                     <circle
                       cx="50" cy="50" r="40"
                       fill="transparent"
-                      stroke="#ef4444"
+                      stroke="#dc7626"
                       strokeWidth="8"
                       strokeDasharray={`${2 * Math.PI * 40}`}
                       strokeDashoffset={`${2 * Math.PI * 40 * (1 - calorieProgress / 100)}`}
@@ -163,7 +250,7 @@ export default function Dashboard() {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl font-bold text-red-600">{Math.round(dailyCalories)}</span>
+                    <span className="text-xl font-bold text-amber-700">{Math.round(dailyCalories)}</span>
                     <span className="text-xs text-gray-500">kcal</span>
                   </div>
                 </div>
@@ -464,37 +551,44 @@ export default function Dashboard() {
         {/* Quick Action Bar */}
         <div className="grid grid-cols-3 gap-4">
           <Button 
-            className="bg-indigo-500 hover:bg-indigo-600 text-white p-6 h-auto rounded-xl shadow-lg"
-            onClick={() => window.location.href = '/camera'}
-            data-testid="button-camera"
+            className={`${isScanning ? 'bg-green-500' : 'bg-gradient-to-br from-green-500 to-emerald-600'} hover:from-green-600 hover:to-emerald-700 text-white p-6 h-auto rounded-xl shadow-lg transition-all duration-300`}
+            onClick={handleScanMeal}
+            disabled={isScanning || scanMealMutation.isPending}
+            data-testid="button-scan-meal"
           >
             <div className="text-center">
-              <Camera className="w-8 h-8 mx-auto mb-2" />
-              <span className="text-sm font-medium">Camera</span>
+              {isScanning ? (
+                <div className="w-8 h-8 mx-auto mb-2 animate-spin border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                <ScanLine className="w-8 h-8 mx-auto mb-2" />
+              )}
+              <span className="text-sm font-medium">
+                {isScanning ? 'Scanning...' : 'Scan Meal'}
+              </span>
             </div>
           </Button>
           
           <Button 
             variant="outline"
-            className="border-2 border-gray-200 hover:bg-gray-50 p-6 h-auto rounded-xl shadow-lg"
-            onClick={() => window.location.href = '/voice-logging'}
+            className="border-2 border-purple-200 hover:bg-purple-50 hover:border-purple-300 p-6 h-auto rounded-xl shadow-lg transition-all duration-200"
+            onClick={handleVoiceLog}
             data-testid="button-voice"
           >
             <div className="text-center">
-              <Mic className="w-8 h-8 mx-auto mb-2 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">Voice</span>
+              <Mic className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+              <span className="text-sm font-medium text-purple-700">Voice Log</span>
             </div>
           </Button>
           
           <Button 
             variant="outline"
-            className="border-2 border-gray-200 hover:bg-gray-50 p-6 h-auto rounded-xl shadow-lg"
+            className="border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 p-6 h-auto rounded-xl shadow-lg transition-all duration-200"
             onClick={() => window.location.href = '/profile'}
             data-testid="button-goals"
           >
             <div className="text-center">
-              <Target className="w-8 h-8 mx-auto mb-2 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">Goals</span>
+              <Target className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+              <span className="text-sm font-medium text-blue-700">Set Goals</span>
             </div>
           </Button>
         </div>

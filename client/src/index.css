@@ -62,26 +62,26 @@
   --brand-primary: hsl(231, 48%, 48%); /* Primary blue for main actions */
   --brand-secondary: hsl(158, 64%, 52%); /* Secondary teal for accents */
   
-  /* Nutrition Color System - Consistent across app */
-  --nutrition-calories: hsl(0, 84%, 60%); /* Red for calories */
-  --nutrition-protein: hsl(213, 94%, 68%); /* Blue for protein */
-  --nutrition-carbs: hsl(262, 83%, 58%); /* Purple for carbs */
-  --nutrition-fat: hsl(24, 95%, 53%); /* Orange for fat */
-  --nutrition-eco: hsl(142, 76%, 36%); /* Green for sustainability */
+  /* Nutrition Color System - Natural & Muted */
+  --nutrition-calories: hsl(15, 50%, 55%); /* Muted coral for calories */
+  --nutrition-protein: hsl(210, 40%, 58%); /* Soft blue for protein */
+  --nutrition-carbs: hsl(260, 35%, 65%); /* Muted lavender for carbs */
+  --nutrition-fat: hsl(35, 60%, 58%); /* Natural amber for fat */
+  --nutrition-eco: hsl(140, 35%, 45%); /* Forest green for sustainability */
   
-  /* Market-Optimized Gradients - Trust & Wellness */
-  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); /* Trust blue */
-  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Nature green */
-  --gradient-warning: linear-gradient(135deg, #f97316 0%, #ea580c 100%); /* Energy orange */
-  --gradient-info: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); /* Calming teal */
-  --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); /* Premium purple */
-  --gradient-hero: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #0d9488 100%); /* Trust progression */
+  /* Natural Gradients - Calm & Professional */
+  --gradient-primary: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); /* Calm slate */
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #047857 100%); /* Natural green */
+  --gradient-warning: linear-gradient(135deg, #d97706 0%, #b45309 100%); /* Warm amber */
+  --gradient-info: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); /* Soft cyan */
+  --gradient-secondary: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); /* Muted purple */
+  --gradient-hero: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%); /* Subtle gray progression */
   --gradient-surface: linear-gradient(135deg, hsl(210, 20%, 98%) 0%, hsl(0, 0%, 100%) 100%);
   
-  /* Engaging Card Gradients */
-  --gradient-light-premium: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(16, 185, 129, 0.08) 100%);
-  --gradient-card-wellness: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(13, 148, 136, 0.08) 100%);
-  --gradient-card-energy: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(245, 158, 11, 0.08) 100%);
+  /* Natural Card Gradients */
+  --gradient-light-premium: linear-gradient(135deg, rgba(107, 114, 128, 0.03) 0%, rgba(75, 85, 99, 0.05) 100%);
+  --gradient-card-wellness: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, rgba(4, 120, 87, 0.05) 100%);
+  --gradient-card-energy: linear-gradient(135deg, rgba(217, 119, 6, 0.03) 0%, rgba(180, 83, 9, 0.05) 100%);
   
   /* Market-Optimized Glow Effects - Engagement Focused */
   --glow-primary: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 40px rgba(59, 130, 246, 0.08);

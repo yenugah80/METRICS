@@ -385,7 +385,7 @@ export default function AuthPage() {
                       {signInMutation.error && (
                         <Alert variant="destructive" className="border-danger bg-danger/5">
                           <AlertDescription className="text-sm">
-                            {signInMutation.error.message}
+                            {signInMutation.error?.message || 'Sign in failed. Please try again.'}
                           </AlertDescription>
                         </Alert>
                       )}
@@ -480,7 +480,7 @@ export default function AuthPage() {
                       {signUpMutation.error && (
                         <Alert variant="destructive" className="border-danger bg-danger/5">
                           <AlertDescription className="text-sm">
-                            {signUpMutation.error.message}
+                            {signUpMutation.error?.message || 'Account creation failed. Please try again.'}
                           </AlertDescription>
                         </Alert>
                       )}
