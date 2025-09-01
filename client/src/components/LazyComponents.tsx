@@ -61,9 +61,7 @@ export const LazySubscribe = lazyLoadComponent(
 );
 
 // Lazy-loaded heavy components
-export const LazyRecipeChatbot = lazyLoadComponent(
-  () => import('./recipe-chatbot')
-);
+// Removed LazyRecipeChatbot - now using unified ChefAI interface
 
 export const LazyBarcodeScanner = lazyLoadComponent(
   () => import('./forms/BarcodeScanner')
