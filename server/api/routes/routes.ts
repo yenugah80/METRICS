@@ -29,6 +29,8 @@ import { users } from "../../../shared/schema";
 import { eq } from "drizzle-orm";
 // import { recommendationRoutes } from "./routes/recommendations";
 import { registerRecipeRoutes } from "./routes-recipes";
+import dietPlanRoutes from './routes-diet-plans';
+import chefAiRoutes from './routes-chef-ai';
 
 // Security and Performance Imports
 // Security imports temporarily disabled
@@ -355,6 +357,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // AI-powered meal recommendation routes
   app.use(mealRecommendationRoutes);
+
+  // Premium diet plan routes
+  app.use(dietPlanRoutes);
+
+  // ChefAI conversational coaching routes
+  app.use(chefAiRoutes);
 
   // Object storage routes for meal images
   app.get("/objects/:objectPath(*)", verifyJWT, async (req: AuthenticatedRequest, res) => {

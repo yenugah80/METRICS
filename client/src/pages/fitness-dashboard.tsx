@@ -105,6 +105,17 @@ export default function FitnessDashboard() {
     refetchInterval: 60000, // Update when macros change
   });
 
+  // Fetch premium features data
+  const { data: dietPlanData } = useQuery({
+    queryKey: ['/api/diet-plans/active'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const { data: chefAiConversations } = useQuery({
+    queryKey: ['/api/chef-ai/conversations'],
+    staleTime: 60 * 1000, // 1 minute
+  });
+
   // Safe data extraction with fallbacks
   const safeData = {
     todayStats: dashboardData?.todayStats || {
@@ -517,6 +528,124 @@ export default function FitnessDashboard() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Premium Features Section */}
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-purple-600" />
+                Premium Features
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Diet Plan Status */}
+                <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="w-5 h-5" />
+                      Personal Diet Plan
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {(dietPlanData as any)?.hasPlan ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold text-gray-800">{(dietPlanData as any)?.dietPlan?.planName}</h4>
+                            <p className="text-sm text-gray-600">28-Day Personalized Plan</p>
+                          </div>
+                          <Badge className="bg-green-100 text-green-700">Active</Badge>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Plan Progress</span>
+                            <span className="font-semibold">Day {Math.ceil((new Date().getTime() - new Date((dietPlanData as any)?.dietPlan?.startDate).getTime()) / (1000 * 60 * 60 * 24))} of 28</span>
+                          </div>
+                          <Progress value={85} className="h-2" />
+                          <p className="text-xs text-gray-500">85% adherence this week</p>
+                        </div>
+                        
+                        <Button 
+                          onClick={() => window.location.href = '/diet-plan'}
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                          data-testid="button-view-diet-plan"
+                        >
+                          View Full Plan
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6">
+                        <Target className="w-12 h-12 mx-auto text-purple-400 mb-3" />
+                        <h4 className="font-semibold text-gray-800 mb-2">Create Your Diet Plan</h4>
+                        <p className="text-sm text-gray-600 mb-4">Get a personalized 28-day nutrition plan tailored to your goals</p>
+                        <Button 
+                          onClick={() => window.location.href = '/diet-plan-questionnaire'}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                          data-testid="button-create-diet-plan"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Diet Plan
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* ChefAI Coaching */}
+                <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2">
+                      <BrainCircuit className="w-5 h-5" />
+                      ChefAI Coaching
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {(chefAiConversations as any)?.conversations?.length > 0 ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold text-gray-800">Recent Conversations</h4>
+                            <p className="text-sm text-gray-600">{(chefAiConversations as any)?.conversations?.length || 0} total chats</p>
+                          </div>
+                          <Badge className="bg-blue-100 text-blue-700">Active</Badge>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {(chefAiConversations as any)?.conversations?.slice(0, 2).map((conv: any, index: number) => (
+                            <div key={index} className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                              <p className="text-sm font-medium text-gray-800 truncate">{conv.title}</p>
+                              <p className="text-xs text-gray-500">{conv.messageCount} messages • {new Date(conv.lastInteractionAt).toLocaleDateString()}</p>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <Button 
+                          onClick={() => window.location.href = '/chef-ai'}
+                          className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                          data-testid="button-chat-chef-ai"
+                        >
+                          Chat with ChefAI
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6">
+                        <BrainCircuit className="w-12 h-12 mx-auto text-blue-400 mb-3" />
+                        <h4 className="font-semibold text-gray-800 mb-2">Meet ChefAI</h4>
+                        <p className="text-sm text-gray-600 mb-4">Your personal nutrition coach powered by AI. Ask questions about your meals and goals.</p>
+                        <Button 
+                          onClick={() => window.location.href = '/chef-ai'}
+                          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                          data-testid="button-start-chef-ai"
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          Start Conversation
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 

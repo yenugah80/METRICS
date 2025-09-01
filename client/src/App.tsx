@@ -15,6 +15,9 @@ import VoiceLoggingPage from "@/pages/voice-logging";
 import FitnessDashboard from "@/pages/fitness-dashboard";
 import FeaturesPage from "@/pages/features";
 import PricingPage from "@/pages/pricing";
+import DietPlanQuestionnaire from "@/pages/diet-plan-questionnaire";
+import DietPlan from "@/pages/diet-plan";
+import ChefAI from "@/pages/chef-ai";
 import NotFound from "@/pages/not-found";
 import { initPerformanceOptimizations } from "@/lib/performance";
 
@@ -116,6 +119,21 @@ function App() {
                     <SafeLazyWrapper message="Loading profile...">
                       <LazyProfile />
                     </SafeLazyWrapper>
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/diet-plan-questionnaire">
+                  <ProtectedRoute>
+                    <DietPlanQuestionnaire />
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/diet-plan">
+                  <ProtectedRoute>
+                    <DietPlan />
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/chef-ai">
+                  <ProtectedRoute>
+                    <ChefAI />
                   </ProtectedRoute>
                 </Route>
                 <Route component={NotFound} />

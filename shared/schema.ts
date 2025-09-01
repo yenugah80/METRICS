@@ -746,6 +746,301 @@ export const recipesRelations = relations(recipes, ({ one }) => ({
   }),
 }));
 
+// PREMIUM FEATURES: Diet Plans System
+export const dietPlans = pgTable("diet_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  // Plan details
+  planName: varchar("plan_name").notNull(),
+  planType: varchar("plan_type").notNull(), // weight_loss, muscle_gain, diabetes, pcos, pregnancy, maintenance
+  duration: integer("duration").default(28), // days
+  
+  // User questionnaire responses
+  questionnaireData: jsonb("questionnaire_data").$type<{
+    personalInfo: { age: number, gender: string, height: number, weight: number },
+    healthGoals: string[],
+    lifestyle: string[],
+    foodPreferences: string[],
+    restrictions: string[],
+    eatingSchedule: string[],
+    dietPreparation: string[],
+    physicalActivity: string[],
+    supplements: boolean,
+    currentDiet: string[]
+  }>().notNull(),
+  
+  // Generated plan content
+  dailyTargets: jsonb("daily_targets").$type<{
+    calories: number,
+    protein: number,
+    carbs: number,
+    fat: number,
+    fiber: number,
+    micronutrients: Record<string, number>
+  }>().notNull(),
+  
+  // Plan status
+  isActive: boolean("is_active").default(true),
+  adherenceScore: real("adherence_score").default(0), // 0-100
+  
+  // Plan lifecycle
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("diet_plans_user_id_idx").on(table.userId),
+  activeIdx: index("diet_plans_active_idx").on(table.isActive),
+  planTypeIdx: index("diet_plans_type_idx").on(table.planType),
+}));
+
+// Diet Plan Meals (28-day meal recommendations)
+export const dietPlanMeals = pgTable("diet_plan_meals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  dietPlanId: varchar("diet_plan_id").references(() => dietPlans.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Meal details
+  day: integer("day").notNull(), // 1-28
+  mealType: varchar("meal_type").notNull(), // breakfast, lunch, dinner, snack
+  option: integer("option").default(1), // 1 or 2 (two options per meal)
+  
+  // Meal content
+  mealName: varchar("meal_name").notNull(),
+  description: text("description"),
+  quickRecipe: text("quick_recipe"),
+  portionSize: varchar("portion_size"),
+  healthBenefits: text("health_benefits"),
+  thingsToAvoid: text("things_to_avoid"),
+  
+  // Nutrition breakdown
+  calories: real("calories").notNull(),
+  protein: real("protein").notNull(),
+  carbs: real("carbs").notNull(),
+  fat: real("fat").notNull(),
+  fiber: real("fiber"),
+  
+  // Usage tracking
+  timesSelected: integer("times_selected").default(0),
+  userRating: real("user_rating"), // 1-5 stars
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  planIdIdx: index("diet_plan_meals_plan_id_idx").on(table.dietPlanId),
+  dayMealIdx: index("diet_plan_meals_day_meal_idx").on(table.day, table.mealType),
+}));
+
+// Diet Plan Supplements
+export const dietPlanSupplements = pgTable("diet_plan_supplements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  dietPlanId: varchar("diet_plan_id").references(() => dietPlans.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Supplement details
+  supplementName: varchar("supplement_name").notNull(),
+  dosage: varchar("dosage").notNull(),
+  timing: varchar("timing").notNull(), // morning, afternoon, evening, with_meals
+  purpose: text("purpose").notNull(),
+  
+  // Priority and safety
+  priority: varchar("priority").default('recommended'), // essential, recommended, optional
+  safetyNotes: text("safety_notes"),
+  
+  // Usage tracking
+  isAccepted: boolean("is_accepted").default(false),
+  userNotes: text("user_notes"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  planIdIdx: index("diet_plan_supplements_plan_id_idx").on(table.dietPlanId),
+  priorityIdx: index("diet_plan_supplements_priority_idx").on(table.priority),
+}));
+
+// Diet Plan Lifestyle Recommendations
+export const dietPlanLifestyle = pgTable("diet_plan_lifestyle", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  dietPlanId: varchar("diet_plan_id").references(() => dietPlans.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Lifestyle recommendation
+  category: varchar("category").notNull(), // sleep, exercise, hydration, stress, meal_timing
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  actionItems: jsonb("action_items").$type<string[]>().notNull(),
+  
+  // Implementation
+  frequency: varchar("frequency"), // daily, weekly, as_needed
+  difficulty: varchar("difficulty").default('easy'), // easy, medium, hard
+  
+  // Tracking
+  isImplemented: boolean("is_implemented").default(false),
+  userFeedback: text("user_feedback"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  planIdIdx: index("diet_plan_lifestyle_plan_id_idx").on(table.dietPlanId),
+  categoryIdx: index("diet_plan_lifestyle_category_idx").on(table.category),
+}));
+
+// PREMIUM FEATURES: ChefAI Conversational Coaching
+export const chefAiConversations = pgTable("chef_ai_conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  // Conversation details
+  title: varchar("title"), // auto-generated based on first message
+  context: varchar("context").default('general'), // meal_analysis, timeline, comparison, tips
+  
+  // Conversation state
+  isActive: boolean("is_active").default(true),
+  messageCount: integer("message_count").default(0),
+  
+  // Usage tracking
+  lastInteractionAt: timestamp("last_interaction_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("chef_ai_conversations_user_id_idx").on(table.userId),
+  activeIdx: index("chef_ai_conversations_active_idx").on(table.isActive),
+  lastInteractionIdx: index("chef_ai_conversations_last_interaction_idx").on(table.lastInteractionAt),
+}));
+
+// ChefAI Chat Messages
+export const chefAiMessages = pgTable("chef_ai_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").references(() => chefAiConversations.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Message details
+  role: varchar("role").notNull(), // user, assistant
+  content: text("content").notNull(),
+  messageType: varchar("message_type").default('text'), // text, voice, meal_card, nutrition_insight
+  
+  // Context and metadata
+  relatedMealIds: jsonb("related_meal_ids").$type<string[]>().default([]),
+  nutritionContext: jsonb("nutrition_context").$type<{
+    timeframe?: string,
+    metrics?: string[],
+    insights?: string[]
+  }>(),
+  
+  // Voice input
+  voiceTranscript: text("voice_transcript"),
+  voiceDuration: real("voice_duration"), // seconds
+  
+  // AI metadata
+  tokensUsed: integer("tokens_used"),
+  responseTime: real("response_time"), // seconds
+  confidence: real("confidence"), // 0-1
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  conversationIdIdx: index("chef_ai_messages_conversation_id_idx").on(table.conversationId),
+  roleIdx: index("chef_ai_messages_role_idx").on(table.role),
+  createdAtIdx: index("chef_ai_messages_created_at_idx").on(table.createdAt),
+}));
+
+// Enhanced Food Categories for Premium Recognition
+export const foodCategories = pgTable("food_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Category hierarchy
+  name: varchar("name").notNull(),
+  parentId: varchar("parent_id").references(() => foodCategories.id),
+  level: integer("level").default(0), // 0=main, 1=sub, 2=specific
+  
+  // Recognition capabilities
+  recognitionKeywords: jsonb("recognition_keywords").$type<string[]>().default([]),
+  supportedInputMethods: jsonb("supported_input_methods").$type<string[]>().default(['photo', 'text', 'voice', 'barcode']),
+  
+  // Premium features
+  isPremiumOnly: boolean("is_premium_only").default(false),
+  
+  // Metadata
+  description: text("description"),
+  exampleFoods: jsonb("example_foods").$type<string[]>().default([]),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  nameIdx: index("food_categories_name_idx").on(table.name),
+  parentIdx: index("food_categories_parent_idx").on(table.parentId),
+  levelIdx: index("food_categories_level_idx").on(table.level),
+  premiumIdx: index("food_categories_premium_idx").on(table.isPremiumOnly),
+}));
+
+// Premium Feature Access Tracking
+export const featureUsage = pgTable("feature_usage", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  // Feature tracking
+  featureName: varchar("feature_name").notNull(), // voice_logging, chef_ai, diet_plans, eco_tracking
+  usageCount: integer("usage_count").default(0),
+  
+  // Limits and quotas
+  dailyLimit: integer("daily_limit"), // null = unlimited
+  monthlyLimit: integer("monthly_limit"), // null = unlimited
+  dailyUsage: integer("daily_usage").default(0),
+  monthlyUsage: integer("monthly_usage").default(0),
+  
+  // Reset tracking
+  lastDailyReset: date("last_daily_reset"),
+  lastMonthlyReset: date("last_monthly_reset"),
+  
+  // Premium access
+  requiresPremium: boolean("requires_premium").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userFeatureIdx: unique("feature_usage_user_feature_idx").on(table.userId, table.featureName),
+  userIdIdx: index("feature_usage_user_id_idx").on(table.userId),
+  featureIdx: index("feature_usage_feature_idx").on(table.featureName),
+}));
+
+// Relations for premium features
+export const dietPlansRelations = relations(dietPlans, ({ one, many }) => ({
+  user: one(users, {
+    fields: [dietPlans.userId],
+    references: [users.id],
+  }),
+  meals: many(dietPlanMeals),
+  supplements: many(dietPlanSupplements),
+  lifestyle: many(dietPlanLifestyle),
+}));
+
+export const dietPlanMealsRelations = relations(dietPlanMeals, ({ one }) => ({
+  dietPlan: one(dietPlans, {
+    fields: [dietPlanMeals.dietPlanId],
+    references: [dietPlans.id],
+  }),
+}));
+
+export const chefAiConversationsRelations = relations(chefAiConversations, ({ one, many }) => ({
+  user: one(users, {
+    fields: [chefAiConversations.userId],
+    references: [users.id],
+  }),
+  messages: many(chefAiMessages),
+}));
+
+export const chefAiMessagesRelations = relations(chefAiMessages, ({ one }) => ({
+  conversation: one(chefAiConversations, {
+    fields: [chefAiMessages.conversationId],
+    references: [chefAiConversations.id],
+  }),
+}));
+
+export const foodCategoriesRelations = relations(foodCategories, ({ one, many }) => ({
+  parent: one(foodCategories, {
+    fields: [foodCategories.parentId],
+    references: [foodCategories.id],
+    relationName: 'parentCategory',
+  }),
+  children: many(foodCategories, {
+    relationName: 'childCategories',
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
@@ -775,3 +1070,21 @@ export type Achievement = typeof achievements.$inferSelect;
 export type InsertAchievement = typeof achievements.$inferInsert;
 export type UserAchievement = typeof userAchievements.$inferSelect;
 export type InsertUserAchievement = typeof userAchievements.$inferInsert;
+
+// Premium feature types
+export type DietPlan = typeof dietPlans.$inferSelect;
+export type InsertDietPlan = typeof dietPlans.$inferInsert;
+export type DietPlanMeal = typeof dietPlanMeals.$inferSelect;
+export type InsertDietPlanMeal = typeof dietPlanMeals.$inferInsert;
+export type DietPlanSupplement = typeof dietPlanSupplements.$inferSelect;
+export type InsertDietPlanSupplement = typeof dietPlanSupplements.$inferInsert;
+export type DietPlanLifestyle = typeof dietPlanLifestyle.$inferSelect;
+export type InsertDietPlanLifestyle = typeof dietPlanLifestyle.$inferInsert;
+export type ChefAiConversation = typeof chefAiConversations.$inferSelect;
+export type InsertChefAiConversation = typeof chefAiConversations.$inferInsert;
+export type ChefAiMessage = typeof chefAiMessages.$inferSelect;
+export type InsertChefAiMessage = typeof chefAiMessages.$inferInsert;
+export type FoodCategory = typeof foodCategories.$inferSelect;
+export type InsertFoodCategory = typeof foodCategories.$inferInsert;
+export type FeatureUsage = typeof featureUsage.$inferSelect;
+export type InsertFeatureUsage = typeof featureUsage.$inferInsert;

@@ -1,0 +1,142 @@
+✨ Key Features
+
+💬 Conversational Coaching – Ask questions about your meals or nutrition in natural language (text or voice).
+🍽️ Interactive Meal Cards – Get clickable meal cards in responses that take you straight to full nutrition details.
+📊 Timeline Insights – Discover eating patterns, nutrient trends, and meal quality over time.
+🧠 Personalized Nutrition Context – Understand not just what you ate, but how it affects your goals, health, and sustainability.
+🔥 Gamified Guidance – Earn XP and badges as ChefAI helps you make smarter choices.
+
+🚀 Getting Started
+Accessing ChefAI
+
+Open the MyFoodMatrix app
+
+Tap the ChefAI icon in the bottom navigation
+
+First-time users see a short intro on how ChefAI works
+
+Tap Continue to begin chatting with ChefAI
+
+Input Methods
+Method	How to Use	Best For
+Text	Type in the chat box	Quick, specific questions
+Voice	Tap 🎤 and speak	Hands-free or longer queries
+Suggested Prompts	Tap pre-made question cards	Discover insights quickly
+🤔 What You Can Ask ChefAI
+🔎 Pattern Analysis
+
+“What did I eat last week?”
+
+“How many times did I have fast food this month?”
+
+“When do I usually go over calories?”
+
+🥦 Nutrition Insights
+
+“Am I getting enough fiber?”
+
+“How has my protein intake changed this month?”
+
+“Which meals gave me the most vitamins?”
+
+⚖️ Meal Comparisons
+
+“Which had more protein, yesterday’s breakfast or today’s?”
+
+“Compare my last two dinners.”
+
+“Show my best vs worst meal this week.”
+
+🌍 Lifestyle Awareness
+
+“How does my weekend eating differ from weekdays?”
+
+“Which meals had the highest eco impact?”
+
+“Did I stay safe from allergens this week?”
+
+📋 Understanding Responses
+
+ChefAI replies with:
+
+Direct Answers – Plain-language insights + numbers where needed
+
+Meal Cards – Tap to open full nutrition/eco/safety view
+
+Nutritional Context – Explains why it matters (protein gap, excess sodium, high eco footprint)
+
+Follow-Up Prompts – Quick next questions you can ask
+
+🔧 Advanced Features
+📅 Timeline Analysis
+
+ChefAI can track:
+
+Recurring foods & habits
+
+Nutritional strengths/deficiencies
+
+Time-based eating patterns
+
+Progress toward calorie, macro, and eco goals
+
+🧠 Contextual Awareness
+
+The more you log, the smarter ChefAI gets:
+
+Learns your food preferences
+
+Understands your usual portion sizes
+
+Spots your nutrient challenges (fiber gaps, high sodium, etc.)
+
+Suggests personalized swaps to improve balance
+
+❓ FAQ
+
+General
+
+How is ChefAI different from the main scanner?
+ChefAI is interactive — instead of just logging, you can ask questions and compare insights.
+
+Does ChefAI need internet? → Yes, AI-powered responses require connection.
+
+How far back can ChefAI go? → All meals you’ve logged in MyFoodMatrix history.
+
+Using ChefAI Effectively
+
+Be specific: “Compare protein yesterday vs today” works better than “Compare meals.”
+
+Use timeframes: day/week/month.
+
+Tap meal cards to dive deeper.
+
+Technical
+
+Is my data private? → Yes. Conversations are encrypted and stored securely.
+
+Can I delete chats? → Yes, clear history anytime in settings.
+
+Does ChefAI count toward free scan limits? → No, conversations are unlimited.
+
+✅ Best Practices
+
+Scan meals regularly → more data = better insights.
+
+Ask trend-based questions → ChefAI shines at patterns, not one-off.
+
+Always tap through meal cards → detail view gives full nutrition + eco + safety.
+
+Try follow-up questions → makes insights deeper and more personal.
+
+🆚 Why ChefAI is Different
+
+Unlike MyFitnessPal (data logs) or Cronometer (raw nutrition tables), ChefAI feels like a personal dietitian:
+
+Talks back in human coaching style
+
+Adds eco + safety context (unique to MyFoodMatrix)
+
+Rewards you with XP, streaks, and achievements
+
+👉 Brutal truth: With this framing, ChefAI becomes the differentiator of MyFoodMatrix — not just logging, but coaching + insights + motivation.

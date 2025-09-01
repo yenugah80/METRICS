@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useLocalAuth";
-import { Home, Camera, ChefHat, TrendingUp, User, Mic, Sparkles } from "lucide-react";
+import { Home, Camera, ChefHat, TrendingUp, User, Mic, Sparkles, Target, BrainCircuit } from "lucide-react";
 
 export default function Navigation() {
   const { user, signOut } = useAuth();
@@ -14,8 +14,8 @@ export default function Navigation() {
   const mobileNavLinks = [
     { href: "/dashboard", label: "Home", icon: Home, requiresAuth: true },
     { href: "/camera", label: "Log Meal", icon: Camera, requiresAuth: true },
-    { href: "/recommendations", label: "AI Meals", icon: Sparkles, requiresAuth: true },
-    { href: "/recipes", label: "Recipes", icon: ChefHat, requiresAuth: true },
+    { href: "/diet-plan", label: "Diet Plan", icon: Target, requiresAuth: true },
+    { href: "/chef-ai", label: "ChefAI", icon: BrainCircuit, requiresAuth: true },
     { href: "/profile", label: "Profile", icon: User, requiresAuth: true },
   ];
 

@@ -1,0 +1,118 @@
+MyFoodMatrix App Overview
+Introduction
+
+MyFoodMatrix is an AI-powered nutrition tracking and lifestyle coaching app that goes beyond calorie counting. Available on Android and iOS, it helps you:
+
+Track meals with a photo, text, or voice.
+
+Get personalized nutrition + eco + safety insights instantly.
+
+Build habit-forming streaks and XP rewards through gamification.
+
+Achieve your health goals with guided diet planning and AI coaching.
+
+🌟 What is MyFoodMatrix?
+
+MyFoodMatrix combines computer vision + AI nutrition science with gamified health coaching.
+
+Snap a photo or describe your meal → instant breakdown of calories, macros, micros, safety alerts, and eco impact.
+
+Personalized goals adapt to weight management, fitness, or health conditions.
+
+Eco footprint scores and allergen detection make it a responsible health companion.
+
+🛠️ Key Features
+Feature	Free	Plus	Premium
+Meal Scanning (Photo/Text/Voice)	✅	✅	✅
+Basic Nutrition Tracking	✅	✅	✅
+Allergen & Safety Alerts	❌	✅	✅
+Eco Impact Scoring	❌	✅	✅
+ChefAI Chat (Interactive Q&A)	❌	✅	✅
+Custom Diet Plans	❌	❌	✅
+Advanced Insights & Reports	❌	❌	✅
+🎯 Health Goals Supported
+
+MyFoodMatrix provides custom plans and recommendations for:
+
+Weight Management: Weight Loss, Muscle Gain
+
+Conditions: Diabetes, PCOS, Pregnancy, Viral/Flu recovery
+
+Lifestyle: Keto, Mediterranean, High-Protein, Plant-Based
+
+⚡ New users get a 7-day free Premium trial to explore everything risk-free.
+
+🤖 Technology Behind MyFoodMatrix
+
+Computer Vision – Detects food items, portions, and mixed meals from images.
+
+AI & Machine Learning – Calculates macros, micros, safety scores, eco grades.
+
+Natural Language Processing – Powers ChefAI (meal chat coach).
+
+Gamified Analytics – XP, streaks, quests, and progress dashboards.
+
+👣 User Journey
+
+Download App → Android Play Store / iOS App Store
+
+Onboarding → Guided walkthrough of features
+
+Sign Up/Login → Mobile (India), Google, Apple ID
+
+Free Trial Offer → Try Premium for 7 days
+
+Log Meals → Scan by photo, text, or voice
+
+View Analysis → Nutrition + eco + safety insights
+
+Build Plan (Premium) → Personalized 28-day plans with recipes
+
+Earn XP & Achievements → Gamified progress toward goals
+
+📱 Main App Sections
+
+Home – Daily nutrition rings (calories, protein, carbs, fat), progress widgets, XP streaks.
+
+Meal Scan – Snap or record → get instant analysis with nutrition, safety, eco impact.
+
+ChefAI – Chat-based AI coach → ask meal timeline questions, compare nutrition, get personalized tips.
+
+Diet Plans (Premium) – 28-day adaptive diet plans with recipes + supplements.
+
+Profile – Manage account, subscription, and connect with support.
+
+🔗 Integration & Connectivity
+
+Health Apps: Sync with Google Fit / Apple Health.
+
+Social Sharing: Post meal grades and XP achievements.
+
+Cloud Backup: Your data syncs across devices.
+
+🔒 Privacy & Security
+
+End-to-end encryption for personal data.
+
+Anonymous tracking optional.
+
+Granular control over permissions (camera, location, notifications).
+
+One-click option to delete all personal data.
+
+💡 Support & Community
+
+In-app chat & email support → support@myfoodmatrix.app
+
+Connect with the MyFoodMatrix user community for tips, recipes, and streak challenges.
+
+⚡ Why MyFoodMatrix is Different:
+Unlike MyFitnessPal or Cronometer, MyFoodMatrix is not just a tracker. It’s a coach + motivator + health guardian, combining:
+
+Nutrition + Eco + Safety in one scan.
+
+Gamified progress (XP, streaks, quests).
+
+Personalized coaching (ChefAI).
+
+Plans that adapt to real life, not just numbers.
