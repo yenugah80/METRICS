@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { RecipeCard } from '@/components/chef-ai/RecipeCard';
 import { 
   Send, 
   Bot, 
@@ -356,102 +357,27 @@ export default function ChefAI() {
 
                               {/* Recipe Details Card */}
                               {(msg as any).recipeDetails && (
-                                <ResponseCard 
-                                  title={(msg as any).recipeDetails.recipeName}
-                                  icon={<Utensils className="w-5 h-5 text-green-600" />}
-                                  gradient="bg-gradient-to-br from-green-50 to-emerald-50"
-                                >
-                                  <div className="space-y-4">
-                                    {/* Recipe Meta */}
-                                    <div className="flex gap-6 text-sm text-gray-600">
-                                      <span className="flex items-center gap-1">
-                                        <Clock className="w-4 h-4" />
-                                        <strong>{(msg as any).recipeDetails.prepTime}</strong> prep
-                                      </span>
-                                      <span className="flex items-center gap-1">
-                                        <Clock className="w-4 h-4" />
-                                        <strong>{(msg as any).recipeDetails.cookTime}</strong> cook
-                                      </span>
-                                      <span className="flex items-center gap-1">
-                                        <User className="w-4 h-4" />
-                                        <strong>{(msg as any).recipeDetails.servings}</strong> servings
-                                      </span>
-                                    </div>
-
-                                    {/* Nutrition Overview */}
-                                    <div className="grid grid-cols-5 gap-2">
-                                      <NutritionBadge
-                                        label="Calories"
-                                        value={(msg as any).recipeDetails.nutritionPerServing.calories}
-                                        unit=""
-                                        color="text-green-600"
-                                        icon="🔥"
-                                      />
-                                      <NutritionBadge
-                                        label="Protein"
-                                        value={(msg as any).recipeDetails.nutritionPerServing.protein}
-                                        unit="g"
-                                        color="text-blue-600"
-                                        icon="💪"
-                                      />
-                                      <NutritionBadge
-                                        label="Carbs"
-                                        value={(msg as any).recipeDetails.nutritionPerServing.carbs}
-                                        unit="g"
-                                        color="text-purple-600"
-                                        icon="🌾"
-                                      />
-                                      <NutritionBadge
-                                        label="Fat"
-                                        value={(msg as any).recipeDetails.nutritionPerServing.fat}
-                                        unit="g"
-                                        color="text-orange-600"
-                                        icon="🥑"
-                                      />
-                                      <NutritionBadge
-                                        label="Fiber"
-                                        value={(msg as any).recipeDetails.nutritionPerServing.fiber}
-                                        unit="g"
-                                        color="text-teal-600"
-                                        icon="🌿"
-                                      />
-                                    </div>
-
-                                    {/* Ingredients Grid */}
-                                    <div className="bg-white/70 rounded-xl p-4">
-                                      <h5 className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-2">
-                                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                        Ingredients
-                                      </h5>
-                                      <div className="grid md:grid-cols-2 gap-2">
-                                        {(msg as any).recipeDetails.ingredients.map((ingredient: any, idx: number) => (
-                                          <div key={idx} className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2">
-                                            <span className="text-gray-700">{ingredient.amount} {ingredient.item}</span>
-                                            <span className="text-xs text-gray-500">{ingredient.calories}cal</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    {/* Instructions */}
-                                    <div className="bg-white/70 rounded-xl p-4">
-                                      <h5 className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-2">
-                                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                                        Instructions
-                                      </h5>
-                                      <ol className="space-y-2">
-                                        {(msg as any).recipeDetails.instructions.map((instruction: string, idx: number) => (
-                                          <li key={idx} className="text-sm text-gray-700 flex gap-3">
-                                            <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                              {idx + 1}
-                                            </span>
-                                            <span className="flex-1 pt-1">{instruction}</span>
-                                          </li>
-                                        ))}
-                                      </ol>
-                                    </div>
-                                  </div>
-                                </ResponseCard>
+                                <RecipeCard 
+                                  recipe={(msg as any).recipeDetails}
+                                  onSave={() => {
+                                    toast({
+                                      title: "Recipe Saved",
+                                      description: "Added to your saved recipes",
+                                    });
+                                  }}
+                                  onShare={() => {
+                                    toast({
+                                      title: "Recipe Shared",
+                                      description: "Link copied to clipboard",
+                                    });
+                                  }}
+                                  onAddToMealPlan={() => {
+                                    toast({
+                                      title: "Added to Meal Plan",
+                                      description: "Recipe added to your meal plan",
+                                    });
+                                  }}
+                                />
                               )}
                               
                               {/* Meal Analysis Cards */}
