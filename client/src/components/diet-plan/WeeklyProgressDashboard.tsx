@@ -10,7 +10,8 @@ import {
   Award, 
   Flame,
   Activity,
-  CheckCircle
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 
 interface DayProgress {
