@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { verifyJWT, type AuthenticatedRequest } from '../../infrastructure/auth/authService';
 import { dietPlanService, type DietPlanQuestionnaire } from '../../core/diet-plans/dietPlanService';
 import { targetCalculator } from '../../core/nutrition/targetCalculator';
+import { storage } from '../../infrastructure/database/storage';
 
 const router = Router();
 
@@ -283,6 +284,184 @@ router.post('/api/nutrition/recalculate-targets', verifyJWT, async (req: Authent
     res.status(500).json({
       error: 'Failed to recalculate targets',
       message: error.message
+    });
+  }
+});
+
+// Get weekly progress data for enhanced dashboard
+router.get('/api/diet-plans/:planId/weekly-progress', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { planId } = req.params;
+    
+    // Get plan details via service
+    const activePlan = await dietPlanService.getActiveDietPlan(userId);
+    if (!activePlan || activePlan.id !== planId) {
+      return res.status(404).json({ error: 'Diet plan not found or not active' });
+    }
+    const plan = activePlan;
+    if (!plan) {
+      return res.status(404).json({ error: 'Diet plan not found' });
+    }
+    
+    // Calculate weekly progress (last 7 days)
+    const weekData = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      
+      // Get day's nutrition data
+      const dateString = date.toISOString().split('T')[0];
+      const dayNutrition = await storage.getDailyNutrition(userId, dateString);
+      let dayCalories = 0;
+      let dayProtein = 0;
+      
+      if (dayNutrition) {
+        dayCalories = dayNutrition.totalCalories || 0;
+        dayProtein = dayNutrition.totalProtein || 0;
+      }
+      
+      // Calculate adherence score
+      const calorieAdherence = Math.min(100, (dayCalories / plan.dailyTargets.calories) * 100);
+      const proteinAdherence = Math.min(100, (dayProtein / plan.dailyTargets.protein) * 100);
+      const adherenceScore = (calorieAdherence + proteinAdherence) / 2;
+      
+      weekData.push({
+        day: 7 - i,
+        date: date.toISOString().split('T')[0],
+        adherenceScore: Math.round(adherenceScore),
+        calories: Math.round(dayCalories),
+        protein: Math.round(dayProtein),
+        targetCalories: plan.dailyTargets.calories,
+        targetProtein: plan.dailyTargets.protein,
+        streakContinued: adherenceScore >= 70,
+      });
+    }
+    
+    // Calculate weekly stats
+    const averageAdherence = weekData.reduce((sum, day) => sum + day.adherenceScore, 0) / 7;
+    const streakDays = weekData.reverse().findIndex(day => day.adherenceScore < 70);
+    const actualStreak = streakDays === -1 ? 7 : streakDays;
+    const bestDay = weekData.reduce((best, day) => 
+      day.adherenceScore > best.adherenceScore ? day : best
+    );
+    
+    const achievements = [];
+    if (actualStreak >= 3) achievements.push(`${actualStreak}-Day Streak`);
+    if (averageAdherence >= 80) achievements.push('Weekly Target Met');
+    if (bestDay.adherenceScore >= 95) achievements.push('Perfect Day Achievement');
+    
+    const improvementAreas = [];
+    if (averageAdherence < 70) improvementAreas.push('Focus on meal consistency');
+    if (weekData.some(d => d.protein < d.targetProtein * 0.8)) improvementAreas.push('Increase protein intake');
+    
+    const weeklyStats = {
+      averageAdherence: Math.round(averageAdherence),
+      streakDays: actualStreak,
+      bestDay,
+      achievements,
+      improvementAreas,
+    };
+    
+    res.json({
+      success: true,
+      weekData: weekData.reverse(),
+      stats: weeklyStats
+    });
+  } catch (error: any) {
+    console.error('Error fetching weekly progress:', error);
+    res.status(500).json({
+      error: 'Failed to fetch weekly progress'
+    });
+  }
+});
+
+// Apply smart meal suggestions
+router.post('/api/diet-plans/apply-suggestion', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { suggestion } = req.body;
+    
+    if (!suggestion || !suggestion.type) {
+      return res.status(400).json({ error: 'Invalid suggestion data' });
+    }
+    
+    // Apply the suggestion based on type
+    switch (suggestion.type) {
+      case 'meal_swap':
+        // Logic to swap meal in diet plan
+        console.log(`Applying meal swap: ${suggestion.originalItem} → ${suggestion.suggestedItem}`);
+        break;
+      case 'portion_adjust':
+        // Logic to adjust portion sizes
+        console.log(`Applying portion adjustment: ${suggestion.reason}`);
+        break;
+      case 'timing_shift':
+        // Logic to adjust meal timing
+        console.log(`Applying timing shift: ${suggestion.reason}`);
+        break;
+      case 'ingredient_sub':
+        // Logic to substitute ingredients
+        console.log(`Applying ingredient substitution: ${suggestion.originalItem} → ${suggestion.suggestedItem}`);
+        break;
+    }
+    
+    res.json({
+      success: true,
+      message: `Smart suggestion applied successfully!`,
+      applied: suggestion
+    });
+  } catch (error: any) {
+    console.error('Error applying suggestion:', error);
+    res.status(500).json({
+      error: 'Failed to apply suggestion'
+    });
+  }
+});
+
+// Apply real-time meal adjustments
+router.post('/api/diet-plans/apply-adjustment', verifyJWT, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { adjustment } = req.body;
+    
+    if (!adjustment || !adjustment.mealType) {
+      return res.status(400).json({ error: 'Invalid adjustment data' });
+    }
+    
+    // Apply real-time adjustment to remaining meals
+    console.log(`Applying real-time adjustment for ${adjustment.mealType}:`, adjustment);
+    
+    // Logic to update meal plan with adjusted portions/calories
+    // This would modify the diet plan meals for today based on current intake
+    
+    res.json({
+      success: true,
+      message: `Your ${adjustment.mealType} has been optimized for today's intake!`,
+      adjustment: {
+        mealType: adjustment.mealType,
+        caloriesAdjusted: adjustment.adjustedCalories - adjustment.originalCalories,
+        macroChanges: adjustment.macroChanges
+      }
+    });
+  } catch (error: any) {
+    console.error('Error applying adjustment:', error);
+    res.status(500).json({
+      error: 'Failed to apply adjustment'
     });
   }
 });

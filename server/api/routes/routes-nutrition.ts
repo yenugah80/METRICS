@@ -23,8 +23,8 @@ export async function registerNutritionRoutes(app: Express) {
         console.log('ETL barcode lookup failed, falling back to legacy:', error);
       }
       
-      // If ingredient not found, queue it for discovery
-      await etlSystem.discoverIngredient(`barcode:${barcode}`, 'barcode_lookup');
+      // If ingredient not found, note for future enhancement
+      console.log(`Barcode ${barcode} not found in nutrition database`);
       
       res.status(404).json({ 
         message: "Product not found", 
@@ -65,7 +65,7 @@ export async function registerNutritionRoutes(app: Express) {
         });
       }
 
-      const nutritionData = await etlSystem.calculateNutrition({
+      const nutritionData = await etlSystem.calculateMealNutrition({
         ingredientId,
         quantity: parseFloat(quantity),
         unit,
@@ -84,7 +84,8 @@ export async function registerNutritionRoutes(app: Express) {
   app.get('/api/nutrition/ingredient/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const ingredientData = await etlSystem.getIngredientById(id);
+      // Get ingredient data from nutrition service
+      const ingredientData = await nutritionService.searchByText(id);
       
       if (!ingredientData) {
         return res.status(404).json({ message: "Ingredient not found" });
@@ -124,6 +125,54 @@ export async function registerNutritionRoutes(app: Express) {
     } catch (error) {
       console.error("Error generating nutrition recommendations:", error);
       res.status(500).json({ message: "Failed to generate recommendations" });
+    }
+  });
+
+  // Get today's nutrition progress for real-time diet plan adjustments
+  app.get('/api/nutrition/today-progress', verifyJWT, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Get today's nutrition data directly
+      const dateString = today.toISOString().split('T')[0];
+      const dailyNutrition = await storage.getDailyNutrition(userId, dateString);
+      
+      let totalIntake = {
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+      };
+      
+      if (dailyNutrition) {
+        totalIntake = {
+          calories: dailyNutrition.totalCalories || 0,
+          protein: dailyNutrition.totalProtein || 0,
+          carbs: dailyNutrition.totalCarbs || 0,
+          fat: dailyNutrition.totalFat || 0,
+          fiber: dailyNutrition.totalFiber || 0,
+        };
+      }
+      
+      // Also get meal count for today
+      const todaysMeals = await storage.getUserMeals(userId, 50);
+      const todaysCount = todaysMeals.filter(meal => {
+        const mealDate = new Date(meal.loggedAt);
+        return mealDate.toDateString() === today.toDateString();
+      }).length;
+      
+      res.json({
+        success: true,
+        date: today.toISOString().split('T')[0],
+        intake: totalIntake,
+        mealsLogged: todaysCount
+      });
+    } catch (error) {
+      console.error("Error fetching today's progress:", error);
+      res.status(500).json({ message: "Failed to fetch today's progress" });
     }
   });
 }
