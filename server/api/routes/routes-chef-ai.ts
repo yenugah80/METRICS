@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { verifyJWT, type AuthenticatedRequest } from '../../infrastructure/auth/authService';
+import { adaptiveChefAI } from '../../core/chef-ai/adaptive-chef-ai';
 import { chefAiService, type ChefAiChatRequest } from '../../core/chef-ai/chefAiService';
 
 const router = Router();
@@ -34,7 +35,12 @@ router.post('/api/chef-ai/chat', verifyJWT, async (req: AuthenticatedRequest, re
       conversationId: validatedData.conversationId || undefined,
     };
 
-    const response = await chefAiService.processChat(chatRequest);
+    // Use new adaptive ChefAI service for intelligent responses
+    const response = await adaptiveChefAI.processAdaptiveChat(
+      userId, 
+      validatedData.message, 
+      validatedData.conversationId || undefined
+    );
     
     res.json({
       success: true,
