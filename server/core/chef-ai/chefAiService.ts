@@ -1240,7 +1240,7 @@ YOUR CURRENT SITUATION:
 - They're at ${Math.round((context.dailyTotals.totalCalories / context.userGoals.dailyCalories) * 100)}% of their calorie goal today
 - They've hit ${Math.round((context.dailyTotals.totalProtein / context.userGoals.dailyProtein) * 100)}% of their protein target
 - They've logged ${context.recentMeals.length} meals this week
-- ${context.userProfile?.allergens.length > 0 ? `Important: They can't have ${context.userProfile.allergens.join(', ')}` : ''}
+- ${context.userProfile?.allergens && context.userProfile.allergens.length > 0 ? `Important: They can't have ${context.userProfile.allergens.join(', ')}` : ''}
 
 JSON format:
 {
@@ -1543,7 +1543,7 @@ JSON format:
     try {
       await ragSystem.initialize();
     } catch (error) {
-      console.log('AI systems already initialized or initialization failed:', error.message);
+      console.log('AI systems already initialized or initialization failed:', (error as Error).message);
     }
   }
   
