@@ -1,5 +1,36 @@
 # 🚀 Last-Mile Production Hardening Checklist
 
+## 🔧 **PRE-DEPLOYMENT COMMANDS** (Run These First)
+
+```bash
+# 1. Install all dependencies and linting tools
+npm ci
+
+# 2. Run code quality checks
+npm run lint                    # ESLint validation
+npm run format:check           # Prettier formatting check
+npm run check                  # TypeScript type checking
+
+# 3. Run comprehensive tests
+npm run test:coverage          # Unit + integration tests with coverage
+npm run test:security          # Security-focused tests
+
+# 4. Database validation
+npm run db:push --force        # Sync schema to database
+
+# 5. Performance validation (requires running server)
+npm run dev &                  # Start server in background
+sleep 30                       # Wait for startup
+k6 run k6/smoke.js             # Run performance tests (p95 < 300ms target)
+
+# 6. Security scanning
+npm audit --audit-level moderate
+grep -r "sk-\|pk_" client/ server/ # Check for hardcoded secrets
+
+# 7. Build validation
+npm run build                  # Production build
+```
+
 ## ✅ **SECURITY HARDENING** (Critical)
 
 ### Authentication & Authorization
@@ -17,9 +48,12 @@
 ### Environment Security
 - [ ] All secrets are in environment variables (never in code)
 - [ ] `.env` files are in `.gitignore`
+- [ ] Runtime environment validation enabled (`validateEnvironment()`)
 - [ ] Admin IP whitelist configured if needed
 - [ ] HTTPS enabled in production
-- [ ] Security audit completed (`npm audit`)
+- [ ] Security audit completed (`npm audit --audit-level moderate`)
+- [ ] No hardcoded secrets in code (`grep -r "sk-\|pk_" client/ server/`)
+- [ ] CODEOWNERS file configured for critical path reviews
 
 ## ✅ **MONITORING & OBSERVABILITY** (Critical)
 
@@ -44,6 +78,10 @@
 - [ ] Database query performance tracked
 - [ ] Slow query detection configured
 - [ ] Analytics and user behavior tracking enabled
+- [ ] k6 performance tests passing (`k6 run k6/smoke.js`)
+  - [ ] p95 < 300ms for /api/meals, /api/stats/dashboard
+  - [ ] p95 < 5000ms for /api/chef-ai/chat
+  - [ ] Error rate < 10%
 
 ## ✅ **DATABASE OPTIMIZATION** (High Priority)
 

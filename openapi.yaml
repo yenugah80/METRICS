@@ -1,0 +1,400 @@
+openapi: 3.0.3
+info:
+  title: MyFoodMetrics API
+  description: AI-powered nutrition tracking and meal analysis platform
+  version: 1.0.0
+  contact:
+    name: MyFoodMetrics Support
+    email: support@myfoodmetrics.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000/api
+    description: Development server
+  - url: https://api.myfoodmetrics.com/api
+    description: Production server
+
+security:
+  - SessionAuth: []
+  - BearerAuth: []
+
+paths:
+  # Health and Status
+  /health:
+    get:
+      summary: Health check endpoint
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  # Authentication
+  /auth/user:
+    get:
+      summary: Get current user profile
+      tags: [Authentication]
+      security:
+        - SessionAuth: []
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+
+  /auth/logout:
+    post:
+      summary: User logout
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Successfully logged out
+
+  # Meals & Nutrition
+  /meals:
+    get:
+      summary: Get user's meals
+      tags: [Meals]
+      security:
+        - SessionAuth: []
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of meals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Meal'
+    post:
+      summary: Log a new meal
+      tags: [Meals]
+      security:
+        - SessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MealInput'
+      responses:
+        '201':
+          description: Meal created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meal'
+
+  /nutrition/today-progress:
+    get:
+      summary: Get today's nutrition progress
+      tags: [Nutrition]
+      security:
+        - SessionAuth: []
+      responses:
+        '200':
+          description: Today's nutrition progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NutritionProgress'
+
+  /nutrition/analyze:
+    post:
+      summary: Analyze food photo for nutrition
+      tags: [Nutrition]
+      security:
+        - SessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imageUrl:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: Nutrition analysis results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NutritionAnalysis'
+
+  # ChefAI
+  /chef-ai/chat:
+    post:
+      summary: Chat with ChefAI nutrition coach
+      tags: [ChefAI]
+      security:
+        - SessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "I need high-protein meal suggestions"
+                conversationId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: ChefAI response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChefAIResponse'
+
+  # Stats and Analytics  
+  /stats/dashboard:
+    get:
+      summary: Get user analytics dashboard
+      tags: [Stats]
+      security:
+        - SessionAuth: []
+      responses:
+        '200':
+          description: User dashboard analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+
+components:
+  securitySchemes:
+    SessionAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Meal:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        mealType:
+          type: string
+          enum: [breakfast, lunch, dinner, snack]
+        takenAt:
+          type: string
+          format: date-time
+        totalCalories:
+          type: number
+        totalProtein:
+          type: number
+        totalCarbs:
+          type: number
+        totalFat:
+          type: number
+
+    MealInput:
+      type: object
+      required:
+        - name
+        - mealType
+      properties:
+        name:
+          type: string
+        mealType:
+          type: string
+          enum: [breakfast, lunch, dinner, snack]
+        foods:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              quantity:
+                type: number
+              unit:
+                type: string
+
+    NutritionProgress:
+      type: object
+      properties:
+        targetCalories:
+          type: number
+        currentCalories:
+          type: number
+        targetProtein:
+          type: number
+        currentProtein:
+          type: number
+        targetCarbs:
+          type: number
+        currentCarbs:
+          type: number
+        targetFat:
+          type: number
+        currentFat:
+          type: number
+
+    NutritionAnalysis:
+      type: object
+      properties:
+        foods:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              calories:
+                type: number
+              protein:
+                type: number
+              carbs:
+                type: number
+              fat:
+                type: number
+        totalNutrition:
+          $ref: '#/components/schemas/NutritionSummary'
+        allergens:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+    NutritionSummary:
+      type: object
+      properties:
+        calories:
+          type: number
+        protein:
+          type: number
+        carbs:
+          type: number
+        fat:
+          type: number
+
+    ChefAIResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        conversationId:
+          type: string
+          format: uuid
+        message:
+          type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+        insights:
+          type: array
+          items:
+            type: string
+        followUpQuestions:
+          type: array
+          items:
+            type: string
+        responseTime:
+          type: number
+        adaptations:
+          type: object
+          properties:
+            goalProgress:
+              type: number
+            healthTrend:
+              type: string
+            sentiment:
+              type: string
+
+    Dashboard:
+      type: object
+      properties:
+        weeklyProgress:
+          type: object
+          properties:
+            calories:
+              type: array
+              items:
+                type: number
+            protein:
+              type: array
+              items:
+                type: number
+        achievements:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              earnedAt:
+                type: string
+                format: date-time
+        insights:
+          type: array
+          items:
+            type: string
+
+tags:
+  - name: Health
+    description: System health and status endpoints
+  - name: Authentication
+    description: User authentication and session management
+  - name: Meals
+    description: Meal logging and management
+  - name: Nutrition
+    description: Nutrition analysis and tracking
+  - name: ChefAI
+    description: AI-powered nutrition coaching
+  - name: Stats
+    description: Analytics and progress tracking

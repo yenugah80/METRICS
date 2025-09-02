@@ -1,0 +1,42 @@
+# Code Ownership and Review Requirements
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global fallback - requires at least one review
+* @yenugah80
+
+# Critical Backend Routes - require security-aware reviewers
+/server/api/routes/ @yenugah80 @core-reviewers
+/server/core/security.ts @yenugah80 @security-team
+/server/core/auth/ @yenugah80 @security-team
+
+# Database Schema - requires data architecture review
+/shared/schema.ts @yenugah80 @data-architects
+/server/storage.ts @yenugah80 @data-architects
+/drizzle.config.ts @yenugah80 @data-architects
+
+# Frontend Core Components - requires UX review
+/client/src/components/ @yenugah80 @frontend-lead
+/client/src/pages/ @yenugah80 @frontend-lead
+
+# Payment & Billing - requires finance team approval
+/server/api/routes/routes-stripe.ts @yenugah80 @finance-team @security-team
+/client/src/pages/subscribe.tsx @yenugah80 @finance-team
+
+# AI & ML Features - requires AI safety review
+/server/core/chef-ai/ @yenugah80 @ai-safety-team
+/server/services/nutrition.ts @yenugah80 @ai-safety-team
+
+# Configuration & Infrastructure - requires DevOps approval
+/.github/ @yenugah80 @devops-team
+/Dockerfile @yenugah80 @devops-team
+/docker-compose.yml @yenugah80 @devops-team
+
+# Documentation - requires technical writing review
+/README.md @yenugah80 @tech-writers
+/PRODUCTION_CHECKLIST.md @yenugah80 @tech-writers @devops-team
+/replit.md @yenugah80 @core-reviewers
+
+# Security-critical files - requires multiple approvals
+/SECURITY.md @yenugah80 @security-team @legal-team
+/.env.example @yenugah80 @security-team
+/server/core/security.ts @yenugah80 @security-team @core-reviewers

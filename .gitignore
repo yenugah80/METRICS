@@ -8,3 +8,37 @@ coverage/
 .env
 .env.*
 .DS_Store
+
+# Security sensitive files - never commit these
+*.pem
+*.key  
+*.cert
+test_cookies_real.txt
+
+# Performance test results
+k6-results.json
+k6-report.html
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.cache/
+*.cert
+test_cookies_real.txt
+
+# Performance test results
+k6-results.json
+k6-report.html
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.cache/

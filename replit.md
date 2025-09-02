@@ -1,29 +1,45 @@
 # Overview
 
+**CRITICAL AGENT SAFETY RULES:**
+- 🚫 **NEVER delete, rename, or overwrite ANY existing files**
+- 🚫 **NEVER modify shared/schema.ts without explicit user approval**
+- 🚫 **NEVER touch database configuration files (drizzle.config.ts)**
+- 🚫 **NEVER remove or restructure existing route files**
+- ✅ **ONLY add new files or edit existing files with user permission**
+- ✅ **ALWAYS preserve existing code architecture and patterns**
+
 MyFoodMatrics is an AI-powered nutrition tracking application that revolutionizes food logging through image recognition, barcode scanning, and voice input. The platform provides comprehensive nutritional analysis with personalized insights including diet compatibility, allergen detection, sustainability scoring, and recipe recommendations. Built as a freemium SaaS product with a free tier offering basic functionality and a premium subscription unlocking advanced features like voice logging, detailed sustainability metrics, and unlimited AI-generated recipes.
 
-# Recent Changes (September 1, 2025)
+# Recent Changes (September 2, 2025)
 
-## Major Technical Debt Remediation - Routes Architecture Refactoring
-- **COMPLETED**: Massive refactoring of server/api/routes/routes.ts from 2,631 lines to 1,499 lines (1,132-line reduction, 43% decrease)
-- **COMPLETED**: Established modular route architecture with 8+ specialized route modules:
-  - routes-food.ts: Food search, meal management, and meal swap functionality
-  - routes-nutrition.ts: Nutrition calculations and barcode lookup
-  - routes-gamification.ts: Achievement system and XP tracking
-  - routes-voice.ts: Voice logging and transcription endpoints
-  - routes-stripe.ts: Payment processing and subscription management
-  - routes-health.ts: Health recommendations and meal scoring
-  - routes-stats.ts: Analytics, progress tracking, and reporting
-  - routes-chatbot.ts, routes-chef-ai.ts, routes-diet-plans.ts, etc.
-- **COMPLETED**: Fixed critical TypeScript compilation errors in event-processor.ts
-- **COMPLETED**: Maintained complete server stability throughout aggressive refactoring with zero breaking changes
-- **NEXT TARGET**: Continue addressing remaining bloaters: shared/schema.ts (1,377 lines), chefAiService.ts (1,373 lines), storage.ts (1,193 lines)
+## Production-Ready Security & Quality Infrastructure (September 2, 2025)
+- **COMPLETED**: Production hardening with SECURITY.md, CODEOWNERS, LICENSE, and explicit agent safety rules
+- **COMPLETED**: Comprehensive CI/CD pipeline with GitHub Actions (lint, typecheck, test, build, k6 performance testing)
+- **COMPLETED**: Runtime environment validation with Zod schemas and structured configuration
+- **COMPLETED**: Quality gates: ESLint v9 flat config, Prettier, lint-staged, Husky pre-commit hooks
+- **COMPLETED**: Security infrastructure: secret scanning, audit automation, hardcoded credential detection
+- **COMPLETED**: Performance testing with k6 (p95<1000ms targets, <5% error rates)
+- **COMPLETED**: OpenAPI 3.0 specification for all API endpoints
+- **COMPLETED**: PRODUCTION_CHECKLIST.md with exact pre-deployment commands and validation steps
+
+## Previous Technical Debt Remediation
+- **COMPLETED**: Routes architecture refactoring from 2,631 to 1,499 lines (43% reduction)
+- **COMPLETED**: Modular route architecture with specialized modules (food, nutrition, gamification, voice, stripe, etc.)
+- **NEXT TARGET**: Address remaining code complexity in shared/schema.ts (1,377 lines)
 
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
 Preferred design aesthetic: Professional, trustworthy gradients with soft blue/teal color palette (similar to health/fitness apps).
 UI/UX preference: Clean, premium glassmorphism with subtle professional glow effects rather than vibrant cosmic colors.
+
+# Critical File Descriptions
+
+**drizzle.config.ts**: SOURCE OF TRUTH for database migrations. Changes here require `npm run db:push` and potential data migration. Never modify without understanding migration impact.
+
+**components.json**: Active shadcn/ui registry configuration. Used throughout codebase for component imports (@/components). Do not delete.
+
+**test_cookies.txt**: Safe empty file with only Netscape headers. No real credentials present.
 
 # System Architecture
 

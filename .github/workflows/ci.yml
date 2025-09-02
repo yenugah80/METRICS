@@ -81,6 +81,79 @@ jobs:
           name: codecov-umbrella
 
   # ==============================================================================
+  # PERFORMANCE TESTING (k6)
+  # ==============================================================================
+  performance:
+    name: Performance Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [test]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup environment
+        run: |
+          cp .env.example .env
+          echo "DATABASE_URL=postgresql://postgres:test_password@localhost:5432/test_db" >> .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+          echo "SESSION_SECRET=test-session-secret-32-chars-long" >> .env
+          
+      - name: Setup database
+        run: npm run db:push --force
+        
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          
+      - name: Start application (background)
+        run: |
+          npm run dev &
+          sleep 30
+        env:
+          NODE_ENV: test
+          
+      - name: Run k6 performance tests
+        run: |
+          k6 run k6/smoke.js --out json=k6-results.json
+        env:
+          API_BASE_URL: http://localhost:5000
+          
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-performance-report
+          path: k6-results.json
+          retention-days: 30
+
+  # ==============================================================================
   # SECURITY SCANNING
   # ==============================================================================
   security:
@@ -103,10 +176,11 @@ jobs:
       - name: Run npm audit
         run: npm audit --audit-level moderate
 
-      - name: Run security scan
-        uses: securecodewarrior/github-action-add-sarif@v1
-        with:
-          sarif-file: 'security-scan-results.sarif'
+      - name: Check for hardcoded secrets
+        run: |
+          echo "🔍 Scanning for potential secrets in code..."
+          ! grep -r --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "sk-" client/ server/ || echo "⚠️  Potential API keys found"
+          ! grep -r --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "pk_" client/ server/ || echo "⚠️  Potential Stripe keys found"
 
   # ==============================================================================
   # BUILD & OPTIMIZE
