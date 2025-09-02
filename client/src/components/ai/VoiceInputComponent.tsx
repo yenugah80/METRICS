@@ -57,13 +57,11 @@ const VoiceInputComponent: React.FC = () => {
   // Process voice input mutation
   const processVoiceMutation = useMutation({
     mutationFn: async (audioData: string) => {
-      return apiRequest('/api/ai/voice-input', {
-        method: 'POST',
-        body: { audioData }
-      });
+      return apiRequest('POST', '/api/ai/voice-input', { audioData });
     },
-    onSuccess: (data) => {
-      setVoiceAnalysis(data.data.voice_analysis);
+    onSuccess: async (response) => {
+      const data = await response.json();
+      setVoiceAnalysis(data.voice_analysis);
       queryClient.invalidateQueries({ queryKey: ['/api/ai/insights'] });
     },
     onError: (error) => {
