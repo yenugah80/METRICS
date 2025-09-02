@@ -12,8 +12,8 @@ import { z } from 'zod';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 15000, // 15 second timeout for performance
-  maxRetries: 1
+  timeout: 8000, // 8 second timeout for fast chat responses
+  maxRetries: 0 // No retries for speed
 });
 
 // Medical-Grade Nutrition Analysis Tools - No Fabrication, Tool-Verified Only
@@ -952,23 +952,14 @@ Return JSON format:
           },
           {
             role: "user",
-            content: `USER STATUS:
-Progress: ${progressPercent}% of daily goal (${context.dailyTotals.totalCalories}/${context.userGoals.dailyCalories} calories)
-Remaining: ${remainingCalories} calories, ${proteinRemaining}g protein
-Activity: ${context.recentMeals.length} meals logged this week
-
-CONVERSATION CONTEXT:
-${historyContext}
-
-CURRENT REQUEST: ${userMessage}
-
-IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating phrases from conversation history.`
+            content: `${historyContext ? `Previous: ${historyContext}\n` : ''}User asks: ${userMessage}`
           }
         ],
-        tools: CHEF_AI_TOOLS,
-        tool_choice: "auto", // Let AI decide when to use tools
+        // Disable complex tool calling for faster responses
+        // tools: CHEF_AI_TOOLS,
+        // tool_choice: "auto",
         response_format: { type: "json_object" }, // Force JSON format
-        max_tokens: 800 // Increased to prevent JSON cutoff
+        max_tokens: 400 // Optimized for speed and conciseness
       });
       
       let response = completion.choices[0].message;
@@ -1030,8 +1021,12 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
         // First parse JSON
         const rawResponse = JSON.parse(responseContent);
         
-        // Then validate with Zod schema
-        parsedResponse = aiResponseSchema.parse(rawResponse);
+        // Simple validation for streamlined response
+        parsedResponse = {
+          response: rawResponse.response || "I'm here to help with your nutrition goals!",
+          insights: rawResponse.insights || [],
+          followUpQuestions: rawResponse.followUpQuestions || []
+        };
         
       } catch (error) {
         console.error('JSON parsing/validation error:', error);
@@ -1042,22 +1037,8 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
         
         parsedResponse = {
           response: fallbackMessage,
-          response_card: {
-            title: "ChefAI Response",
-            summary: fallbackMessage,
-            macros: { calories_kcal: null, protein_g: null, carbs_g: null, fat_g: null },
-            micros: { fiber_g: null, iron_mg: null, calcium_mg: null, vitamin_c_mg: null },
-            portion_size: null,
-            allergens: [],
-            diet_flags: { keto: false, vegan: false, vegetarian: false, gluten_free: false, pcos_friendly: false },
-            ingredients: [],
-            preparation_steps: [],
-            health_benefits: [],
-            warnings: ["Response format issue - please try again"]
-          },
           insights: ["I had trouble formatting this response properly"],
-          followUpQuestions: ["Would you like to ask about something specific?"],
-          confidence: 0.3
+          followUpQuestions: ["Would you like to ask about something specific?"]
         };
       }
       const responseTime = Date.now() - startTime;
@@ -1067,10 +1048,9 @@ IMPORTANT: Use the user's ACTUAL numbers above in your response. Avoid repeating
       return {
         message: parsedResponse.response || "I'm here to help with your nutrition goals!",
         responseType: requestType,
-        responseCard: parsedResponse.response_card || null,
         insights: parsedResponse.insights || [],
         followUpQuestions: parsedResponse.followUpQuestions || [],
-        confidence: parsedResponse.confidence || 0.8,
+        confidence: 0.8,
         tokensUsed: completion.usage?.total_tokens ?? null,
         responseTime
       };
@@ -1214,53 +1194,19 @@ JSON format:
 }`;
 
       default: // 'general'
-        return `Hey! I'm ChefAI, your friendly food and nutrition buddy! 🍽️ Think of me like ChatGPT, but I'm obsessed with helping you eat well and feel amazing. ${userStats}${personalProfile}${dietPlanContext}
+        return `You're ChefAI, a helpful nutrition coach. Be conversational and specific.
 
-MY PERSONALITY:
-• I'm enthusiastic about food but never pushy - just genuinely excited to help you discover delicious, healthy options
-• I talk like a knowledgeable friend who happens to love nutrition science 
-• I ask follow-up questions because I'm curious about your preferences and goals
-• I explain things simply without being condescending - no complex jargon unless you want it
-• I suggest alternatives when something doesn't work for you, because flexibility is key
+User's goals: ${context.userGoals.dailyCalories} calories, ${context.userGoals.dailyProtein}g protein daily
+Today: ${context.dailyTotals.totalCalories} calories, ${context.dailyTotals.totalProtein}g protein logged
+${context.userProfile?.allergens && context.userProfile.allergens.length > 0 ? `Allergies: ${context.userProfile.allergens.join(', ')}` : ''}
 
-WHAT I'M GREAT AT:
-✨ Turning "what should I eat?" into specific, doable meal ideas
-✨ Making nutrition feel simple and enjoyable, not overwhelming  
-✨ Adapting recipes for allergies, preferences, or whatever's in your fridge
-✨ Explaining why certain foods make you feel better (when you're curious!)
-✨ Finding that perfect balance between healthy and actually tasty
+Provide specific meal suggestions with ingredients and portions. Be helpful, not chatty.
 
-HOW I CHAT:
-• I use conversational language like "That sounds delicious!" or "Ooh, I have some ideas for you!"
-• I ask follow-up questions because I'm genuinely curious about your preferences
-• When you're struggling, I offer specific next steps that feel totally doable
-• I celebrate your wins, big and small, because progress is progress!
-
-YOUR CURRENT SITUATION:
-- They're at ${Math.round((context.dailyTotals.totalCalories / context.userGoals.dailyCalories) * 100)}% of their calorie goal today
-- They've hit ${Math.round((context.dailyTotals.totalProtein / context.userGoals.dailyProtein) * 100)}% of their protein target
-- They've logged ${context.recentMeals.length} meals this week
-- ${context.userProfile?.allergens && context.userProfile.allergens.length > 0 ? `Important: They can't have ${context.userProfile.allergens.join(', ')}` : ''}
-
-JSON format:
+Respond in JSON:
 {
-  "response": "Enthusiastic, friendly response like I'm genuinely excited to help with whatever they need - think supportive friend who happens to know a lot about nutrition",
-  "response_card": {
-    "title": "Personalized Topic",
-    "summary": "How this relates to their specific goals and progress",
-    "macros": {"calories_kcal": null, "protein_g": null, "carbs_g": null, "fat_g": null},
-    "micros": {"fiber_g": null, "iron_mg": null, "calcium_mg": null, "vitamin_c_mg": null},
-    "portion_size": null,
-    "allergens": [],
-    "diet_flags": {"keto": false, "vegan": false, "vegetarian": false, "gluten_free": false, "pcos_friendly": false},
-    "ingredients": [],
-    "preparation_steps": [],
-    "health_benefits": ["Benefits specific to their health goals"],
-    "warnings": []
-  },
-  "insights": ["Personalized insight using their actual data and progress"],
-  "followUpQuestions": ["Want meal ideas?", "Need help with goals?"],
-  "confidence": 0.9
+  "response": "Specific, actionable answer with meal suggestions",
+  "insights": ["One helpful insight"],
+  "followUpQuestions": ["One relevant question"]
 }`;
     }
   }
