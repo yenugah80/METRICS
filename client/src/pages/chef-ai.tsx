@@ -939,7 +939,9 @@ export default function ChefAI() {
                       <Button
                         variant="outline"
                         className="rounded-xl border-gray-200 hover:bg-gray-100 px-4"
+                        onClick={() => window.location.href = '/ai-insights?tab=voice'}
                         data-testid="button-voice-input"
+                        title="Advanced Voice AI with Semantic Mapping"
                       >
                         <Mic className="w-4 h-4 text-gray-600" />
                       </Button>

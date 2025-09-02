@@ -5,6 +5,9 @@ import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
 import { DeterministicNutritionService } from '../nutrition/deterministicNutrition';
 import { checkDietCompatibility } from '../nutrition/diet-compatibility';
 import { mvpFoodAnalysis } from '../nutrition/mvp-food-analysis';
+import { aiMemoryStore } from '../ai/memory-store';
+import { ragSystem } from '../ai/rag-system';
+import { voiceSemanticMapping } from '../ai/voice-semantic-mapping';
 import { z } from 'zod';
 
 const openai = new OpenAI({
@@ -1535,6 +1538,180 @@ JSON format:
     }
   }
 
+  // Initialize AI systems
+  private async initializeAISystems() {
+    try {
+      await ragSystem.initialize();
+    } catch (error) {
+      console.log('AI systems already initialized or initialization failed:', error.message);
+    }
+  }
+  
+  // Check if query should use enhanced RAG system
+  private shouldUseRAG(userMessage: string): boolean {
+    const ragTriggers = [
+      'recommend', 'suggest', 'help me choose', 'what should',
+      'better option', 'healthier', 'compare', 'similar',
+      'based on my', 'considering my', 'given my'
+    ];
+    
+    return ragTriggers.some(trigger => 
+      userMessage.toLowerCase().includes(trigger)
+    );
+  }
+  
+  // Generate enhanced response using RAG system
+  private async generateRAGResponse(
+    userMessage: string,
+    userId: string,
+    context: NutritionContext,
+    history: any[]
+  ): Promise<any> {
+    try {
+      const ragResponse = await ragSystem.generateContextualResponse(
+        userMessage,
+        userId,
+        context
+      );
+      
+      // Track interaction patterns for learning
+      await aiMemoryStore.trackUserPattern(
+        userId,
+        'eating_habit',
+        `asked_${this.detectRequestType(userMessage)}`,
+        { source: 'chat', enhanced_rag: true }
+      );
+      
+      return {
+        response: ragResponse.response || "I'd love to help you with that! Let me provide some personalized suggestions based on your preferences and goals.",
+        responseType: ragResponse.responseType || 'analysis',
+        structuredData: ragResponse.structuredData || {},
+        insights: ragResponse.insights || [],
+        followUpQuestions: ragResponse.followUpQuestions || [],
+        rag_metadata: ragResponse.rag_metadata,
+        personalization_level: 'enhanced'
+      };
+    } catch (error) {
+      console.error('RAG response error:', error);
+      // Fallback to standard response
+      return await this.generateContextualResponse(userMessage, context, history, userId);
+    }
+  }
+  
+  // Process voice input with semantic mapping
+  async processVoiceInput(audioData: string, userId: string): Promise<any> {
+    try {
+      const voiceAnalysis = await voiceSemanticMapping.processVoiceInput(audioData, userId);
+      
+      // Generate contextual response based on voice analysis
+      const response = await this.generateVoiceBasedResponse(voiceAnalysis, userId);
+      
+      return {
+        ...response,
+        voice_analysis: voiceAnalysis,
+        processing_type: 'voice_semantic'
+      };
+    } catch (error) {
+      console.error('Voice processing error:', error);
+      throw new Error('Failed to process voice input');
+    }
+  }
+  
+  // Generate response based on voice semantic analysis
+  private async generateVoiceBasedResponse(voiceAnalysis: any, userId: string): Promise<any> {
+    const context = await this.gatherNutritionContext(userId);
+    
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini", // Fast model for voice responses
+        messages: [
+          {
+            role: "system",
+            content: `You are ChefAI responding to voice input. The user shared: 
+
+FOODS DETECTED: ${voiceAnalysis.foods.map((f: any) => `${f.quantity} ${f.unit} ${f.name}`).join(', ')}
+MOOD/CONTEXT: ${voiceAnalysis.meal_context.mood} (${voiceAnalysis.meal_context.satisfaction_level}/1.0 satisfaction)
+HEALTH INTENT: ${voiceAnalysis.nutritional_intent.health_goal}
+PORTION AWARENESS: ${voiceAnalysis.nutritional_intent.portion_awareness}
+
+Respond with encouragement and specific suggestions based on their voice input.`
+          },
+          {
+            role: "user",
+            content: "Please respond to my voice food log with personalized feedback and suggestions."
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 600
+      });
+      
+      const response = JSON.parse(completion.choices[0].message.content || '{}');
+      
+      return {
+        response: response.response || "Thanks for sharing that voice log! I can see some interesting patterns in your eating habits.",
+        responseType: 'voice_analysis',
+        structuredData: {
+          voice_insights: {
+            detected_foods: voiceAnalysis.foods,
+            emotional_context: voiceAnalysis.meal_context,
+            health_awareness: voiceAnalysis.nutritional_intent,
+            semantic_understanding: voiceAnalysis.semantic_tags
+          }
+        },
+        insights: response.insights || [
+          `Detected ${voiceAnalysis.foods.length} food items with ${Math.round(voiceAnalysis.processing_metadata.food_extraction_confidence * 100)}% confidence`,
+          `Your satisfaction level was ${voiceAnalysis.meal_context.satisfaction_level}/1.0`,
+          `Health goal focus: ${voiceAnalysis.nutritional_intent.health_goal}`
+        ],
+        followUpQuestions: response.followUpQuestions || [
+          "How did that meal make you feel?",
+          "Would you like similar meal suggestions?",
+          "What would you change about this meal?"
+        ]
+      };
+    } catch (error) {
+      console.error('Voice response generation error:', error);
+      throw error;
+    }
+  }
+  
+  // Get AI learning insights for frontend display
+  async getAIInsights(userId: string): Promise<any> {
+    try {
+      const [personalizedInsights, voiceInsights, collaborativeRecs] = await Promise.all([
+        aiMemoryStore.generatePersonalizedInsights(userId),
+        voiceSemanticMapping.getVoiceInsights(userId),
+        aiMemoryStore.getCollaborativeRecommendations(userId)
+      ]);
+      
+      const userPatterns = await aiMemoryStore.getPatterns(userId);
+      const knowledgeStats = ragSystem.getKnowledgeStats();
+      
+      return {
+        personalized_insights: personalizedInsights,
+        voice_learning: voiceInsights,
+        collaborative_suggestions: collaborativeRecs,
+        learning_patterns: {
+          total_patterns: userPatterns.length,
+          eating_habits: userPatterns.filter(p => p.patternType === 'eating_habit').length,
+          preferences: userPatterns.filter(p => p.patternType === 'preference').length,
+          health_trends: userPatterns.filter(p => p.patternType === 'health_trend').length
+        },
+        knowledge_base: knowledgeStats,
+        ai_capabilities: {
+          memory_store: true,
+          rag_system: true,
+          voice_mapping: true,
+          collaborative_filtering: true,
+          pattern_recognition: true
+        }
+      };
+    } catch (error) {
+      console.error('Error generating AI insights:', error);
+      return { error: 'Unable to generate AI insights' };
+    }
+  }
+  
   // Generate suggested conversation starters based on user's recent activity
   async generateSuggestedQuestions(userId: string): Promise<string[]> {
     try {

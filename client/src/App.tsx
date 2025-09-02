@@ -18,6 +18,7 @@ import PricingPage from "@/pages/pricing";
 import DietPlanQuestionnaire from "@/pages/diet-plan-questionnaire";
 import DietPlan from "@/pages/diet-plan";
 import ChefAI from "@/pages/chef-ai";
+import AIInsightsPage from "@/pages/ai-insights";
 import NotFound from "@/pages/not-found";
 import { initPerformanceOptimizations } from "@/lib/performance";
 
@@ -134,6 +135,11 @@ function App() {
                 <Route path="/chef-ai">
                   <ProtectedRoute>
                     <ChefAI />
+                  </ProtectedRoute>
+                </Route>
+                <Route path="/ai-insights">
+                  <ProtectedRoute>
+                    <AIInsightsPage />
                   </ProtectedRoute>
                 </Route>
                 <Route component={NotFound} />

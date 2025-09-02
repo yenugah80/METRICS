@@ -41,6 +41,7 @@ import { registerStatsRoutes } from './routes-stats';
 import { registerFoodRoutes } from './routes-food';
 import { gamificationRoutes } from './routes-gamification';
 import { registerNutritionRoutes } from './routes-nutrition';
+import { registerAIFeaturesRoutes } from './routes-ai-features';
 
 // Security and Performance Imports
 // Security imports temporarily disabled
@@ -1072,6 +1073,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Stats and achievements routes
   await registerStatsRoutes(app);
+  
+  // Advanced AI Features routes (Memory Store, RAG, Voice Mapping)
+  await registerAIFeaturesRoutes(app);
 
   // Gamification system routes
   app.use(gamificationRoutes);
