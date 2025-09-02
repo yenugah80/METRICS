@@ -1,13 +1,20 @@
 # 🚀 MyFoodMetrics Local Setup Guide
 
-## ⚠️ IMPORTANT: This is NOT a Flutter Project
-This is a **React web application** with Express.js backend. Do NOT install Flutter or try to run Flutter commands.
+## 🎯 Project Overview
+This project has **TWO APPLICATIONS**:
+1. **Web App**: React frontend with Express.js backend
+2. **Mobile App**: Flutter app for iOS/Android
+
+Both apps share the same Express.js backend API.
 
 ## 📋 Prerequisites
 
 ### Required Software
 - **Node.js 18+** (download from nodejs.org)
 - **PostgreSQL** (download from postgresql.org)
+- **Flutter SDK** (download from flutter.dev)
+- **Android Studio** (for Android development)
+- **Xcode** (for iOS development, Mac only)
 - **Git** (for cloning the repository)
 
 ### Required API Keys (Get These First!)
@@ -69,12 +76,31 @@ CORS_ORIGIN="http://localhost:5000"
 npm run db:push
 ```
 
-### 5. Start Development Server
+### 5. Start Backend Server
 ```bash
 npm run dev
 ```
+**✅ Backend Success:** API running at http://localhost:5000
 
-**✅ Success:** Open http://localhost:5000 in your browser
+### 6. Start Mobile App (Optional)
+```bash
+cd flutter_nutrition_app
+flutter pub get
+flutter run
+```
+**✅ Mobile Success:** App launches on connected device/emulator
+
+## 📱 Two Ways to Use the App
+
+### Option A: Web Browser
+- Run `npm run dev`
+- Open http://localhost:5000
+- Full web experience
+
+### Option B: Mobile App  
+- Run `npm run dev` (backend must be running)
+- Run `flutter run` in flutter_nutrition_app/
+- Native mobile experience
 
 ## 🐛 Common Issues
 
