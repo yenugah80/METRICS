@@ -1,0 +1,168 @@
+ROLE: You are a senior full-stack engineer and release manager.
+
+TOP-LEVEL RULES (MUST FOLLOW)
+- DO NOT delete, rename, or overwrite ANY existing files in this repository. Create everything inside a new folder: `myfoodmetrics-mobile/`.
+- No mock/demo/dummy code and no fabricated values. If external data (e.g., USDA/OpenFoodFacts) is unavailable, return `status:"partial"` with `reason` and `warnings`—never fake numbers.
+- Everything must run end-to-end locally and be deployable to AWS using ONLY environment variables. Include tests + CI with artifacts.
+
+TECH STACK
+- Mobile: React Native (Expo, TypeScript), Expo Router, Zustand + MMKV (offline cache), TanStack Query, React Native Reanimated + Gesture Handler, vector-icons, date-fns. Modern, trendy UI (rounded cards, subtle gradients, large typographic headers, dark mode).
+- Backend: FastAPI (Python 3.11+), SQLAlchemy 2.x, Alembic, Pydantic v2, httpx, passlib[argon2], python-jose, boto3 (S3), uvicorn + gunicorn.
+- DB: PostgreSQL (dev via Docker, prod on AWS RDS). Use UUID primary keys, proper indexes, and constraints.
+- AWS: RDS Postgres, S3 for media, ECS Fargate (or Elastic Beanstalk) for API. IaC optional; at minimum, provide Dockerfiles and deploy steps.
+- Tooling: OpenAPI generated client for mobile, pytest + coverage, Jest + React Native Testing Library, k6 for perf smoke, GitHub Actions CI.
+
+ARCHITECTURE & LAYOUT (CREATE EXACTLY)
+myfoodmetrics-mobile/
+  backend/
+    app/
+      api/
+        v1/               # versioned routers
+          auth.py
+          profile.py
+          meals.py
+          ai.py
+          stats.py
+          uploads.py
+          recipes.py
+      core/
+        config.py         # pydantic-settings (env validation + defaults)
+        security.py       # JWT access/refresh, password hashing (argon2)
+        deps.py           # db session, current_user dep
+        logging.py        # structlog/json logging + request IDs
+        rate_limit.py     # simple token-bucket (ip+user)
+        s3.py             # presigned upload helpers
+      db/
+        base.py           # SQLAlchemy Base registry
+        session.py        # async engine + session maker
+        models/           # SQLAlchemy models (see SCHEMA)
+        migrations/       # Alembic migrations
+      schemas/            # Pydantic DTOs (strict mode)
+      services/
+        nutrition.py      # deterministic macro/micro computations
+        chefai.py         # tool-first LLM wrapper (no fabrication)
+        insights.py       # “business_summary / key_insights / actions” pipeline
+        recipes.py        # import + normalize recipes
+      main.py             # FastAPI app factory; mount /api/v1; middlewares
+    tests/
+      unit/ api/ e2e/
+    Dockerfile
+    pyproject.toml
+    alembic.ini
+    README.md
+  mobile/
+    app/                 # Expo Router (tabs)
+      (tabs)/index.tsx   # Tabs: Home, LogMeal, DietPlan, ChefAI, Profile, Dashboard
+      home.tsx
+      log-meal.tsx
+      camera.tsx
+      diet-plan.tsx
+      chef-ai.tsx
+      profile.tsx
+      dashboard.tsx
+    components/
+      MealCard.tsx  MetricsRing.tsx  BadgeGrid.tsx  InsightList.tsx  SwapCard.tsx
+    lib/
+      api.ts          # typed client from OpenAPI
+      store.ts        # Zustand + MMKV (persist/offline)
+      query.ts        # TanStack Query setup
+      validators.ts   # Zod schemas for client validation
+      theme.ts        # modern, trendy tokens (spacing, radii, shadows)
+      i18n.ts         # simple i18n scaffold
+    assets/ fonts/
+    app.json  package.json  tsconfig.json  eas.json  README.md
+  infra/
+    docker-compose.yml    # local: postgres, minio(s3), backend, k6 net
+    github-actions.yml    # lint, typecheck, tests, build, k6 smoke
+    k6/smoke.js
+  .env.example            # all required variables with comments
+
+DATABASE SCHEMA (PostgreSQL via SQLAlchemy + Alembic; include indexes + FKs)
+- users(id UUID PK, email CITEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at TIMESTAMPTZ, updated_at TIMESTAMPTZ)
+- profiles(user_id UUID PK FK->users, name TEXT, age INT, height_cm NUMERIC, weight_kg NUMERIC, gender TEXT, activity_level TEXT, dietary_prefs JSONB, allergies TEXT[], conditions TEXT[], locale TEXT)
+- meals(id UUID PK, user_id UUID FK->users, name TEXT, meal_type TEXT CHECK IN ('breakfast','lunch','dinner','snack'), taken_at TIMESTAMPTZ, photo_url TEXT, source TEXT CHECK IN ('camera','manual','import'), created_at TIMESTAMPTZ)
+- meal_items(id UUID PK, meal_id UUID FK->meals ON DELETE CASCADE, food_name TEXT, brand TEXT, quantity NUMERIC, unit TEXT, calories NUMERIC, protein_g NUMERIC, carbs_g NUMERIC, fat_g NUMERIC, micros JSONB)
+- suggestions(id UUID PK, meal_id UUID NULL FK->meals, user_id UUID FK->users, type TEXT CHECK IN ('meal_swap','portion_adjust','timing_shift','ingredient_sub'), reason TEXT, payload JSONB, score NUMERIC, created_at TIMESTAMPTZ)
+- goals(id UUID PK, user_id UUID FK->users, calories_target NUMERIC, protein_target NUMERIC, carbs_target NUMERIC, fat_target NUMERIC, start_date DATE, end_date DATE, active BOOL)
+- achievements(id UUID PK, user_id UUID FK->users, kind TEXT, earned_at TIMESTAMPTZ)
+- ai_conversations(id UUID PK, user_id UUID FK->users, mode TEXT CHECK IN ('coach','analyze','swap','diet_check','eco','voice_log'), created_at TIMESTAMPTZ)
+- ai_messages(id UUID PK, convo_id UUID FK->ai_conversations ON DELETE CASCADE, role TEXT CHECK IN ('user','assistant','tool'), content TEXT, data JSONB, created_at TIMESTAMPTZ)
+- recipes(id UUID PK, user_id UUID NULL FK->users, title TEXT, source_url TEXT, servings INT, ingredients JSONB, steps JSONB, nutrition JSONB, imported_at TIMESTAMPTZ)
+- uploads(id UUID PK, user_id UUID FK->users, kind TEXT CHECK IN ('photo','audio'), s3_key TEXT, mime TEXT, created_at TIMESTAMPTZ)
+Indexes: (users.email), (meals.user_id, taken_at DESC), (meal_items.meal_id), (suggestions.user_id, created_at DESC).
+
+API CONTRACT (FastAPI under `/api/v1`)
+Auth:
+  POST /auth/signup {email, password} → 201
+  POST /auth/login {email, password} → {access, refresh}
+  POST /auth/refresh {refresh} → {access}
+  GET  /auth/me → current user
+Profile:
+  GET/PUT /profile
+Meals:
+  GET  /meals?date=YYYY-MM-DD
+  POST /meals  (manual or after analysis)
+  PUT  /meals/{id}
+  DELETE /meals/{id}
+Uploads:
+  POST /uploads/presign {kind, contentType} → {url, fields, key}
+ChefAI (single entry):
+  POST /chef-ai/chat {mode:'coach'|'analyze'|'swap'|'diet_check'|'eco'|'voice_log', message?, meal?, voiceBlobKey?}
+Stats:
+  GET /stats/daily?date=YYYY-MM-DD → {targets, actuals, badges, insights}
+Recipes:
+  POST /recipes/import {url|json} → normalized recipe
+
+MIDDLEWARE & SECURITY (backend/app/main.py)
+- CORS allow-list from env; strict JSON body size limits; GZip.
+- Structured logging (json) with request_id correlation.
+- Global exception normalizer → `{status, error, details}`.
+- JWT auth (access 15m, refresh 7d). Rate-limit by IP+user for /chef-ai/chat.
+- OpenAPI served at /api/v1/docs. Enable request/response validation (pydantic) and 422 errors with clear fields.
+
+SERVICES (tool-first, no fabrication)
+- nutrition.py: compute macros/micros deterministically; unknown micros → `null` + `warnings`.
+- chefai.py: call deterministic tools (nutrition, allergen, eco) before LLM; redact PII, include `sources` array in responses; log tool latency.
+- insights.py: produce documents shaped like screenshots:
+  {
+    "business_summary": "...",
+    "quick_wins": ["..."],
+    "key_insights": [{"insight":"...", "timeline":"...", "action_required":"...", "business_impact":"...", "supporting_data":"..."}]
+  }
+- recipes.py: import & normalize from URL or JSON (ingredients, steps, nutrition).
+
+MOBILE APP (Expo + TypeScript; modern, trendy UI)
+- Tabs: Home, Log Meal, Diet Plan, ChefAI, Profile, Dashboard.
+- Home: greeting, today’s calories ring, quick actions (Scan, Log, ChefAI), latest suggestions.
+- Log Meal: manual entry form; live macro breakdown; barcode input; “Save” with optimistic update.
+- Camera: capture → S3 presigned upload → POST /chef-ai/chat(mode:'analyze') → show Results Card (macros/micros, allergen flags, Smart Swaps).
+- Diet Plan: targets editor; weekly trends mini-charts; “quick wins” chips.
+- ChefAI: chat with mode chips; tool cards render in-thread; messages persisted offline.
+- Profile: demographics, allergies, conditions, dietary prefs; sign-out.
+- Dashboard: 7-day charts (calories & protein), badges earned, InsightList (as in screenshots).
+- Theming: theme.ts with radii (xl/2xl), soft shadows, subtle gradients; dark mode; haptics; pull-to-refresh. All inputs have accessible labels.
+
+TESTING & CI
+- Backend: pytest + httpx; coverage ≥70% (≥80% for services). Include contract tests for all endpoints.
+- Mobile: Jest + RN Testing Library; test Log Meal flow and ChefAI render.
+- Perf: `infra/k6/smoke.js` → 50 VUs, 3m; thresholds p95 < 300ms for /meals, /stats/daily, /chef-ai/chat. Commit report JSON.
+- GitHub Actions: lint, typecheck, build, pytest, Jest, k6 smoke. Upload artifacts (coverage, k6, OpenAPI JSON).
+
+LOCAL RUN & DEPLOY
+- `docker compose up --build` → Postgres + MinIO + backend.
+- `cd mobile && npm i && npx expo start` → iOS/Android dev.
+- EAS build configured (eas.json) with env vars; README explains iOS/Android signing, and AWS deploy for backend (Dockerfile + ECS/EB steps).
+
+ACCEPTANCE CHECKLIST (self-verify before finishing)
+- [ ] No changes outside `myfoodmetrics-mobile/`.
+- [ ] `docker compose up` boots API + DB + MinIO; `/api/v1/health` returns 200.
+- [ ] Expo app tabs render; Log Meal creates & persists; offline cache works.
+- [ ] Camera → upload → analyze returns JSON with macros/micros and any allergen flags + “smart swaps”.
+- [ ] ChefAI chat produces tool-first responses with `sources` and NO fabricated numbers.
+- [ ] Dashboard shows weekly charts + insights shaped like screenshots.
+- [ ] k6 p95 < 300ms for target endpoints; artifacts committed under `infra/k6/`.
+- [ ] OpenAPI JSON committed; mobile client generated from it.
+- [ ] Alembic migrations create all tables; README has precise envs and commands.
+
+IF ANY STEP FAILS
+- STOP. Do not stub or fake outputs. Report root cause, exact file(s), and propose two safe fixes. Never delete existing repo files.
