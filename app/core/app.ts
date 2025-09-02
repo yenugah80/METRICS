@@ -70,11 +70,37 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
+// ============================================================================
+// FRONTEND SERVING - Critical for user preview
+// ============================================================================
+
+// Serve static assets in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('dist/public'));
+}
+
+// Vite dev server integration for development
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    const { createViteDevServer } = await import('../../server/createViteDevServer.js');
+    app.use(createViteDevServer());
+  } catch (err) {
+    console.warn('Vite dev server not available, serving built files');
+    app.use(express.static('dist/public'));
+  }
+}
+
+// Catch-all for client-side routing (React Router)
+app.get('*', (req, res) => {
+  // Both production and development use dist/public after build
+  res.sendFile('dist/public/index.html', { root: '.' });
+});
+
+// API 404 handler (only for API routes)
+app.use('/api/*', (req, res) => {
   res.status(404).json({ 
     success: false, 
-    error: 'Route not found' 
+    error: 'API route not found' 
   });
 });
 
