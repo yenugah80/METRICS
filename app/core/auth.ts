@@ -7,6 +7,9 @@ import { db } from './database';
 import { users } from '../types/schema';
 import { eq } from 'drizzle-orm';
 
+// Import session types
+import '../types/session';
+
 export class AuthService {
   async login(req: Request, res: Response) {
     try {
@@ -19,7 +22,9 @@ export class AuthService {
       };
 
       // Store in session
-      req.session.user = mockUser;
+      if (req.session) {
+        req.session.user = mockUser;
+      }
 
       // Upsert user in database
       await db.insert(users)

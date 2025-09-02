@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { simpleChefAI } from '../core/simple-ai';
 
+// Import session types
+import '../types/session';
+
 const router = Router();
 
 // ============================================================================

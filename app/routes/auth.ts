@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { auth } from '../core/auth';
 
+// Import session types
+import '../types/session';
+
 const router = Router();
 
 // ============================================================================
